@@ -17,6 +17,12 @@
 | Deploy | Vercel (web), Render or Fly.io (astro-engine) |
 | Telemetry | Vercel Analytics + Supabase logs + custom `analytics_events` table |
 
+## Supabase environment rule
+
+We are using a hosted Supabase project (in-browser) instead of Docker and local Supabase.
+Database connection is set via `DATABASE_URL` in `.env`.
+Example connection string: `postgresql://postgres.woefztezxjrkdpkmxdnt:[YOUR-PASSWORD]@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres`
+
 ## Repo layout
 
 ```
@@ -108,7 +114,7 @@ Key rules:
 2. `web/` validates + geocodes place (Mapbox or Nominatim — see env below).
 3. `web/` inserts `birth_profiles` row with `status = 'processing'`.
 4. `web/` calls `astro-engine` `/profile` with resolved lat/lon/tz/ayanamsha.
-5. Engine returns full `ChartSnapshot` (D1, D9, Moon, planets, houses, Vimshottari dasha, current transits).
+5. Engine returns full `ChartSnapshot` (D1, Bhava, Moon, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11, D12, D16, D20, D24, D27, D30, D40, D45, D60, planets, houses, Vimshottari dasha, current transits).
 6. `web/` stores `chart_snapshots` row + flips `birth_profiles.status = 'ready'`.
 7. (Phase 05) Derived-feature job enqueued — precomputes topic bundles.
 

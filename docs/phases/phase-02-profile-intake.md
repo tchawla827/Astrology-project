@@ -40,7 +40,7 @@ Per [../data-model.md](../data-model.md) `BirthProfile`:
 
 Time input supports both 12h (with AM/PM) and 24h; store as 24h.
 
-If confidence = unknown, skip the time field but force `birth_time = '12:00:00'` server-side and mark the chart snapshot with `birth_time_confidence = 'unknown'`. All time-sensitive downstream features (Lagna, D9, dasha) render with a "low confidence" banner (phases 03, 09).
+If confidence = unknown, skip the time field but force `birth_time = '12:00:00'` server-side and mark the chart snapshot with `birth_time_confidence = 'unknown'`. All time-sensitive downstream features (Lagna, Bhava, divisional charts, dasha) render with a "low confidence" banner (phases 03, 09).
 
 ### Place autocomplete
 

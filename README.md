@@ -48,3 +48,12 @@ pytest -q
 - `astro-engine/`: FastAPI service for chart calculations. It is stateless and does not access the database.
 
 Copy `.env.example` to the relevant local env files before running services.
+
+## Supabase
+
+Use a hosted Supabase project for database, auth, and storage verification.
+
+```bash
+cd web
+npx supabase db push --db-url "$DATABASE_URL"
+```

@@ -32,14 +32,14 @@ Grouped by module. Each feature points at the phase that owns it. The phase file
 
 | Feature | Phase |
 |---|---|
-| D1 / D9 / Moon chart viewer | 04 |
+| Full chart catalog viewer (D1, Bhava, Moon, D2-D60 supported set) | 04 |
 | North / South chart style toggle | 04 |
 | Simple / Technical view toggle | 04 |
 | Planet drilldown (sign, house, dignity, retrograde, combustion) | 04 |
 | House drilldown (lord, occupants, aspects) | 04 |
 | Yoga list with detection notes | 04 |
-| Compare D1 vs D9 side-by-side | 04 |
-| Additional D-charts (D10, D7, D12, D60 etc.) | Post-MVP |
+| Compare any two supported charts side-by-side | 04 |
+| Chart grouping: Base views / Classical divisional charts / Common extras | 04 |
 
 ## Life areas
 
@@ -110,7 +110,7 @@ Grouped by module. Each feature points at the phase that owns it. The phase file
 
 - Compatibility module
 - Remedies module (mantras, donations, discipline)
-- Full divisional chart library (D10/D12/D30/D60 deep drilldown)
+- Advanced interpretive deep dives for the full chart library
 - Notifications and alerts (dasha change, transit shift)
 - Saved insights / bookmarks / journaling
 - Rectification assistant
