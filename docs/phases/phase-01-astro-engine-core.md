@@ -7,7 +7,7 @@
 
 ## Goal
 
-Make `astro-engine` actually compute Vedic astrology: D1, D9, Moon chart, Vimshottari dasha, transits, and a minimal yoga set — all through documented endpoints that `web/` can call.
+Make `astro-engine` actually compute Vedic astrology: D1, D9, Moon chart, Vimshottari dasha, transits, and a comprehensive yoga set — all through documented endpoints that `web/` can call.
 
 ## Deliverables
 

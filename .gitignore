@@ -1,3 +1,20 @@
 .claude/
 .codex/
 graphify-out/
+
+# Local dependencies and build outputs
+node_modules/
+web/node_modules/
+web/.next/
+web/coverage/
+astro-engine/.venv/
+astro-engine/.pytest_cache/
+astro-engine/.mypy_cache/
+astro-engine/.ruff_cache/
+astro-engine/*.egg-info/
+
+# Local secrets
+.env
+.env.local
+web/.env.local
+astro-engine/.env
