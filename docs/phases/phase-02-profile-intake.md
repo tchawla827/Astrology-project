@@ -1,6 +1,6 @@
 # Phase 02 — Profile Intake
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** 00, 01
 **Scope:** M
 **Recommended model:** `claude-sonnet-4-6` — standard web dev: form validation, geocoding, Supabase writes, polling flow.

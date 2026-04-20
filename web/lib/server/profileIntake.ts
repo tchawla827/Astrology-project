@@ -1,4 +1,5 @@
 import { z } from "zod";
+import tzLookup from "tz-lookup";
 
 const AyanamshaSchema = z.enum(["lahiri", "raman", "kp"]);
 const BirthTimeConfidenceSchema = z.enum(["exact", "approximate", "unknown"]);
@@ -82,19 +83,9 @@ export function normalizeProfileSubmission(input: unknown, now = new Date()): No
 }
 
 export function resolveTimezoneFromCoordinates(latitude: number, longitude: number) {
-  if (latitude >= 6 && latitude <= 38 && longitude >= 68 && longitude <= 98) {
-    return "Asia/Kolkata";
+  try {
+    return tzLookup(latitude, longitude);
+  } catch {
+    return "UTC";
   }
-  if (latitude >= 24 && latitude <= 50 && longitude >= -126 && longitude <= -66) {
-    return longitude < -100 ? "America/Los_Angeles" : longitude < -85 ? "America/Chicago" : "America/New_York";
-  }
-  if (latitude >= 49 && latitude <= 61 && longitude >= -8 && longitude <= 2) {
-    return "Europe/London";
-  }
-  if (latitude >= -44 && latitude <= -10 && longitude >= 112 && longitude <= 154) {
-    return longitude >= 140 ? "Australia/Sydney" : "Australia/Perth";
-  }
-
-  return "UTC";
 }
-
