@@ -15,6 +15,11 @@ const protectedRoutes = [
   "/daily",
   "/panchang",
   "/profile",
+  "/welcome",
+  "/intent",
+  "/confidence",
+  "/birth-details",
+  "/generating",
 ];
 
 export async function middleware(request: NextRequest) {
