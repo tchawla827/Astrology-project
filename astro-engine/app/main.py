@@ -2,12 +2,13 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from app.routes import dasha, health, panchang, profile, transits
+from app.routes import charts, dasha, health, panchang, profile, transits
 from app.versioning import ENGINE_VERSION
 
 app = FastAPI(title="astri-astro-engine", version=ENGINE_VERSION)
 app.include_router(health.router)
 app.include_router(profile.router)
+app.include_router(charts.router)
 app.include_router(dasha.router)
 app.include_router(transits.router)
 app.include_router(panchang.router)

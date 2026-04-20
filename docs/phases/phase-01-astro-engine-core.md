@@ -1,6 +1,6 @@
 # Phase 01 — Astro Engine Core
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** 00
 **Scope:** L
 **Recommended model:** `claude-opus-4-7` — domain-critical: Vedic ayanamsha math, divisional chart formulas, Vimshottari dasha arithmetic, golden-test assertions. Errors here break the entire product; accuracy matters more than speed.
@@ -86,12 +86,12 @@ export const astro = {
 
 ## Acceptance criteria
 
-- [ ] `pytest -q` passes with zero warnings. Every golden-test assertion green.
-- [ ] `ruff check` + `mypy --strict app` pass.
-- [ ] Hitting `POST /profile` with the fixture birth details returns a response that round-trips through `ChartSnapshotSchema` on the web side.
-- [ ] `web/lib/astro/client.ts` methods return fully typed responses; `pnpm typecheck` passes.
-- [ ] Engine rejects requests without `X-Astro-Secret` with 401.
-- [ ] `/profile` responds in < 600ms p95 on a local run.
+- [x] `pytest -q` passes with zero warnings. Every golden-test assertion green.
+- [x] `ruff check` + `mypy --strict app` pass.
+- [x] Hitting `POST /profile` with the fixture birth details returns a response that round-trips through `ChartSnapshotSchema` on the web side.
+- [x] `web/lib/astro/client.ts` methods return fully typed responses; `pnpm typecheck` passes.
+- [x] Engine rejects requests without `X-Astro-Secret` with 401.
+- [x] `/profile` responds in < 600ms p95 on a local run.
 
 ## Out of scope
 

@@ -1,3 +1,13 @@
+import type { ZodType } from "zod";
+
+import {
+  ChartSchema,
+  ChartSnapshotSchema,
+  DashaTimelineSchema,
+  PanchangSchema,
+  TransitSummarySchema,
+} from "@/lib/schemas";
+
 export type Ayanamsha = "lahiri" | "raman" | "kp";
 
 export interface BirthProfile {
@@ -86,12 +96,15 @@ export interface TransitSummary {
 
 export interface YogaEntry {
   name: string;
-  confidence: number;
+  confidence: "low" | "medium" | "high";
   source_charts: string[];
-  notes: string;
+  notes: string[];
 }
 
 export interface ChartSnapshot {
+  id?: string;
+  birth_profile_id?: string;
+  computed_at?: string;
   engine_version: string;
   summary: {
     lagna: string;
@@ -105,7 +118,7 @@ export interface ChartSnapshot {
   yogas: YogaEntry[];
   dasha: DashaSummary;
   transits: TransitSummary;
-  lagna_longitude_deg: number;
+  lagna_longitude_deg?: number;
 }
 
 export interface DashaTimeline {
@@ -122,15 +135,21 @@ export interface PanchangResponse {
   date: string;
   latitude: number;
   longitude: number;
-  tithi: { name: string; fraction_left: number };
-  nakshatra: { name: string; fraction_left: number };
-  yoga: { name: string; fraction_left: number };
-  karana: { name: string; fraction_left: number };
+  tithi: { name: string; fraction_left: number } | { name: string; end_time: string };
+  nakshatra: { name: string; fraction_left: number } | { name: string; end_time: string };
+  yoga: { name: string; fraction_left: number } | { name: string; end_time: string };
+  karana: { name: string; fraction_left: number } | { name: string; end_time: string };
   vaara: string;
   sunrise: string;
   sunset: string;
-  ayanamsha_deg: number;
-  sidereal_time: string;
+  ayanamsha_deg?: number;
+  sidereal_time?: string;
+  muhurta_windows?: Array<{
+    name: string;
+    start: string;
+    end: string;
+    kind: "auspicious" | "inauspicious";
+  }>;
 }
 
 export interface AstroEngineErrorBody {
@@ -158,6 +177,7 @@ interface CallOptions {
 async function callAstroEngine<TResponse>(
   path: string,
   body: unknown,
+  schema: ZodType<TResponse>,
   opts: CallOptions = {},
 ): Promise<TResponse> {
   const baseUrl = opts.baseUrl ?? process.env.ASTRO_ENGINE_URL;
@@ -194,25 +214,35 @@ async function callAstroEngine<TResponse>(
     throw new AstroEngineError(message, response.status, code, details);
   }
 
-  return (await response.json()) as TResponse;
+  const parsed = schema.safeParse(await response.json());
+  if (!parsed.success) {
+    throw new AstroEngineError(
+      `Astro engine response validation failed for ${path}.`,
+      502,
+      "INVALID_ENGINE_RESPONSE",
+      parsed.error.flatten(),
+    );
+  }
+
+  return parsed.data;
 }
 
 export async function generateProfile(body: ProfileRequest, opts?: CallOptions) {
-  return callAstroEngine<ChartSnapshot>("/profile", body, opts);
+  return callAstroEngine<ChartSnapshot>("/profile", body, ChartSnapshotSchema, opts);
 }
 
 export async function getChart(chartKey: string, body: ChartRequest, opts?: CallOptions) {
-  return callAstroEngine<ChartResponse>(`/charts/${chartKey}`, body, opts);
+  return callAstroEngine<ChartResponse>(`/charts/${chartKey}`, body, ChartSchema, opts);
 }
 
 export async function getDasha(body: DashaRequest, opts?: CallOptions) {
-  return callAstroEngine<DashaTimeline>("/dasha", body, opts);
+  return callAstroEngine<DashaTimeline>("/dasha", body, DashaTimelineSchema, opts);
 }
 
 export async function getTransits(body: TransitRequest, opts?: CallOptions) {
-  return callAstroEngine<TransitSummary>("/transits", body, opts);
+  return callAstroEngine<TransitSummary>("/transits", body, TransitSummarySchema, opts);
 }
 
 export async function getPanchang(body: PanchangRequest, opts?: CallOptions) {
-  return callAstroEngine<PanchangResponse>("/panchang", body, opts);
+  return callAstroEngine<PanchangResponse>("/panchang", body, PanchangSchema, opts);
 }
