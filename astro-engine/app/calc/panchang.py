@@ -8,7 +8,7 @@ import swisseph as swe
 
 from . import ayanamsha, ephemeris
 from .constants import VEDIC_WEEKDAY_NAMES
-from .nakshatra import nakshatra_index, nakshatra_name
+from .nakshatra import nakshatra_name
 
 TITHI_NAMES_SUKLA = (
     "Pratipada",
@@ -179,7 +179,6 @@ def compute_panchang(
     tithi_name, tithi_left = _tithi(sun_lon, moon_lon)
     yoga_name, yoga_left = _yoga(sun_lon, moon_lon)
     karana_name, karana_left = _karana(sun_lon, moon_lon)
-    nak_idx = nakshatra_index(moon_lon)
     nak_name = nakshatra_name(moon_lon)
     weekday_idx = local_midnight.weekday()  # Mon=0..Sun=6
     python_to_vedic = (1, 2, 3, 4, 5, 6, 0)  # Mon→Moon(1) ... Sun→Sun(0)

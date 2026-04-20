@@ -71,7 +71,9 @@ def test_panchang_endpoint(monkeypatch: MonkeyPatch) -> None:
     assert body["date"] == "2026-04-20"
     assert "name" in body["tithi"]
     assert "name" in body["nakshatra"]
-    assert body["vaara"] in {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}
+    assert body["vaara"] in {
+        "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+    }
 
 
 def test_invalid_input_returns_400(monkeypatch: MonkeyPatch) -> None:

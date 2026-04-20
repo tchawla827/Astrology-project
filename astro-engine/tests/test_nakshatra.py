@@ -15,7 +15,8 @@ def test_uttara_phalguni_boundary() -> None:
 
 
 def test_pada_progresses_through_nakshatra() -> None:
-    # Uttara Phalguni pada boundaries inside nakshatra: 0°-3.33°, 3.33°-6.66°, 6.66°-10°, 10°-13.33°.
+    # Uttara Phalguni pada boundaries inside nakshatra:
+    # 0°-3.33°, 3.33°-6.66°, 6.66°-10°, 10°-13.33°.
     # Nakshatra starts at 146.666°.
     assert pada(148.0) == 1
     assert pada(151.0) == 2

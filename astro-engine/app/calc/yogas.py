@@ -136,7 +136,6 @@ def detect_neechabhanga(
         if DEBILITATION_SIGN.get(planet) != sign:
             continue
         debil_lord = SIGN_LORDS[sign]
-        exalt_planet = None  # we don't import EXALTATION_SIGN here; check via inverse
         from .constants import EXALTATION_SIGN
 
         exalt_sign = EXALTATION_SIGN.get(planet)
@@ -154,7 +153,10 @@ def detect_neechabhanga(
                         name="Neechabhanga Raja Yoga",
                         confidence="medium",
                         source_charts=["D1"],
-                        notes=[f"{planet} debilitated in {sign}; cancelled by {c} in kendra {house}"],
+                        notes=[
+                            f"{planet} debilitated in {sign}; "
+                            f"cancelled by {c} in kendra {house}"
+                        ],
                     )
                 )
                 break

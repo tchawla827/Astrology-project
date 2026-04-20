@@ -32,7 +32,7 @@ def julian_day(dt_utc: datetime) -> float:
         raise ValueError("julian_day requires a timezone-aware datetime")
     utc = dt_utc.astimezone(UTC)
     hour = utc.hour + utc.minute / 60 + (utc.second + utc.microsecond / 1e6) / 3600
-    return swe.julday(utc.year, utc.month, utc.day, hour)
+    return float(swe.julday(utc.year, utc.month, utc.day, hour))
 
 
 def local_to_utc(date_str: str, time_str: str, tz_name: str) -> datetime:
