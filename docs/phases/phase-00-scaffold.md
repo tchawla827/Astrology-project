@@ -109,12 +109,12 @@ HMAC dependency reads `X-Astro-Secret` and compares to `os.environ["ASTRO_ENGINE
 ## Acceptance criteria
 
 - [x] `cd web && pnpm dev` boots and `/login` renders.
-- [ ] A new signup creates matching row in `user_profiles`. (Implemented in migration trigger; blocked locally without Supabase CLI/project.)
+- [ ] A new signup creates matching row in `user_profiles`. (Implemented in migration trigger; verify against the hosted Supabase project.)
 - [x] Protected `/app/(app)/dashboard` redirects to `/login` when signed out.
 - [x] `cd astro-engine && uvicorn app.main:app --reload` boots and `GET /health` returns 200 with `engine_version`.
 - [x] `POST /health` without `X-Astro-Secret` returns 401. (Even though health is GET — confirm HMAC dep works on a throwaway protected route.)
 - [x] All entity Zod schemas compile. `pnpm typecheck` passes.
-- [ ] `supabase migration up` applies cleanly against a fresh DB. (Blocked locally: Supabase CLI is not installed.)
+- [ ] `npx supabase db push --db-url "$DATABASE_URL"` applies cleanly against the hosted Supabase project.
 - [ ] CI passes on push. (Workflow is configured; not run locally.)
 
 ## Out of scope
@@ -128,7 +128,7 @@ HMAC dependency reads `X-Astro-Secret` and compares to `os.environ["ASTRO_ENGINE
 
 1. `pnpm --filter web dev` (or `cd web && pnpm dev`) — visit `/login`, sign up, land on `/dashboard` placeholder.
 2. `cd astro-engine && uvicorn app.main:app --reload` — `curl localhost:8000/health` returns JSON with engine_version.
-3. `supabase db push` against local Supabase — all tables exist with RLS enabled (`\d+ public.birth_profiles` in psql shows the RLS line).
+3. `npx supabase db push --db-url "$DATABASE_URL"` against the hosted Supabase project — all tables exist with RLS enabled (`\d+ public.birth_profiles` in psql shows the RLS line).
 
 ## After completing
 

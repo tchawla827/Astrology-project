@@ -41,7 +41,11 @@ Generate a full `ChartSnapshot` from birth details.
   "latitude": 29.3909,
   "longitude": 76.9635,
   "ayanamsha": "lahiri",
-  "include_charts": ["D1", "D9", "Moon"]
+    "include_charts": [
+      "D1", "Bhava", "Moon",
+      "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10", "D11", "D12",
+      "D16", "D20", "D24", "D27", "D30", "D40", "D45", "D60"
+    ]
 }
 ```
 
@@ -51,7 +55,30 @@ Generate a full `ChartSnapshot` from birth details.
 {
   "engine_version": "astro_engine_v1",
   "summary": { "lagna": "...", "moon_sign": "...", "nakshatra": "...", "pada": 3 },
-  "charts": { "D1": {...}, "D9": {...}, "Moon": {...} },
+  "charts": {
+    "D1": {...},
+    "Bhava": {...},
+    "Moon": {...},
+    "D2": {...},
+    "D3": {...},
+    "D4": {...},
+    "D5": {...},
+    "D6": {...},
+    "D7": {...},
+    "D8": {...},
+    "D9": {...},
+    "D10": {...},
+    "D11": {...},
+    "D12": {...},
+    "D16": {...},
+    "D20": {...},
+    "D24": {...},
+    "D27": {...},
+    "D30": {...},
+    "D40": {...},
+    "D45": {...},
+    "D60": {...}
+  },
   "planetary_positions": [...],
   "aspects": [...],
   "yogas": [...],
@@ -60,7 +87,13 @@ Generate a full `ChartSnapshot` from birth details.
 }
 ```
 
-Chart keys supported by phase 01: `D1`, `D9`, `Moon`. Phase 2+ adds `D10`, `D7`, `D12`, `D60`, `Bhava`.
+Chart keys supported by the product:
+
+- **Base views:** `D1`, `Bhava`, `Moon`.
+- **Classical divisional charts:** `D2`, `D3`, `D4`, `D7`, `D9`, `D10`, `D12`, `D16`, `D20`, `D24`, `D27`, `D30`, `D40`, `D45`, `D60`.
+- **Common extras:** `D5`, `D6`, `D8`, `D11`.
+
+Every chart key must be accepted by `POST /charts/:key`. `/profile` should compute the full supported set unless `include_charts` narrows the response.
 
 ### `POST /charts/:key`
 
@@ -172,12 +205,25 @@ Use sidereal longitude of the ascendant at birth datetime, converted with ayanam
 - Dignity: exaltation/debilitation signs, moolatrikona, own sign, friend/enemy using standard Jyotish tables.
 - Rahu/Ketu: mean node. Ketu is always exactly opposite Rahu.
 
-### Divisional charts
+### Chart catalog
+
+Supported chart keys are grouped by product role:
+
+| Group | Keys | Role |
+|---|---|---|
+| Base views | `D1`, `Bhava`, `Moon` | Primary chart reading, house-level reading, Chandra Lagna reading |
+| Classical divisional charts | `D2`, `D3`, `D4`, `D7`, `D9`, `D10`, `D12`, `D16`, `D20`, `D24`, `D27`, `D30`, `D40`, `D45`, `D60` | Standard Vedic varga library |
+| Common extras | `D5`, `D6`, `D8`, `D11` | Useful extended analysis charts |
+
+Implementation rules:
 
 - **D1 (Rashi):** sign placement as-is.
-- **D9 (Navamsa):** each 30° sign divided into 9 parts of 3°20'. Starting sign varies by movable/fixed/dual.
+- **Bhava:** house-centered view derived from the selected house system. MVP uses whole-sign houses; if a future house system is added, Bhava is the chart that changes.
 - **Moon chart:** D1 but rotated so Moon's sign becomes house 1.
-- Keep divisional logic in `calc/vargas.py` with a single function per chart key. Golden tests use Panipat 1995-06-07 23:54 as a known chart.
+- **D9 (Navamsa):** each 30° sign divided into 9 parts of 3°20'. Starting sign varies by movable/fixed/dual.
+- All varga logic lives in `calc/vargas.py` behind a registry keyed by chart key. Do not scatter chart formulas across routes or UI code.
+- `POST /charts/:key` returns `UNSUPPORTED_CHART` only for keys outside the supported catalog above.
+- Golden tests use Panipat 1995-06-07 23:54 as a known chart.
 
 ### Yogas (phase 01 ships a minimal set)
 
@@ -234,7 +280,7 @@ The web app stores the version on every `chart_snapshots` row. Recomputation is 
 ## Testing
 
 - `astro-engine/tests/golden/` holds fixture charts computed by independent sources (JHora or Parashara's Light exports) for several famous birth data. Every PR must pass these.
-- At least one golden test per divisional chart.
+- At least one golden test per supported chart key. Golden coverage can be staged, but a chart key is not considered production-ready until it has an independent expected fixture.
 - `pytest -q` must pass with no warnings in CI.
 - No network calls in tests — ephemeris files are bundled.
 

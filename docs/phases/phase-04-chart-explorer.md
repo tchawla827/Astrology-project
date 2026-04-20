@@ -7,12 +7,18 @@
 
 ## Goal
 
-A chart viewer that lets users inspect their D1, D9, and Moon charts plus drill into any planet or house.
+A chart viewer that lets users inspect the full supported chart catalog plus drill into any planet or house.
+
+Supported chart catalog:
+
+- **Base views:** D1, Bhava, Moon.
+- **Classical divisional charts:** D2, D3, D4, D7, D9, D10, D12, D16, D20, D24, D27, D30, D40, D45, D60.
+- **Common extras:** D5, D6, D8, D11.
 
 ## Deliverables
 
 - `web/app/(app)/charts/page.tsx` — chart explorer landing page.
-- `web/app/(app)/charts/[key]/page.tsx` — detail view for one chart (key in `D1 | D9 | Moon`).
+- `web/app/(app)/charts/[key]/page.tsx` — detail view for one supported chart key.
 - `web/components/charts/NorthIndianChart.tsx` — SVG North Indian chart (default).
 - `web/components/charts/SouthIndianChart.tsx` — SVG South Indian chart (toggle).
 - `web/components/charts/ChartStyleToggle.tsx` — North / South segmented control.
@@ -20,7 +26,7 @@ A chart viewer that lets users inspect their D1, D9, and Moon charts plus drill 
 - `web/components/charts/PlanetDrawer.tsx` — shadcn `Sheet` showing planet detail when clicked.
 - `web/components/charts/HouseDrawer.tsx` — shadcn `Sheet` showing house detail when clicked.
 - `web/components/charts/YogaList.tsx` — list of detected yogas with notes.
-- `web/components/charts/ChartSwitcher.tsx` — compare D1 vs D9 side-by-side.
+- `web/components/charts/ChartSwitcher.tsx` — compare any two supported charts side-by-side. Default compare pair is D1 vs D9.
 - `web/lib/charts/renderChart.ts` — pure function: `ChartSnapshot` + key → SVG coordinates map.
 - `web/app/api/profile/[id]/charts/[key]/route.ts` — GET one chart from stored snapshot.
 
@@ -63,7 +69,7 @@ Clicking a house opens `HouseDrawer`:
 
 ### Compare view
 
-`ChartSwitcher` renders two charts side-by-side (D1 left, D9 right by default). Used on `charts/compare` route. Mobile layout stacks vertically.
+`ChartSwitcher` renders two charts side-by-side (D1 left, D9 right by default). Users can switch either side to any supported chart key. Used on `charts/compare` route. Mobile layout stacks vertically.
 
 ### Data source
 
@@ -75,21 +81,22 @@ Each chart also renders an off-screen `<table>` with the same data, reachable vi
 
 ## Acceptance criteria
 
-- [ ] `/charts` shows 3 chart thumbnails (D1, D9, Moon) each clickable.
+- [ ] `/charts` groups charts into Base views, Classical divisional charts, and Common extras.
+- [ ] Every supported chart key has a clickable thumbnail or list item.
 - [ ] `/charts/D1` renders North Indian style by default with correct planet placements against the golden test chart.
+- [ ] `/charts/Bhava`, `/charts/Moon`, `/charts/D2`, `/charts/D3`, `/charts/D4`, `/charts/D5`, `/charts/D6`, `/charts/D7`, `/charts/D8`, `/charts/D9`, `/charts/D10`, `/charts/D11`, `/charts/D12`, `/charts/D16`, `/charts/D20`, `/charts/D24`, `/charts/D27`, `/charts/D30`, `/charts/D40`, `/charts/D45`, and `/charts/D60` all render without unsupported-key fallbacks.
 - [ ] Toggle to South Indian style preserves placements visually.
 - [ ] Toggle to Technical depth shows longitudes + nakshatras.
 - [ ] Clicking any planet opens drawer with correct detail.
 - [ ] Clicking any house opens drawer with correct detail.
 - [ ] Yoga list renders what's in the snapshot.
-- [ ] Compare view renders D1 and D9 side-by-side on desktop, stacked on mobile.
+- [ ] Compare view renders D1 and D9 side-by-side by default, supports switching both sides, and stacks on mobile.
 - [ ] Table fallback present and readable for SR users.
 - [ ] Typecheck + lint + tests pass.
 
 ## Out of scope
 
-- D10, D7, D12, D60 — post-MVP (engine already supports adding, but UI doesn't surface).
-- Editing a chart (read-only MVP).
+- Chart editing (read-only MVP).
 - Transit overlays on charts (phase 10 handles via a different lens).
 - Aspect grid visualization (post-MVP — drawer copy is enough).
 

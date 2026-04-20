@@ -6,7 +6,9 @@ graphify-out/
 node_modules/
 web/node_modules/
 web/.next/
+web/tsconfig.tsbuildinfo
 web/coverage/
+web/supabase/.temp/
 astro-engine/.venv/
 astro-engine/.pytest_cache/
 astro-engine/.mypy_cache/

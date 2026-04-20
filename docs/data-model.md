@@ -50,9 +50,27 @@ export type ChartSnapshot = {
   };
   charts: {
     D1: Chart;
-    D9: Chart;
+    Bhava: Chart;
     Moon: Chart;                     // moon chart (chandra lagna)
-    // MVP = these three. Additional D-charts unlock in later phases.
+    D2: Chart;
+    D3: Chart;
+    D4: Chart;
+    D5: Chart;
+    D6: Chart;
+    D7: Chart;
+    D8: Chart;
+    D9: Chart;
+    D10: Chart;
+    D11: Chart;
+    D12: Chart;
+    D16: Chart;
+    D20: Chart;
+    D24: Chart;
+    D27: Chart;
+    D30: Chart;
+    D40: Chart;
+    D45: Chart;
+    D60: Chart;
   };
   planetary_positions: PlanetPlacement[];
   aspects: Aspect[];
@@ -62,11 +80,16 @@ export type ChartSnapshot = {
 };
 
 export type Chart = {
-  chart_key: 'D1' | 'D9' | 'Moon' | 'D10' | string;
+  chart_key: ChartKey;
   ascendant_sign: string;
   houses: HousePlacement[];          // 12 entries
   planets: PlanetInChart[];          // planet sign+house inside this chart
 };
+
+export type ChartKey =
+  | 'D1' | 'Bhava' | 'Moon'
+  | 'D2' | 'D3' | 'D4' | 'D5' | 'D6' | 'D7' | 'D8' | 'D9' | 'D10' | 'D11' | 'D12'
+  | 'D16' | 'D20' | 'D24' | 'D27' | 'D30' | 'D40' | 'D45' | 'D60';
 
 export type PlanetPlacement = {
   planet: Planet;                    // 'Sun'|'Moon'|...|'Ketu'
@@ -154,7 +177,7 @@ export type Topic =
 
 export type TopicBundle = {
   topic: Topic;
-  charts_used: string[];             // e.g. ['D1', 'D9']
+  charts_used: string[];             // e.g. ['D1', 'Bhava', 'D10']
   headline_signals: string[];
   houses: Record<number, { summary: string; strength: 'low'|'medium'|'high' }>;
   planets: Record<Planet, { role: string; summary: string }>;
@@ -363,7 +386,7 @@ All live under `web/app/api/`. Request/response bodies are Zod-validated.
 |---|---|---|
 | POST | `/api/profile` | Create BirthProfile → enqueues generation |
 | GET | `/api/profile/:id/summary` | ChartSnapshot summary card |
-| GET | `/api/profile/:id/charts/:key` | One chart (D1, D9, Moon, etc.) |
+| GET | `/api/profile/:id/charts/:key` | One supported chart by key |
 | GET | `/api/profile/:id/life-areas/:topic` | Rendered life-area report |
 | POST | `/api/ask` | Ask Astrology — returns `AskAnswer` |
 | GET | `/api/ask/sessions` | List Ask sessions for current user |

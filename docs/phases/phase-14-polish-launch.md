@@ -53,7 +53,7 @@ Everything that separates "works on localhost" from "ready for real users": perf
 
 - Web → Vercel production. Env vars set via Vercel dashboard.
 - Astro-engine → Render or Fly.io. Health check wired to `/health`.
-- Supabase → production project, `supabase db push`, RLS verified on every table.
+- Supabase → production project, `npx supabase db push --db-url "$DATABASE_URL"`, RLS verified on every table.
 - Stripe → production keys, products created, webhook endpoint registered.
 - Domain: `astri.app` (or as decided).
 - HTTPS enforced. HSTS on.

@@ -39,7 +39,7 @@ Astri does the opposite. It feels like a serious birth-chart analysis system —
 
 ## Differentiators
 
-1. **Full-system chart computation** — not just D1 + Moon sign. Engine designed to scale from D1/D9 up through D60, plus Bhava, dasha, transits, yogas.
+1. **Full-system chart computation** — not just D1 + Moon sign. Engine supports base views (D1, Bhava, Moon), the classical divisional chart set (D2, D3, D4, D7, D9, D10, D12, D16, D20, D24, D27, D30, D40, D45, D60), common extras (D5, D6, D8, D11), plus dasha, transits, yogas.
 2. **Ask Astrology with chart-aware context** — classifier picks the right topic bundle; LLM answers grounded in supplied data only.
 3. **Reasoning transparency panel** — every answer has a "why" showing charts/houses/planets/timing used.
 4. **Tone modes** — Balanced / Direct / Brutal. The tone system is a product feature, not a tagline.
@@ -60,8 +60,8 @@ Brutal is grounded, not cruel. If the chart doesn't support the harsh reading, d
 
 ## Business model direction
 
-- **Free:** profile generation, basic dashboard, D1/D9/Moon views, limited Ask usage, limited daily predictions.
-- **Premium subscription:** unlimited Ask, full timing analysis, advanced charts, compatibility (later), alerts, date-machine unlimited.
+- **Free:** profile generation, basic dashboard, base chart views (D1, Bhava, Moon), limited Ask usage, limited daily predictions.
+- **Premium subscription:** unlimited Ask, full timing analysis, classical divisional charts, common extra charts, compatibility (later), alerts, date-machine unlimited.
 - **One-time:** annual forecast, compatibility report, career report (later).
 
 ## Product moat

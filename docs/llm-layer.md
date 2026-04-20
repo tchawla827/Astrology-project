@@ -64,16 +64,16 @@ Shape is defined in [data-model.md](data-model.md) as `TopicBundle`.
 
 | Topic | Charts | Houses | Planets (starting set) |
 |---|---|---|---|
-| personality | D1, Moon | 1 | Lagna lord, Moon, Sun |
-| career | D1, D10 | 2, 6, 10, 11 | 10th lord, Saturn, Sun, Mercury, Jupiter |
-| wealth | D1 | 2, 5, 9, 11 | 2nd lord, 11th lord, Jupiter, Venus |
-| relationships | D1, D9 | 5, 7, 11 | 7th lord, Venus, Mars, Moon |
+| personality | D1, Bhava, Moon | 1 | Lagna lord, Moon, Sun |
+| career | D1, Bhava, D10 | 2, 6, 10, 11 | 10th lord, Saturn, Sun, Mercury, Jupiter |
+| wealth | D1, D2, D11 | 2, 5, 9, 11 | 2nd lord, 11th lord, Jupiter, Venus |
+| relationships | D1, D7, D9 | 5, 7, 11 | 7th lord, Venus, Mars, Moon |
 | marriage | D1, D9 | 7 | Venus, Jupiter, 7th lord |
-| family | D1 | 2, 3, 4, 5 | 4th lord, Moon, Jupiter |
-| health | D1 | 1, 6, 8, 12 | Lagna lord, Moon, Sun |
-| education | D1 | 2, 4, 5, 9 | Mercury, Jupiter, 4th lord, 5th lord |
-| spirituality | D1 | 5, 9, 12 | Ketu, Jupiter, 9th lord, 12th lord |
-| relocation | D1 | 3, 4, 9, 12 | 4th lord, 12th lord, Rahu |
+| family | D1, D3, D4, D12 | 2, 3, 4, 5 | 4th lord, Moon, Jupiter |
+| health | D1, D6, D8, D30 | 1, 6, 8, 12 | Lagna lord, Moon, Sun |
+| education | D1, D4, D24 | 2, 4, 5, 9 | Mercury, Jupiter, 4th lord, 5th lord |
+| spirituality | D1, D20, D45, D60 | 5, 9, 12 | Ketu, Jupiter, 9th lord, 12th lord |
+| relocation | D1, D4, D12 | 3, 4, 9, 12 | 4th lord, 12th lord, Rahu |
 
 Each bundle also includes current dasha/antardasha and current transit highlights from the ChartSnapshot.
 
@@ -102,7 +102,7 @@ Example for career:
 
 ```
 The user is asking about career.
-Use D1 and D10 factors first: 10th house, 10th lord, 6th, 11th, and relevant planets (Saturn, Sun, Mercury, Jupiter) as they appear in context.
+Use D1, Bhava, and D10 factors first: 10th house, 10th lord, 6th, 11th, and relevant planets (Saturn, Sun, Mercury, Jupiter) as they appear in context.
 Combine with current dasha and transit highlights supplied in context.timing.
 Do not drift into unrelated life areas unless a factor in context explicitly ties them together.
 ```

@@ -31,7 +31,8 @@ Ship the money layer: Stripe subscription, free-tier quotas enforced, basic PDF 
 |---|---|---|
 | Profile generation | Yes | Yes |
 | Dashboard | Yes | Yes |
-| D1 / D9 / Moon chart view | Yes | Yes |
+| Base chart views (D1 / Bhava / Moon) | Yes | Yes |
+| Classical divisional charts + common extras | No | Yes |
 | Life areas (4) | Yes | Yes |
 | Ask questions | 5 per month | Unlimited |
 | Daily prediction | Today + next 7 days | Any date |
@@ -66,7 +67,8 @@ Basic report PDF contents:
 
 - Cover: name, birth details (date, time, place, timezone, confidence).
 - Summary: Lagna, Moon, Nakshatra, current dasha.
-- D1 chart + D9 chart (SVGs rendered to bitmap).
+- Base charts: D1, Bhava, Moon (SVGs rendered to bitmap).
+- Premium appendix: selected divisional charts used by the user's strongest topic bundles.
 - Planetary positions table.
 - Current period + transit highlights.
 - Top themes and one focus insight.
@@ -120,7 +122,7 @@ Properties never include PII or raw birth data.
 - [ ] Stripe test-mode checkout creates a subscription and flips the user to premium in Supabase via webhook.
 - [ ] Free user's 6th Ask in a month is blocked with a 402 and the UI shows upgrade.
 - [ ] Free user's attempt to pick a date >7d in future on `/daily` shows upgrade prompt.
-- [ ] PDF export produces a readable file with D1 + D9 visible.
+- [ ] PDF export produces a readable file with D1, Bhava, and Moon visible.
 - [ ] Account deletion removes every row + auth user + storage artifacts for that user.
 - [ ] Every MVP analytics event fires on the expected action (verify via `select event_name, count(*) from analytics_events group by event_name`).
 - [ ] Typecheck + lint + tests pass.
@@ -138,7 +140,7 @@ Properties never include PII or raw birth data.
 1. Stripe test card flow: buy → webhook fires → user becomes premium → Ask is unlimited.
 2. Let webhook be delayed 30s — app must not incorrectly block during the delay (treat as premium if `subscription_current_period_end` is in future even before webhook).
 3. Delete account — everything gone, can re-signup with same email cleanly.
-4. Export PDF for golden profile, confirm D1 + D9 render with correct placements.
+4. Export PDF for golden profile, confirm D1, Bhava, and Moon render with correct placements.
 
 ## After completing
 

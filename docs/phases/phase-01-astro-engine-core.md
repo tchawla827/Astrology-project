@@ -7,14 +7,20 @@
 
 ## Goal
 
-Make `astro-engine` actually compute Vedic astrology: D1, D9, Moon chart, Vimshottari dasha, transits, and a comprehensive yoga set — all through documented endpoints that `web/` can call.
+Make `astro-engine` actually compute Vedic astrology: the full supported chart catalog, Vimshottari dasha, transits, and a comprehensive yoga set — all through documented endpoints that `web/` can call.
+
+Supported chart catalog:
+
+- **Base views:** D1, Bhava, Moon.
+- **Classical divisional charts:** D2, D3, D4, D7, D9, D10, D12, D16, D20, D24, D27, D30, D40, D45, D60.
+- **Common extras:** D5, D6, D8, D11.
 
 ## Deliverables
 
 - `astro-engine/app/calc/ayanamsha.py` — set sidereal mode (Lahiri default), support `raman` and `kp`.
 - `astro-engine/app/calc/planets.py` — compute planetary positions at a datetime.
 - `astro-engine/app/calc/houses.py` — whole-sign house placement from ascendant.
-- `astro-engine/app/calc/vargas.py` — D1, D9, Moon chart.
+- `astro-engine/app/calc/vargas.py` — full chart registry for D1, Bhava, Moon, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11, D12, D16, D20, D24, D27, D30, D40, D45, D60.
 - `astro-engine/app/calc/dignity.py` — exaltation, debilitation, moolatrikona, own-sign, friend/enemy tables.
 - `astro-engine/app/calc/combustion.py` — orb-based combustion detection.
 - `astro-engine/app/calc/nakshatra.py` — nakshatra + pada for any longitude.
@@ -28,7 +34,7 @@ Make `astro-engine` actually compute Vedic astrology: D1, D9, Moon chart, Vimsho
 - `astro-engine/app/routes/dasha.py` — `POST /dasha`.
 - `astro-engine/app/routes/transits.py` — `POST /transits`.
 - `astro-engine/app/routes/panchang.py` — `POST /panchang`.
-- `astro-engine/tests/golden/` — fixture JSON for at least one known chart (suggest: 1995-06-07 23:54 Panipat, India), with expected D1, D9, Moon, dasha, and nakshatra values.
+- `astro-engine/tests/golden/` — fixture JSON for at least one known chart (suggest: 1995-06-07 23:54 Panipat, India), with expected values for every supported chart key, dasha, and nakshatra values.
 - `astro-engine/tests/test_profile.py`, `test_dasha.py`, `test_transits.py`, `test_panchang.py`, `test_yogas.py` — pytest suite.
 - `web/lib/astro/client.ts` — full typed client for all five endpoints, Zod-validated responses.
 
@@ -57,6 +63,9 @@ For the fixture chart, at least these values must match known-good outputs:
 - Saturn's sign and house
 - Current Mahadasha lord (for a fixed "as of" date in the test)
 - D9 sign for Sun, Moon, Saturn
+- Bhava house for Sun, Moon, Saturn
+- One representative assertion each for D2, D3, D4, D7, D10, D12, D16, D20, D24, D27, D30, D40, D45, D60
+- One representative assertion each for D5, D6, D8, D11
 
 Use [JHora](http://www.vedicastrologer.org/jh/), Parashara's Light, or another trusted source to generate expected values. Hand-enter into JSON in `tests/golden/`.
 
@@ -86,7 +95,7 @@ export const astro = {
 
 ## Out of scope
 
-- Additional divisional charts beyond D1 / D9 / Moon (reserve D10/D7/D12/D60 for post-MVP; can be added later by adding to `vargas.py` without rewriting anything).
+- Additional chart keys beyond the supported catalog listed above.
 - Storing anything in Supabase (phase 02 does that).
 - Any UI rendering (phase 04).
 - Advanced strength systems (Shadbala, Ashtakavarga) — post-MVP.
