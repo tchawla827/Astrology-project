@@ -20,3 +20,12 @@ astro-engine/*.egg-info/
 .env.local
 web/.env.local
 astro-engine/.env
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+astro-engine/ephe/

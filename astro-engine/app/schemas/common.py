@@ -1,0 +1,91 @@
+from __future__ import annotations
+
+from typing import Literal
+
+from pydantic import BaseModel, Field
+
+Planet = Literal[
+    "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"
+]
+Ayanamsha = Literal["lahiri", "raman", "kp"]
+ChartKey = Literal[
+    "D1", "Bhava", "Moon",
+    "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10", "D11", "D12",
+    "D16", "D20", "D24", "D27", "D30", "D40", "D45", "D60",
+]
+
+
+class BirthProfileInput(BaseModel):
+    birth_date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    birth_time: str = Field(pattern=r"^\d{2}:\d{2}:\d{2}$")
+    timezone: str
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
+    ayanamsha: Ayanamsha = "lahiri"
+
+
+class PlanetPlacementOut(BaseModel):
+    planet: Planet
+    longitude_deg: float
+    sign: str
+    house: int
+    nakshatra: str
+    pada: int
+    retrograde: bool
+    combust: bool
+    dignity: str
+
+
+class HouseOut(BaseModel):
+    house: int
+    sign: str
+    lord: Planet
+
+
+class PlanetInChartOut(BaseModel):
+    planet: Planet
+    sign: str
+    house: int
+
+
+class ChartOut(BaseModel):
+    chart_key: ChartKey
+    ascendant_sign: str
+    houses: list[HouseOut]
+    planets: list[PlanetInChartOut]
+
+
+class YogaOut(BaseModel):
+    name: str
+    confidence: Literal["low", "medium", "high"]
+    source_charts: list[str]
+    notes: list[str]
+
+
+class DashaPeriodOut(BaseModel):
+    lord: Planet
+    start: str
+    end: str
+
+
+class DashaSummaryOut(BaseModel):
+    system: Literal["vimshottari"] = "vimshottari"
+    current_mahadasha: DashaPeriodOut
+    current_antardasha: DashaPeriodOut
+    upcoming: list[DashaPeriodOut]
+
+
+class TransitSummaryOut(BaseModel):
+    as_of: str
+    positions: list[PlanetPlacementOut]
+    highlights: list[str]
+
+
+class ErrorBody(BaseModel):
+    code: str
+    message: str
+    details: dict[str, str] | None = None
+
+
+class ErrorResponse(BaseModel):
+    error: ErrorBody
