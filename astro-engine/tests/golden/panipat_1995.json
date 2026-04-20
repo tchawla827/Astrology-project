@@ -1,0 +1,60 @@
+{
+  "profile": {
+    "name": "Tavish Chawla",
+    "birth_date": "1995-06-07",
+    "birth_time": "23:54:00",
+    "latitude": 29.3909,
+    "longitude": 76.9635,
+    "timezone": "Asia/Kolkata",
+    "ayanamsha": "lahiri"
+  },
+  "expected": {
+    "lagna": "Aquarius",
+    "moon": {
+      "sign": "Virgo",
+      "nakshatra": "Uttara Phalguni",
+      "pada": 4
+    },
+    "sun": {
+      "sign": "Taurus",
+      "house": 4
+    },
+    "saturn": {
+      "sign": "Pisces",
+      "house": 2
+    },
+    "dasha": {
+      "as_of_date": "2020-01-01",
+      "mahadasha_lord": "Rahu"
+    },
+    "vargas": {
+      "D9": {
+        "Sun": "Cancer",
+        "Moon": "Pisces",
+        "Saturn": "Cancer"
+      },
+      "Bhava": {
+        "Sun": 4,
+        "Moon": 8,
+        "Saturn": 2
+      },
+      "D2": { "Sun": "Gemini" },
+      "D3": { "Mars": "Sagittarius" },
+      "D4": { "Venus": "Taurus" },
+      "D5": { "Mercury": "Capricorn" },
+      "D6": { "Sun": "Aquarius" },
+      "D7": { "Moon": "Taurus" },
+      "D8": { "Saturn": "Leo" },
+      "D10": { "Jupiter": "Sagittarius" },
+      "D11": { "Mars": "Aries" },
+      "D12": { "Venus": "Gemini" },
+      "D16": { "Mercury": "Gemini" },
+      "D20": { "Sun": "Pisces" },
+      "D24": { "Moon": "Aquarius" },
+      "D27": { "Saturn": "Capricorn" },
+      "D30": { "Jupiter": "Pisces" },
+      "D40": { "Mars": "Leo" },
+      "D60": { "Mercury": "Gemini" }
+    }
+  }
+}
