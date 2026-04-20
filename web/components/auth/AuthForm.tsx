@@ -20,7 +20,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     setIsSubmitting(true);
     const supabase = createClient();
 
-    const redirectTo = `${window.location.origin}/dashboard`;
+    const redirectTo = `${window.location.origin}/welcome`;
     const result =
       mode === "login"
         ? await supabase.auth.signInWithPassword({ email, password })
@@ -46,7 +46,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+      options: { redirectTo: `${window.location.origin}/welcome` },
     });
   }
 
