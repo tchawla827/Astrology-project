@@ -35,5 +35,10 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
+  },
+  "pnpm": {
+    "overrides": {
+      "std-env": "3.8.0"
+    }
   }
 }

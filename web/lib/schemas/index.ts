@@ -100,33 +100,44 @@ export const DashaSummarySchema = z.object({
   upcoming: z.array(DashaPeriodSchema),
 });
 
+export const DashaTimelineSchema = z.object({
+  system: z.literal("vimshottari"),
+  periods: z.array(
+    z.object({
+      level: z.enum(["mahadasha", "antardasha", "pratyantardasha"]),
+      lord: PlanetSchema,
+      start: z.string(),
+      end: z.string(),
+    })
+  ),
+});
+
 export const TransitSummarySchema = z.object({
   as_of: z.string(),
   positions: z.array(PlanetPlacementSchema),
   highlights: z.array(z.string()),
 });
 
+const ChartCollectionSchema = z.record(z.string(), ChartSchema);
+
 export const ChartSnapshotSchema = z.object({
-  id: z.string().uuid(),
-  birth_profile_id: z.string().uuid(),
+  id: z.string().uuid().optional(),
+  birth_profile_id: z.string().uuid().optional(),
   engine_version: z.string(),
-  computed_at: z.string(),
+  computed_at: z.string().optional(),
   summary: z.object({
     lagna: z.string(),
     moon_sign: z.string(),
     nakshatra: z.string(),
     pada: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
   }),
-  charts: z.object({
-    D1: ChartSchema,
-    D9: ChartSchema,
-    Moon: ChartSchema,
-  }),
+  charts: ChartCollectionSchema,
   planetary_positions: z.array(PlanetPlacementSchema),
   aspects: z.array(AspectSchema),
   yogas: z.array(YogaSchema),
   dasha: DashaSummarySchema,
   transits: TransitSummarySchema,
+  lagna_longitude_deg: z.number().optional(),
 });
 
 export const TopicBundleSchema = z.object({
@@ -257,13 +268,27 @@ export const PanchangSchema = z.object({
   date: z.string(),
   latitude: z.number(),
   longitude: z.number(),
-  tithi: z.object({ name: z.string(), end_time: z.string() }),
-  nakshatra: z.object({ name: z.string(), end_time: z.string() }),
-  yoga: z.object({ name: z.string(), end_time: z.string() }),
-  karana: z.object({ name: z.string(), end_time: z.string() }),
+  tithi: z.union([
+    z.object({ name: z.string(), end_time: z.string() }),
+    z.object({ name: z.string(), fraction_left: z.number() }),
+  ]),
+  nakshatra: z.union([
+    z.object({ name: z.string(), end_time: z.string() }),
+    z.object({ name: z.string(), fraction_left: z.number() }),
+  ]),
+  yoga: z.union([
+    z.object({ name: z.string(), end_time: z.string() }),
+    z.object({ name: z.string(), fraction_left: z.number() }),
+  ]),
+  karana: z.union([
+    z.object({ name: z.string(), end_time: z.string() }),
+    z.object({ name: z.string(), fraction_left: z.number() }),
+  ]),
   vaara: z.string(),
   sunrise: z.string(),
   sunset: z.string(),
+  ayanamsha_deg: z.number().optional(),
+  sidereal_time: z.string().optional(),
   muhurta_windows: z.array(
     z.object({
       name: z.string(),
@@ -271,7 +296,7 @@ export const PanchangSchema = z.object({
       end: z.string(),
       kind: z.enum(["auspicious", "inauspicious"]),
     })
-  ),
+  ).optional(),
 });
 
 export type ToneMode = z.infer<typeof ToneModeSchema>;
@@ -288,6 +313,7 @@ export type HousePlacement = z.infer<typeof HousePlacementSchema>;
 export type Aspect = z.infer<typeof AspectSchema>;
 export type Yoga = z.infer<typeof YogaSchema>;
 export type DashaSummary = z.infer<typeof DashaSummarySchema>;
+export type DashaTimeline = z.infer<typeof DashaTimelineSchema>;
 export type DashaPeriod = z.infer<typeof DashaPeriodSchema>;
 export type TransitSummary = z.infer<typeof TransitSummarySchema>;
 export type DerivedFeatureSnapshot = z.infer<typeof DerivedFeatureSnapshotSchema>;
