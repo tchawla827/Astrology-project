@@ -26,4 +26,4 @@ def apply(name: str) -> None:
 
 def value(jd_ut: float, name: str = "lahiri") -> float:
     apply(name)
-    return swe.get_ayanamsa_ut(jd_ut)
+    return float(swe.get_ayanamsa_ut(jd_ut))

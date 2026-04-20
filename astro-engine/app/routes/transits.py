@@ -6,7 +6,7 @@ from typing import Any
 from fastapi import APIRouter, Depends
 
 from ..calc import ayanamsha, ephemeris
-from ..calc.constants import SIGNS
+from ..calc.constants import SIGNS, Planet
 from ..calc.houses import house_of_sign
 from ..calc.planets import compute_positions
 from ..calc.transits import overlay
@@ -24,7 +24,6 @@ def compute_transits(req: TransitRequest) -> dict[str, Any]:
     jd = ephemeris.julian_day(dt)
     ayanamsha.apply(req.ayanamsha)
     positions = compute_positions(jd, req.ayanamsha)
-    sun_lon = positions["Sun"].longitude_deg
 
     payload: dict[str, Any] = {
         "as_of": dt.isoformat(),
@@ -45,9 +44,11 @@ def compute_transits(req: TransitRequest) -> dict[str, Any]:
         return payload
 
     asc_sign_index = SIGNS.index(req.natal.lagna_sign)
-    transit_house = {p: house_of_sign(pos.sign_index, asc_sign_index) for p, pos in positions.items()}
-    natal_house: dict[str, int] = {}
-    natal_lon: dict[str, float] = {}
+    transit_house: dict[Planet, int] = {
+        p: house_of_sign(pos.sign_index, asc_sign_index) for p, pos in positions.items()
+    }
+    natal_house: dict[Planet, int] = {}
+    natal_lon: dict[Planet, float] = {}
     for np in req.natal.planetary_positions:
         sign_index = SIGNS.index(np.sign)
         natal_house[np.planet] = house_of_sign(sign_index, asc_sign_index)
