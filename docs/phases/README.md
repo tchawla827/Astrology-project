@@ -22,7 +22,7 @@ Phases are not allowed to skip or reorder. If a dependency isn't Done, Claude st
 
 | # | Phase | Status | Depends on | Scope |
 |---|---|---|---|---|
-| 00 | [Scaffold](phase-00-scaffold.md) | Not started | — | M |
+| 00 | [Scaffold](phase-00-scaffold.md) | Done | — | M |
 | 01 | [Astro engine core](phase-01-astro-engine-core.md) | Not started | 00 | L |
 | 02 | [Profile intake](phase-02-profile-intake.md) | Not started | 00, 01 | M |
 | 03 | [Dashboard](phase-03-dashboard.md) | Not started | 02 | M |

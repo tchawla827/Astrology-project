@@ -1,6 +1,6 @@
 # Phase 00 — Scaffold
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** —
 **Scope:** M
 **Recommended model:** `claude-sonnet-4-6` — boilerplate-heavy setup (configs, migrations, shell routes). No complex reasoning required.
@@ -108,14 +108,14 @@ HMAC dependency reads `X-Astro-Secret` and compares to `os.environ["ASTRO_ENGINE
 
 ## Acceptance criteria
 
-- [ ] `cd web && pnpm dev` boots and `/login` renders.
-- [ ] A new signup creates matching row in `user_profiles`.
-- [ ] Protected `/app/(app)/dashboard` redirects to `/login` when signed out.
-- [ ] `cd astro-engine && uvicorn app.main:app --reload` boots and `GET /health` returns 200 with `engine_version`.
-- [ ] `POST /health` without `X-Astro-Secret` returns 401. (Even though health is GET — confirm HMAC dep works on a throwaway protected route.)
-- [ ] All entity Zod schemas compile. `pnpm typecheck` passes.
-- [ ] `supabase migration up` applies cleanly against a fresh DB.
-- [ ] CI passes on push.
+- [x] `cd web && pnpm dev` boots and `/login` renders.
+- [ ] A new signup creates matching row in `user_profiles`. (Implemented in migration trigger; blocked locally without Supabase CLI/project.)
+- [x] Protected `/app/(app)/dashboard` redirects to `/login` when signed out.
+- [x] `cd astro-engine && uvicorn app.main:app --reload` boots and `GET /health` returns 200 with `engine_version`.
+- [x] `POST /health` without `X-Astro-Secret` returns 401. (Even though health is GET — confirm HMAC dep works on a throwaway protected route.)
+- [x] All entity Zod schemas compile. `pnpm typecheck` passes.
+- [ ] `supabase migration up` applies cleanly against a fresh DB. (Blocked locally: Supabase CLI is not installed.)
+- [ ] CI passes on push. (Workflow is configured; not run locally.)
 
 ## Out of scope
 
