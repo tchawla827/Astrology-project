@@ -52,33 +52,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: insertError?.message ?? "Profile insert failed." }, { status: 500 });
   }
 
-  try {
-    await generateProfileForBirthProfile({
-      supabase,
-      birthProfileId: birthProfile.id,
-      birthTimeConfidence: normalized.data.birth_time_confidence,
-      input: {
-        birth_date: normalized.data.birth_date,
-        birth_time: normalized.data.birth_time,
-        timezone: normalized.data.timezone,
-        latitude: normalized.data.latitude,
-        longitude: normalized.data.longitude,
-        ayanamsha: normalized.data.ayanamsha,
-      },
-    });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown profile generation failure.";
+  // Kick off generation without blocking this API response.
+  void (async () => {
+    const backgroundClient = createClient();
+    try {
+      await generateProfileForBirthProfile({
+        supabase: backgroundClient,
+        birthProfileId: birthProfile.id,
+        birthTimeConfidence: normalized.data.birth_time_confidence,
+        input: {
+          birth_date: normalized.data.birth_date,
+          birth_time: normalized.data.birth_time,
+          timezone: normalized.data.timezone,
+          latitude: normalized.data.latitude,
+          longitude: normalized.data.longitude,
+          ayanamsha: normalized.data.ayanamsha,
+        },
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown profile generation failure.";
 
-    console.error("Profile generation failed", error);
-    await supabase.from("analytics_events").insert({
-      user_id: user.id,
-      event_name: "profile_generation_failed",
-      properties: {
-        birth_profile_id: birthProfile.id,
-        reason: errorMessage,
-      },
-    });
-  }
+      console.error("Profile generation failed", error);
+      await backgroundClient.from("analytics_events").insert({
+        user_id: user.id,
+        event_name: "profile_generation_failed",
+        properties: {
+          birth_profile_id: birthProfile.id,
+          reason: errorMessage,
+        },
+      });
+    }
+  })();
 
   return NextResponse.json({ birth_profile_id: birthProfile.id }, { status: 202 });
 }
