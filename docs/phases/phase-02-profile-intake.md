@@ -22,7 +22,7 @@ User signs up, enters birth details, and lands on a placeholder dashboard with a
 - `web/app/api/profile/[id]/route.ts` — `GET /api/profile/[id]` for status polling.
 - `web/lib/server/generateProfile.ts` — server function that calls `astro.profile(...)`, stores `chart_snapshots` row, flips `birth_profiles.status` to `ready` or `error`.
 - `web/lib/server/resolvePlace.ts` — Mapbox place → `{ lat, lon, timezone }`. Uses `tz-lookup` or Mapbox tz API for IANA timezone from coordinates.
-- `web/tests/api/profile.test.ts` — integration test against a test Supabase project.
+- `web/tests/api/profile.integration.test.ts` — integration test against a test Supabase project.
 - `web/tests/components/PlaceAutocomplete.test.tsx` — component test with mocked Mapbox responses.
 
 ## Specification
@@ -75,13 +75,13 @@ Store intent on `user_profiles` as a new column `onboarding_intent text` (add vi
 
 ## Acceptance criteria
 
-- [ ] A signed-in user can complete the full onboarding flow and land on `/dashboard` with a `chart_snapshots` row persisted.
-- [ ] Invalid submissions (future birth date, missing place) show inline validation errors.
-- [ ] "Unknown birth time" path works end-to-end and the resulting chart is flagged appropriately.
-- [ ] Place autocomplete resolves lat/lon/timezone correctly for: Panipat (India), New York (US), London (UK), Sydney (Australia).
-- [ ] `GET /api/profile/[id]` returns 404 for profiles not owned by the caller.
-- [ ] `pnpm test` passes, including the API integration test.
-- [ ] Typecheck + lint pass.
+- [x] A signed-in user can complete the full onboarding flow and land on `/dashboard` with a `chart_snapshots` row persisted.
+- [x] Invalid submissions (future birth date, missing place) show inline validation errors.
+- [x] "Unknown birth time" path works end-to-end and the resulting chart is flagged appropriately.
+- [x] Place autocomplete resolves lat/lon/timezone correctly for: Panipat (India), New York (US), London (UK), Sydney (Australia).
+- [x] `GET /api/profile/[id]` returns 404 for profiles not owned by the caller.
+- [x] `pnpm test` passes, including the API integration test.
+- [x] Typecheck + lint pass.
 
 ## Out of scope
 

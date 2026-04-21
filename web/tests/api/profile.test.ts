@@ -87,6 +87,16 @@ describe("/api/profile routes", () => {
         throw new Error(`Unexpected table ${table}`);
       },
     });
+    createClient.mockReturnValueOnce({
+      from: (table: string) => {
+        if (table === "analytics_events") {
+          return {
+            insert: analyticsInsert,
+          };
+        }
+        throw new Error(`Unexpected background table ${table}`);
+      },
+    });
 
     const response = await POST(
       new Request("http://localhost/api/profile", {
@@ -99,6 +109,7 @@ describe("/api/profile routes", () => {
 
     expect(response.status).toBe(202);
     expect(body.birth_profile_id).toBe("profile-1");
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(analyticsInsert).toHaveBeenCalledOnce();
   });
 
