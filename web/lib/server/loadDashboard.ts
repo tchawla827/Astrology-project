@@ -60,18 +60,16 @@ type UserProfileRow = {
   onboarding_intent: string | null;
 };
 
+type SupabaseQuery = {
+  eq(column: string, value: string): SupabaseQuery;
+  order(column: string, options: { ascending: boolean }): SupabaseQuery;
+  limit(count: number): SupabaseQuery;
+  maybeSingle(): PromiseLike<{ data: unknown; error: { message: string } | null }>;
+};
+
 export type SupabaseDashboardClient = {
   from(table: string): {
-    select(columns: string): {
-      eq(column: string, value: string): {
-        order(column: string, options: { ascending: boolean }): {
-          limit(count: number): {
-            maybeSingle(): PromiseLike<{ data: unknown; error: { message: string } | null }>;
-          };
-        };
-        maybeSingle(): PromiseLike<{ data: unknown; error: { message: string } | null }>;
-      };
-    };
+    select(columns: string): SupabaseQuery;
   };
 };
 
@@ -195,11 +193,21 @@ export function buildDashboardViewModel(
   };
 }
 
-export async function loadDashboard(supabase: SupabaseDashboardClient, userId: string): Promise<DashboardViewModel> {
-  const { data: profileData, error: profileError } = await supabase
+export async function loadDashboard(
+  supabase: SupabaseDashboardClient,
+  userId: string,
+  profileId?: string,
+): Promise<DashboardViewModel> {
+  let profileQuery = supabase
     .from("birth_profiles")
     .select(profileColumns)
-    .eq("user_id", userId)
+    .eq("user_id", userId);
+
+  if (profileId) {
+    profileQuery = profileQuery.eq("id", profileId);
+  }
+
+  const { data: profileData, error: profileError } = await profileQuery
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();

@@ -125,6 +125,7 @@ export const ChartSnapshotSchema = z.object({
   birth_profile_id: z.string().uuid().optional(),
   engine_version: z.string(),
   computed_at: z.string().optional(),
+  birth_time_confidence: z.enum(["exact", "approximate", "unknown"]).optional(),
   summary: z.object({
     lagna: z.string(),
     moon_sign: z.string(),

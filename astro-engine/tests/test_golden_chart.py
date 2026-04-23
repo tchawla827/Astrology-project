@@ -158,7 +158,7 @@ def test_unsupported_chart_key(monkeypatch: MonkeyPatch, golden: dict) -> None:
         json=golden["profile"],
     )
     assert resp.status_code == 400
-    assert resp.json()["detail"]["error"]["code"] == "UNSUPPORTED_CHART"
+    assert resp.json()["error"]["code"] == "UNSUPPORTED_CHART"
 
 
 def test_supported_chart_endpoint(monkeypatch: MonkeyPatch, golden: dict) -> None:

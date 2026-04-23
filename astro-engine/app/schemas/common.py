@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 Planet = Literal[
     "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"
@@ -22,6 +22,17 @@ class BirthProfileInput(BaseModel):
     latitude: float = Field(ge=-90, le=90)
     longitude: float = Field(ge=-180, le=180)
     ayanamsha: Ayanamsha = "lahiri"
+
+    @field_validator("birth_time")
+    @classmethod
+    def validate_birth_time(cls, value: str) -> str:
+        hour_text, minute_text, second_text = value.split(":")
+        hour = int(hour_text)
+        minute = int(minute_text)
+        second = int(second_text)
+        if hour > 23 or minute > 59 or second > 59:
+            raise ValueError("birth_time must be a valid 24-hour time")
+        return value
 
 
 class PlanetPlacementOut(BaseModel):
