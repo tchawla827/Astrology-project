@@ -105,6 +105,7 @@ export interface ChartSnapshot {
   id?: string;
   birth_profile_id?: string;
   computed_at?: string;
+  birth_time_confidence?: "exact" | "approximate" | "unknown";
   engine_version: string;
   summary: {
     lagna: string;
@@ -202,11 +203,12 @@ async function callAstroEngine<TResponse>(
     let message = `Astro engine request failed: ${response.status}`;
     let details: unknown;
     try {
-      const parsed = (await response.json()) as { detail?: AstroEngineErrorBody };
-      if (parsed?.detail?.error) {
-        code = parsed.detail.error.code;
-        message = parsed.detail.error.message;
-        details = parsed.detail.error.details;
+      const parsed = (await response.json()) as AstroEngineErrorBody | { detail?: AstroEngineErrorBody };
+      const errorBody = "error" in parsed ? parsed.error : parsed.detail?.error;
+      if (errorBody) {
+        code = errorBody.code;
+        message = errorBody.message;
+        details = errorBody.details;
       }
     } catch {
       // swallow JSON parse failures and keep default message

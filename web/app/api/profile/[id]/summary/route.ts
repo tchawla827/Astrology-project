@@ -13,8 +13,8 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const dashboard = await loadDashboard(supabase as unknown as SupabaseDashboardClient, user.id);
-  if (dashboard.profileId !== params.id) {
+  const dashboard = await loadDashboard(supabase as unknown as SupabaseDashboardClient, user.id, params.id);
+  if (dashboard.status === "empty") {
     return NextResponse.json({ error: "Profile not found." }, { status: 404 });
   }
 

@@ -39,11 +39,14 @@ function normalizeBirthTime(value: string | undefined, confidence: z.infer<typeo
   }
 
   const trimmed = value.trim();
-  if (/^\d{2}:\d{2}$/.test(trimmed)) {
-    return `${trimmed}:00`;
-  }
-  if (/^\d{2}:\d{2}:\d{2}$/.test(trimmed)) {
-    return trimmed;
+  const match = /^(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(trimmed);
+  if (match) {
+    const hour = Number.parseInt(match[1] ?? "", 10);
+    const minute = Number.parseInt(match[2] ?? "", 10);
+    const second = Number.parseInt(match[3] ?? "00", 10);
+    if (hour <= 23 && minute <= 59 && second <= 59) {
+      return [hour, minute, second].map((part) => String(part).padStart(2, "0")).join(":");
+    }
   }
 
   return null;
