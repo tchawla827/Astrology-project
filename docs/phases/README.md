@@ -25,7 +25,7 @@ Phases are not allowed to skip or reorder. If a dependency isn't Done, Claude st
 | 00 | [Scaffold](phase-00-scaffold.md) | Done | — | M |
 | 01 | [Astro engine core](phase-01-astro-engine-core.md) | Done | 00 | L |
 | 02 | [Profile intake](phase-02-profile-intake.md) | Done | 00, 01 | M |
-| 03 | [Dashboard](phase-03-dashboard.md) | Not started | 02 | M |
+| 03 | [Dashboard](phase-03-dashboard.md) | Done | 02 | M |
 | 04 | [Chart explorer](phase-04-chart-explorer.md) | Not started | 02 | M |
 | 05 | [Derived features](phase-05-derived-features.md) | Not started | 01, 02 | M |
 | 06 | [Life area reports](phase-06-life-areas.md) | Not started | 05 | M |

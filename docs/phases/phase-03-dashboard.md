@@ -1,6 +1,6 @@
 # Phase 03 — Dashboard
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** 02
 **Scope:** M
 **Recommended model:** `claude-sonnet-4-6` — Server Components, data fetching, card layout. Standard Next.js frontend work.
@@ -64,13 +64,13 @@ If `birth_time_confidence != 'exact'`, render a muted banner at the top of the d
 
 ## Acceptance criteria
 
-- [ ] `/dashboard` loads in under 1 second for a profile with a ready snapshot.
-- [ ] Every card renders real data from `chart_snapshots.payload`.
-- [ ] "Why?" on Focus Card shows chart/house/planet names pulled from the snapshot (not hardcoded).
-- [ ] Birth-time banner appears for non-exact profiles and hides for exact ones.
-- [ ] Loading state is never blank — always skeleton + status text.
-- [ ] Ask CTA card rotates 3 starter questions server-side based on the chart (e.g. if 10th house is stressed, show "Why has my career felt stuck?").
-- [ ] Typecheck + lint + component tests pass.
+- [x] `/dashboard` loads in under 1 second for a profile with a ready snapshot.
+- [x] Every card renders real data from `chart_snapshots.payload`.
+- [x] "Why?" on Focus Card shows chart/house/planet names pulled from the snapshot (not hardcoded).
+- [x] Birth-time banner appears for non-exact profiles and hides for exact ones.
+- [x] Loading state is never blank — always skeleton + status text.
+- [x] Ask CTA card rotates 3 starter questions server-side based on the chart (e.g. if 10th house is stressed, show "Why has my career felt stuck?").
+- [x] Typecheck + lint + component tests pass.
 
 ## Out of scope
 
@@ -90,3 +90,4 @@ If `birth_time_confidence != 'exact'`, render a muted banner at the top of the d
 
 - Run `graphify update .`.
 - Flip status to Done in [README.md](README.md).
+
