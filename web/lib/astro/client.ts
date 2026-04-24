@@ -98,6 +98,7 @@ export interface YogaEntry {
   name: string;
   confidence: "low" | "medium" | "high";
   source_charts: string[];
+  planets_involved: string[];
   notes: string[];
 }
 

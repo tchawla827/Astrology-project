@@ -175,3 +175,9 @@ def test_supported_chart_endpoint(monkeypatch: MonkeyPatch, golden: dict) -> Non
     by_planet = {p["planet"]: p["sign"] for p in body["planets"]}
     assert by_planet["Sun"] == "Cancer"
     assert by_planet["Moon"] == "Pisces"
+
+
+def test_yogas_include_structured_planets(snapshot: dict) -> None:
+    for yoga in snapshot["yogas"]:
+        assert "planets_involved" in yoga
+        assert isinstance(yoga["planets_involved"], list)

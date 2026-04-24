@@ -107,4 +107,44 @@ describeIntegration("/api/profile integration (Supabase test project)", () => {
 
     expect(response.status).toBe(404);
   });
+
+  it("creates matching user_profiles rows through the auth trigger", async () => {
+    if (!admin) {
+      throw new Error("Missing integration Supabase client.");
+    }
+
+    const integrationAdmin = admin;
+    const rows = await integrationAdmin.from("user_profiles").select("id,email").in("id", userIds);
+
+    expect(rows.error).toBeNull();
+    expect(rows.data?.map((row) => row.id).sort()).toEqual([...userIds].sort());
+    expect(rows.data?.every((row) => typeof row.email === "string" && row.email.length > 0)).toBe(true);
+  });
+
+  it("returns the owned birth profile to the caller", async () => {
+    if (!admin) {
+      throw new Error("Missing integration Supabase client.");
+    }
+    const integrationAdmin = admin;
+    const profileId = createdProfileIds[0];
+    if (!profileId) {
+      throw new Error("Missing seeded profile id.");
+    }
+
+    mockedCreateClient.mockReturnValueOnce({
+      auth: {
+        getUser: async () => ({ data: { user: { id: userIds[0] } } }),
+      },
+      from: (table: string) => integrationAdmin.from(table),
+    });
+
+    const { GET } = await import("@/app/api/profile/[id]/route");
+
+    const response = await GET({} as never, { params: { id: profileId } });
+    const body = (await response.json()) as { profile?: { id?: string; status?: string } };
+
+    expect(response.status).toBe(200);
+    expect(body.profile?.id).toBe(profileId);
+    expect(body.profile?.status).toBe("ready");
+  });
 });

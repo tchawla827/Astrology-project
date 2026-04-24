@@ -208,6 +208,7 @@ def build_snapshot(
                 "name": y.name,
                 "confidence": y.confidence,
                 "source_charts": y.source_charts,
+                "planets_involved": y.planets_involved,
                 "notes": y.notes,
             }
             for y in yogas

@@ -63,7 +63,13 @@ export function ChartView({
         <ChartTable depth={depth} rendered={rendered} />
       </div>
 
-      <PlanetDrawer aspects={snapshot.aspects} onClose={() => setSelectedPlanet(null)} planet={selectedPlanet} yogas={snapshot.yogas} />
+      <PlanetDrawer
+        aspects={snapshot.aspects}
+        chartKey={chartKey}
+        onClose={() => setSelectedPlanet(null)}
+        planet={selectedPlanet}
+        yogas={snapshot.yogas}
+      />
       <HouseDrawer aspects={snapshot.aspects} house={selectedHouse} onClose={() => setSelectedHouse(null)} rendered={rendered} />
     </div>
   );

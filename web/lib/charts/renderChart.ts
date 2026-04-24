@@ -5,7 +5,7 @@ export type RenderedPlanet = PlanetInChart & {
   abbreviation: string;
   label: string;
   point: ChartPoint;
-  natal?: PlanetPlacement;
+  technicalDetails?: PlanetPlacement;
 };
 export type RenderedHouse = {
   house: number;
@@ -83,11 +83,20 @@ function planetLabel(planet: PlanetInChart, natal?: PlanetPlacement) {
   return `${abbreviation}${natal?.retrograde ? "(R)" : ""}`;
 }
 
+export function chartSupportsNatalTechnicalDetails(key: string) {
+  return key === "D1" || key === "Bhava" || key === "Moon";
+}
+
+export function yogaInvolvesPlanet(yoga: { planets_involved?: Planet[] }, planet: Planet) {
+  return yoga.planets_involved?.includes(planet) ?? false;
+}
+
 export function renderChart(snapshot: ChartSnapshot, key: string, style: "north" | "south" = "north"): RenderedChart | null {
   const chart = snapshot.charts[key];
   if (!chart) {
     return null;
   }
+  const supportsTechnicalDetails = chartSupportsNatalTechnicalDetails(key);
 
   const planetsByHouse = new Map<number, PlanetInChart[]>();
   const planetsBySign = new Map<string, PlanetInChart[]>();
@@ -106,14 +115,16 @@ export function renderChart(snapshot: ChartSnapshot, key: string, style: "north"
       const group = style === "south" ? planetsBySign.get(planet.sign) ?? [] : planetsByHouse.get(planet.house) ?? [];
       const index = group.findIndex((item) => item.planet === planet.planet);
       const base = style === "south" ? pointForSign(planet.sign, planet.house) : pointForHouse(planet.house);
-      const natal = snapshot.planetary_positions.find((placement) => placement.planet === planet.planet);
-      const label = planetLabel(planet, natal);
+      const technicalDetails = supportsTechnicalDetails
+        ? snapshot.planetary_positions.find((placement) => placement.planet === planet.planet && placement.sign === planet.sign)
+        : undefined;
+      const label = planetLabel(planet, technicalDetails);
       return {
         ...planet,
         abbreviation: PLANET_ABBREVIATIONS[planet.planet] ?? planet.planet.slice(0, 2),
         label,
         point: offsetPoint(base, index, group.length),
-        natal,
+        technicalDetails,
       };
     }),
   };

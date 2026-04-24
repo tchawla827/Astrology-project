@@ -64,10 +64,10 @@ export function SouthIndianChart({ rendered, depth, onPlanetSelect, onHouseSelec
           <text className="pointer-events-none fill-primary text-[2.8px] font-semibold" textAnchor="middle" x={planet.point.x} y={planet.point.y + 6}>
             {planet.label}
           </text>
-          {planet.natal?.combust ? <circle className="fill-destructive" cx={planet.point.x + 4.2} cy={planet.point.y + 2.2} r="1" /> : null}
-          {depth === "technical" && planet.natal ? (
+          {planet.technicalDetails?.combust ? <circle className="fill-destructive" cx={planet.point.x + 4.2} cy={planet.point.y + 2.2} r="1" /> : null}
+          {depth === "technical" && planet.technicalDetails ? (
             <text className="pointer-events-none fill-muted-foreground text-[2px]" textAnchor="middle" x={planet.point.x} y={planet.point.y + 9.6}>
-              {planet.natal.longitude_deg.toFixed(1)}
+              {planet.technicalDetails.longitude_deg.toFixed(1)}
             </text>
           ) : null}
         </g>

@@ -34,6 +34,7 @@ const snapshot: ChartSnapshot = {
       name: "Career pressure signal",
       confidence: "medium",
       source_charts: ["D1"],
+      planets_involved: ["Saturn"],
       notes: ["Saturn is connected to the 10th house of profession."],
     },
   ],
