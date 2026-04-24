@@ -1,5 +1,7 @@
 "use client";
 
+import * as React from "react";
+
 import type { DepthMode } from "@/lib/schemas";
 import type { RenderedChart, RenderedHouse, RenderedPlanet } from "@/lib/charts/renderChart";
 
@@ -67,7 +69,7 @@ export function SouthIndianChart({ rendered, depth, onPlanetSelect, onHouseSelec
           {planet.technicalDetails?.combust ? <circle className="fill-destructive" cx={planet.point.x + 4.2} cy={planet.point.y + 2.2} r="1" /> : null}
           {depth === "technical" && planet.technicalDetails ? (
             <text className="pointer-events-none fill-muted-foreground text-[2px]" textAnchor="middle" x={planet.point.x} y={planet.point.y + 9.6}>
-              {planet.technicalDetails.longitude_deg.toFixed(1)}
+              {planet.technicalDetails.longitude_deg.toFixed(1)} {planet.technicalDetails.nakshatra.slice(0, 3)}-{planet.technicalDetails.pada}
             </text>
           ) : null}
         </g>

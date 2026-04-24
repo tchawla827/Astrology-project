@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ChartSwitcher } from "@/components/charts/ChartSwitcher";
+import { RegenerateChartButton } from "@/components/common/RegenerateChartButton";
 import { DashboardErrorShell, DashboardProcessingShell } from "@/components/insights/DashboardStatusShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { loadChartExplorer, type SupabaseChartsClient } from "@/lib/server/loadCharts";
@@ -59,9 +60,12 @@ export default async function ChartComparePage() {
           <p className="text-sm uppercase text-primary">Chart explorer</p>
           <h1 className="mt-2 text-3xl font-semibold">Compare charts</h1>
         </div>
-        <Link className="rounded-md border px-4 py-2 text-sm hover:bg-muted" href="/charts">
-          Catalog
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <RegenerateChartButton profileId={explorer.profileId} />
+          <Link className="rounded-md border px-4 py-2 text-sm hover:bg-muted" href="/charts">
+            Catalog
+          </Link>
+        </div>
       </div>
 
       <ChartSwitcher snapshot={explorer.snapshot} />
