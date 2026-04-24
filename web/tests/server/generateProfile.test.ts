@@ -45,7 +45,14 @@ function createSupabaseMock() {
       return {
         insert(payload: unknown) {
           calls.push({ table, operation: "insert", payload });
-          return { error: null };
+          return {
+            error: null,
+            select() {
+              return {
+                single: async () => ({ data: { id: "chart-snapshot-1" }, error: null }),
+              };
+            },
+          };
         },
         update(payload: unknown) {
           calls.push({ table, operation: "update", payload });
@@ -64,6 +71,7 @@ describe("generateProfileForBirthProfile", () => {
   it("stores the chart snapshot and marks the birth profile ready", async () => {
     const supabase = createSupabaseMock();
     const astroProfile = vi.fn(async () => snapshot);
+    const generateDerivedFeaturesFn = vi.fn(async () => null);
 
     await generateProfileForBirthProfile({
       supabase,
@@ -77,6 +85,7 @@ describe("generateProfileForBirthProfile", () => {
         ayanamsha: "lahiri",
       },
       astroProfile,
+      generateDerivedFeaturesFn,
     });
 
     expect(supabase.calls).toEqual([
@@ -98,6 +107,10 @@ describe("generateProfileForBirthProfile", () => {
         payload: { engine_version: "astro_engine_v1", status: "ready" },
       },
     ]);
+    expect(generateDerivedFeaturesFn).toHaveBeenCalledWith({
+      chartSnapshotId: "chart-snapshot-1",
+      supabase,
+    });
   });
 
   it("marks the birth profile as error when generation fails", async () => {

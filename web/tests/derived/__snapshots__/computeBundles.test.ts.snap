@@ -1,0 +1,568 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`computeBundles > produces a stable payload for the golden chart snapshot 1`] = `
+"{
+  "topic_bundles": {
+    "personality": {
+      "topic": "personality",
+      "charts_used": [
+        "D1",
+        "Bhava",
+        "Moon"
+      ],
+      "headline_signals": [
+        "Personality is supported through the 1st house.",
+        "Saturn are directly timing personality right now."
+      ],
+      "houses": {
+        "1": {
+          "summary": "1st house in Aquarius, ruled by Saturn placed in the 2nd in Pisces, without direct planetary occupation; the structure is mixed.",
+          "strength": "medium"
+        }
+      },
+      "planets": {
+        "Saturn": {
+          "role": "Lagna lord",
+          "summary": "Lagna lord Saturn is in Pisces in the 2nd with working from neutral ground."
+        },
+        "Moon": {
+          "role": "Emotional signature",
+          "summary": "Emotional signature Moon is in Virgo in the 8th with supported by a friendly sign."
+        },
+        "Sun": {
+          "role": "Core identity",
+          "summary": "Core identity Sun is in Taurus in the 4th with working in an enemy sign."
+        }
+      },
+      "timing": {
+        "current_mahadasha": "Rahu (2012-10-30 -> 2030-10-31)",
+        "current_antardasha": "Saturn (2017-12-06 -> 2020-10-12)",
+        "current_trigger_notes": []
+      },
+      "confidence_note": "Signals are moderate rather than decisive. Birth time is exact, so house weighting is relatively reliable."
+    },
+    "career": {
+      "topic": "career",
+      "charts_used": [
+        "D1",
+        "Bhava",
+        "D10"
+      ],
+      "headline_signals": [
+        "Career is supported through the 10th house.",
+        "Saturn are directly timing career right now."
+      ],
+      "houses": {
+        "2": {
+          "summary": "2nd house in Pisces, ruled by Jupiter placed in the 10th in Scorpio, occupied by Saturn; the structure is mixed.",
+          "strength": "medium"
+        },
+        "6": {
+          "summary": "6th house in Cancer, ruled by Moon placed in the 8th in Virgo, without direct planetary occupation; the structure is mixed.",
+          "strength": "medium"
+        },
+        "10": {
+          "summary": "10th house in Scorpio, ruled by Mars placed in the 7th in Leo, occupied by Jupiter; the structure is supportive.",
+          "strength": "high"
+        },
+        "11": {
+          "summary": "11th house in Sagittarius, ruled by Jupiter placed in the 10th in Scorpio, without direct planetary occupation; the structure is mixed.",
+          "strength": "medium"
+        }
+      },
+      "planets": {
+        "Mars": {
+          "role": "10th lord",
+          "summary": "10th lord Mars is in Leo in the 7th with supported by a friendly sign. D10 echoes this through Sagittarius in the 9th."
+        },
+        "Saturn": {
+          "role": "Karaka of sustained work",
+          "summary": "Karaka of sustained work Saturn is in Pisces in the 2nd with working from neutral ground. D10 echoes this through Scorpio in the 8th."
+        },
+        "Sun": {
+          "role": "Karaka of authority",
+          "summary": "Karaka of authority Sun is in Taurus in the 4th with working in an enemy sign. D10 echoes this through Leo in the 5th."
+        },
+        "Mercury": {
+          "role": "Karaka of skill and trade",
+          "summary": "Karaka of skill and trade Mercury is in Taurus in the 4th with supported by a friendly sign, retrograde and combust. D10 echoes this through Cancer in the 4th."
+        },
+        "Jupiter": {
+          "role": "Karaka of guidance and growth",
+          "summary": "Karaka of guidance and growth Jupiter is in Scorpio in the 10th with supported by a friendly sign, retrograde. D10 echoes this through Sagittarius in the 9th."
+        }
+      },
+      "timing": {
+        "current_mahadasha": "Rahu (2012-10-30 -> 2030-10-31)",
+        "current_antardasha": "Saturn (2017-12-06 -> 2020-10-12)",
+        "current_trigger_notes": []
+      },
+      "confidence_note": "Signals are internally consistent and mostly supportive. Birth time is exact, so house weighting is relatively reliable."
+    },
+    "wealth": {
+      "topic": "wealth",
+      "charts_used": [
+        "D1",
+        "D2",
+        "D11"
+      ],
+      "headline_signals": [
+        "Wealth is supported through the 9th house.",
+        "Jupiter carries wealth through the 10th house."
+      ],
+      "houses": {
+        "2": {
+          "summary": "2nd house in Pisces, ruled by Jupiter placed in the 10th in Scorpio, occupied by Saturn; the structure is mixed.",
+          "strength": "medium"
+        },
+        "5": {
+          "summary": "5th house in Gemini, ruled by Mercury placed in the 4th in Taurus, without direct planetary occupation; the structure is mixed.",
+          "strength": "medium"
+        },
+        "9": {
+          "summary": "9th house in Libra, ruled by Venus placed in the 4th in Taurus, occupied by Rahu; the structure is supportive.",
+          "strength": "high"
+        },
+        "11": {
+          "summary": "11th house in Sagittarius, ruled by Jupiter placed in the 10th in Scorpio, without direct planetary occupation; the structure is mixed.",
+          "strength": "medium"
+        }
+      },
+      "planets": {
+        "Jupiter": {
+          "role": "2nd lord / 11th lord / Karaka of prosperity",
+          "summary": "2nd lord / 11th lord / Karaka of prosperity Jupiter is in Scorpio in the 10th with supported by a friendly sign, retrograde. D2 echoes this through Gemini in the 7th."
+        },
+        "Venus": {
+          "role": "Karaka of comfort and liquidity",
+          "summary": "Karaka of comfort and liquidity Venus is in Taurus in the 4th with steady in its own sign. D2 echoes this through Cancer in the 8th."
+        }
+      },
+      "timing": {
+        "current_mahadasha": "Rahu (2012-10-30 -> 2030-10-31)",
+        "current_antardasha": "Saturn (2017-12-06 -> 2020-10-12)",
+        "current_trigger_notes": []
+      },
+      "confidence_note": "Signals are internally consistent and mostly supportive. Birth time is exact, so house weighting is relatively reliable."
+    },
+    "relationships": {
+      "topic": "relationships",
+      "charts_used": [
+        "D1",
+        "D7",
+        "D9"
+      ],
+      "headline_signals": [
+        "Relationships is supported through the 5th house.",
+        "7th-house pressure is the main drag on relationships.",
+        "Sun carries relationships through the 4th house."
+      ],
+      "houses": {
+        "5": {
+          "summary": "5th house in Gemini, ruled by Mercury placed in the 4th in Taurus, without direct planetary occupation; the structure is mixed.",
+          "strength": "medium"
+        },
+        "7": {
+          "summary": "7th house in Leo, ruled by Sun placed in the 4th in Taurus, occupied by Mars; the structure is under strain.",
+          "strength": "low"
+        },
+        "11": {
+          "summary": "11th house in Sagittarius, ruled by Jupiter placed in the 10th in Scorpio, without direct planetary occupation; the structure is mixed.",
+          "strength": "medium"
+        }
+      },
+      "planets": {
+        "Sun": {
+          "role": "7th lord",
+          "summary": "7th lord Sun is in Taurus in the 4th with working in an enemy sign. D7 echoes this through Aries in the 2nd."
+        },
+        "Venus": {
+          "role": "Karaka of relating",
+          "summary": "Karaka of relating Venus is in Taurus in the 4th with steady in its own sign. D7 echoes this through Scorpio in the 9th."
+        },
+        "Mars": {
+          "role": "Passion and conflict marker",
+          "summary": "Passion and conflict marker Mars is in Leo in the 7th with supported by a friendly sign. D7 echoes this through Libra in the 8th."
+        },
+        "Moon": {
+          "role": "Emotional receptivity",
+          "summary": "Emotional receptivity Moon is in Virgo in the 8th with supported by a friendly sign. D7 echoes this through Taurus in the 3rd."
+        }
+      },
+      "timing": {
+        "current_mahadasha": "Rahu (2012-10-30 -> 2030-10-31)",
+        "current_antardasha": "Saturn (2017-12-06 -> 2020-10-12)",
+        "current_trigger_notes": []
+      },
+      "confidence_note": "Signals cluster around delay, stress, or cleanup. Birth time is exact, so house weighting is relatively reliable."
+    },
+    "marriage": {
+      "topic": "marriage",
+      "charts_used": [
+        "D1",
+        "D9"
+      ],
+      "headline_signals": [
+        "Marriage is supported through the 7th house.",
+        "7th-house pressure is the main drag on marriage.",
+        "Venus carries marriage through the 4th house."
+      ],
+      "houses": {
+        "7": {
+          "summary": "7th house in Leo, ruled by Sun placed in the 4th in Taurus, occupied by Mars; the structure is under strain.",
+          "strength": "low"
+        }
+      },
+      "planets": {
+        "Venus": {
+          "role": "Marriage significator",
+          "summary": "Marriage significator Venus is in Taurus in the 4th with steady in its own sign. D9 echoes this through Capricorn in the 3rd."
+        },
+        "Jupiter": {
+          "role": "Commitment stabilizer",
+          "summary": "Commitment stabilizer Jupiter is in Scorpio in the 10th with supported by a friendly sign, retrograde. D9 echoes this through Scorpio in the 1st."
+        },
+        "Sun": {
+          "role": "7th lord",
+          "summary": "7th lord Sun is in Taurus in the 4th with working in an enemy sign. D9 echoes this through Cancer in the 9th."
+        }
+      },
+      "timing": {
+        "current_mahadasha": "Rahu (2012-10-30 -> 2030-10-31)",
+        "current_antardasha": "Saturn (2017-12-06 -> 2020-10-12)",
+        "current_trigger_notes": []
+      },
+      "confidence_note": "Signals cluster around delay, stress, or cleanup. Birth time is exact, so house weighting is relatively reliable."
+    },
+    "family": {
+      "topic": "family",
+      "charts_used": [
+        "D1",
+        "D3",
+        "D4",
+        "D12"
+      ],
+      "headline_signals": [
+        "Family is supported through the 4th house.",
+        "Venus carries family through the 4th house."
+      ],
+      "houses": {
+        "2": {
+          "summary": "2nd house in Pisces, ruled by Jupiter placed in the 10th in Scorpio, occupied by Saturn; the structure is mixed.",
+          "strength": "medium"
+        },
+        "3": {
+          "summary": "3rd house in Aries, ruled by Mars placed in the 7th in Leo, occupied by Ketu; the structure is mixed.",
+          "strength": "medium"
+        },
+        "4": {
+          "summary": "4th house in Taurus, ruled by Venus placed in the 4th in Taurus, occupied by Sun, Mercury, and Venus; the structure is supportive.",
+          "strength": "high"
+        },
+        "5": {
+          "summary": "5th house in Gemini, ruled by Mercury placed in the 4th in Taurus, without direct planetary occupation; the structure is mixed.",
+          "strength": "medium"
+        }
+      },
+      "planets": {
+        "Venus": {
+          "role": "4th lord",
+          "summary": "4th lord Venus is in Taurus in the 4th with steady in its own sign. D3 echoes this through Taurus in the 4th."
+        },
+        "Moon": {
+          "role": "Domestic climate",
+          "summary": "Domestic climate Moon is in Virgo in the 8th with supported by a friendly sign. D3 echoes this through Virgo in the 8th."
+        },
+        "Jupiter": {
+          "role": "Family guidance",
+          "summary": "Family guidance Jupiter is in Scorpio in the 10th with supported by a friendly sign, retrograde. D3 echoes this through Pisces in the 2nd."
+        }
+      },
+      "timing": {
+        "current_mahadasha": "Rahu (2012-10-30 -> 2030-10-31)",
+        "current_antardasha": "Saturn (2017-12-06 -> 2020-10-12)",
+        "current_trigger_notes": []
+      },
+      "confidence_note": "Signals are internally consistent and mostly supportive. Birth time is exact, so house weighting is relatively reliable."
+    },
+    "health": {
+      "topic": "health",
+      "charts_used": [
+        "D1",
+        "D6",
+        "D8",
+        "D30"
+      ],
+      "headline_signals": [
+        "Health is supported through the 8th house.",
+        "Saturn are directly timing health right now."
+      ],
+      "houses": {
+        "1": {
+          "summary": "1st house in Aquarius, ruled by Saturn placed in the 2nd in Pisces, without direct planetary occupation; the structure is mixed.",
+          "strength": "medium"
+        },
+        "6": {
+          "summary": "6th house in Cancer, ruled by Moon placed in the 8th in Virgo, without direct planetary occupation; the structure is mixed.",
+          "strength": "medium"
+        },
+        "8": {
+          "summary": "8th house in Virgo, ruled by Mercury placed in the 4th in Taurus, occupied by Moon; the structure is supportive.",
+          "strength": "high"
+        },
+        "12": {
+          "summary": "12th house in Capricorn, ruled by Saturn placed in the 2nd in Pisces, without direct planetary occupation; the structure is mixed.",
+          "strength": "medium"
+        }
+      },
+      "planets": {
+        "Saturn": {
+          "role": "Lagna lord",
+          "summary": "Lagna lord Saturn is in Pisces in the 2nd with working from neutral ground. D6 echoes this through Libra in the 6th."
+        },
+        "Moon": {
+          "role": "Recovery pattern",
+          "summary": "Recovery pattern Moon is in Virgo in the 8th with supported by a friendly sign. D6 echoes this through Scorpio in the 7th."
+        },
+        "Sun": {
+          "role": "Vitality marker",
+          "summary": "Vitality marker Sun is in Taurus in the 4th with working in an enemy sign. D6 echoes this through Aquarius in the 10th."
+        }
+      },
+      "timing": {
+        "current_mahadasha": "Rahu (2012-10-30 -> 2030-10-31)",
+        "current_antardasha": "Saturn (2017-12-06 -> 2020-10-12)",
+        "current_trigger_notes": []
+      },
+      "confidence_note": "Signals are internally consistent and mostly supportive. Birth time is exact, so house weighting is relatively reliable."
+    },
+    "education": {
+      "topic": "education",
+      "charts_used": [
+        "D1",
+        "D4",
+        "D24"
+      ],
+      "headline_signals": [
+        "Education is supported through the 4th house.",
+        "Mercury carries education through the 4th house."
+      ],
+      "houses": {
+        "2": {
+          "summary": "2nd house in Pisces, ruled by Jupiter placed in the 10th in Scorpio, occupied by Saturn; the structure is mixed.",
+          "strength": "medium"
+        },
+        "4": {
+          "summary": "4th house in Taurus, ruled by Venus placed in the 4th in Taurus, occupied by Sun, Mercury, and Venus; the structure is supportive.",
+          "strength": "high"
+        },
+        "5": {
+          "summary": "5th house in Gemini, ruled by Mercury placed in the 4th in Taurus, without direct planetary occupation; the structure is mixed.",
+          "strength": "medium"
+        },
+        "9": {
+          "summary": "9th house in Libra, ruled by Venus placed in the 4th in Taurus, occupied by Rahu; the structure is supportive.",
+          "strength": "high"
+        }
+      },
+      "planets": {
+        "Mercury": {
+          "role": "Learning style / 5th lord",
+          "summary": "Learning style / 5th lord Mercury is in Taurus in the 4th with supported by a friendly sign, retrograde and combust. D4 echoes this through Scorpio in the 10th."
+        },
+        "Jupiter": {
+          "role": "Higher knowledge",
+          "summary": "Higher knowledge Jupiter is in Scorpio in the 10th with supported by a friendly sign, retrograde. D4 echoes this through Taurus in the 4th."
+        },
+        "Venus": {
+          "role": "4th lord",
+          "summary": "4th lord Venus is in Taurus in the 4th with steady in its own sign. D4 echoes this through Taurus in the 4th."
+        }
+      },
+      "timing": {
+        "current_mahadasha": "Rahu (2012-10-30 -> 2030-10-31)",
+        "current_antardasha": "Saturn (2017-12-06 -> 2020-10-12)",
+        "current_trigger_notes": []
+      },
+      "confidence_note": "Signals are internally consistent and mostly supportive. Birth time is exact, so house weighting is relatively reliable."
+    },
+    "spirituality": {
+      "topic": "spirituality",
+      "charts_used": [
+        "D1",
+        "D20",
+        "D45",
+        "D60"
+      ],
+      "headline_signals": [
+        "Spirituality is supported through the 9th house.",
+        "Saturn are directly timing spirituality right now."
+      ],
+      "houses": {
+        "5": {
+          "summary": "5th house in Gemini, ruled by Mercury placed in the 4th in Taurus, without direct planetary occupation; the structure is mixed.",
+          "strength": "medium"
+        },
+        "9": {
+          "summary": "9th house in Libra, ruled by Venus placed in the 4th in Taurus, occupied by Rahu; the structure is supportive.",
+          "strength": "high"
+        },
+        "12": {
+          "summary": "12th house in Capricorn, ruled by Saturn placed in the 2nd in Pisces, without direct planetary occupation; the structure is mixed.",
+          "strength": "medium"
+        }
+      },
+      "planets": {
+        "Ketu": {
+          "role": "Detachment axis",
+          "summary": "Detachment axis Ketu is in Aries in the 3rd with working from neutral ground, retrograde. D20 echoes this through Libra in the 7th."
+        },
+        "Jupiter": {
+          "role": "Faith and guidance",
+          "summary": "Faith and guidance Jupiter is in Scorpio in the 10th with supported by a friendly sign, retrograde. D20 echoes this through Libra in the 7th."
+        },
+        "Venus": {
+          "role": "9th lord",
+          "summary": "9th lord Venus is in Taurus in the 4th with steady in its own sign. D20 echoes this through Capricorn in the 10th."
+        },
+        "Saturn": {
+          "role": "12th lord",
+          "summary": "12th lord Saturn is in Pisces in the 2nd with working from neutral ground. D20 echoes this through Leo in the 5th."
+        }
+      },
+      "timing": {
+        "current_mahadasha": "Rahu (2012-10-30 -> 2030-10-31)",
+        "current_antardasha": "Saturn (2017-12-06 -> 2020-10-12)",
+        "current_trigger_notes": []
+      },
+      "confidence_note": "Signals are internally consistent and mostly supportive. Birth time is exact, so house weighting is relatively reliable."
+    },
+    "relocation": {
+      "topic": "relocation",
+      "charts_used": [
+        "D1",
+        "D4",
+        "D12"
+      ],
+      "headline_signals": [
+        "Relocation is supported through the 4th house.",
+        "Rahu and Saturn are directly timing relocation right now."
+      ],
+      "houses": {
+        "3": {
+          "summary": "3rd house in Aries, ruled by Mars placed in the 7th in Leo, occupied by Ketu; the structure is mixed.",
+          "strength": "medium"
+        },
+        "4": {
+          "summary": "4th house in Taurus, ruled by Venus placed in the 4th in Taurus, occupied by Sun, Mercury, and Venus; the structure is supportive.",
+          "strength": "high"
+        },
+        "9": {
+          "summary": "9th house in Libra, ruled by Venus placed in the 4th in Taurus, occupied by Rahu; the structure is supportive.",
+          "strength": "high"
+        },
+        "12": {
+          "summary": "12th house in Capricorn, ruled by Saturn placed in the 2nd in Pisces, without direct planetary occupation; the structure is mixed.",
+          "strength": "medium"
+        }
+      },
+      "planets": {
+        "Venus": {
+          "role": "4th lord",
+          "summary": "4th lord Venus is in Taurus in the 4th with steady in its own sign. D4 echoes this through Taurus in the 4th."
+        },
+        "Saturn": {
+          "role": "12th lord",
+          "summary": "12th lord Saturn is in Pisces in the 2nd with working from neutral ground. D4 echoes this through Pisces in the 2nd."
+        },
+        "Rahu": {
+          "role": "Displacement and foreign pull",
+          "summary": "Displacement and foreign pull Rahu is in Libra in the 9th with working from neutral ground, retrograde. D4 echoes this through Capricorn in the 12th."
+        }
+      },
+      "timing": {
+        "current_mahadasha": "Rahu (2012-10-30 -> 2030-10-31)",
+        "current_antardasha": "Saturn (2017-12-06 -> 2020-10-12)",
+        "current_trigger_notes": []
+      },
+      "confidence_note": "Signals are internally consistent and mostly supportive. Birth time is exact, so house weighting is relatively reliable."
+    }
+  },
+  "dashboard_summary": {
+    "top_themes": [
+      "Relocation: Relocation is supported through the 4th house.",
+      "Raja Yoga: Kendra lord Sun conjunct trikona lord Venus in house 4",
+      "Career is supported through the 10th house."
+    ],
+    "focus_cards": [
+      {
+        "id": "relocation-timing",
+        "title": "Relocation is time-active",
+        "body": "Rahu and Saturn are directly timing relocation right now.",
+        "why": {
+          "charts": [
+            "D1",
+            "D4",
+            "D12"
+          ],
+          "houses": [
+            3,
+            4,
+            9
+          ],
+          "planets": [
+            "Venus",
+            "Saturn",
+            "Rahu"
+          ]
+        }
+      },
+      {
+        "id": "career-focus",
+        "title": "Career deserves attention",
+        "body": "Career is supported through the 10th house.",
+        "why": {
+          "charts": [
+            "D1",
+            "Bhava",
+            "D10"
+          ],
+          "houses": [
+            2,
+            6,
+            10
+          ],
+          "planets": [
+            "Mars",
+            "Saturn",
+            "Sun"
+          ]
+        }
+      },
+      {
+        "id": "marriage-pressure",
+        "title": "Marriage has the main friction",
+        "body": "7th-house pressure is the main drag on marriage.",
+        "why": {
+          "charts": [
+            "D1",
+            "D9"
+          ],
+          "houses": [
+            7
+          ],
+          "planets": [
+            "Venus",
+            "Jupiter",
+            "Sun"
+          ]
+        }
+      }
+    ]
+  },
+  "time_sensitivity": {
+    "overall": "high",
+    "note": "59% of bundles lean on lagna/cardinal-house factors; birth time is exact, so the sensitivity reads high."
+  }
+}"
+`;

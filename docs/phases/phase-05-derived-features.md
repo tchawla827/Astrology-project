@@ -1,6 +1,6 @@
 # Phase 05 — Derived Features
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** 01, 02
 **Scope:** M
 **Recommended model:** `claude-opus-4-7` — complex domain logic: mapping Vedic chart signals to topic bundles, house strength heuristics, headline signal extraction. Business logic errors silently degrade Ask quality; get it right first time.
@@ -79,12 +79,12 @@ For each topic:
 
 ## Acceptance criteria
 
-- [ ] `generateDerivedFeatures(chart_snapshot_id)` writes a well-formed row in < 200ms.
-- [ ] Profile generation (phase 02) now produces both `chart_snapshots` AND `derived_feature_snapshots` before flipping to `ready`.
-- [ ] Dashboard (phase 03) swapped from inline theme logic to reading from derived snapshot. Visual output equivalent or better.
-- [ ] Golden test snapshot serializes to stable JSON (snapshot test).
-- [ ] Every topic bundle validates against its Zod schema.
-- [ ] Typecheck + lint + tests pass.
+- [x] `generateDerivedFeatures(chart_snapshot_id)` writes a well-formed row in < 200ms.
+- [x] Profile generation (phase 02) now produces both `chart_snapshots` AND `derived_feature_snapshots` before flipping to `ready`.
+- [x] Dashboard (phase 03) swapped from inline theme logic to reading from derived snapshot. Visual output equivalent or better.
+- [x] Golden test snapshot serializes to stable JSON (snapshot test).
+- [x] Every topic bundle validates against its Zod schema.
+- [x] Typecheck + lint + tests pass.
 
 ## Out of scope
 
