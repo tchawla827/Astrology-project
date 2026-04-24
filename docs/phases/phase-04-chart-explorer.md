@@ -1,6 +1,6 @@
 # Phase 04 — Chart Explorer
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** 02
 **Scope:** M
 **Recommended model:** `claude-sonnet-4-6` — SVG chart geometry is non-trivial but well-defined. Both North Indian diamond and South Indian grid layouts are implementable from spec without deep reasoning.
@@ -81,18 +81,18 @@ Each chart also renders an off-screen `<table>` with the same data, reachable vi
 
 ## Acceptance criteria
 
-- [ ] `/charts` groups charts into Base views, Classical divisional charts, and Common extras.
-- [ ] Every supported chart key has a clickable thumbnail or list item.
-- [ ] `/charts/D1` renders North Indian style by default with correct planet placements against the golden test chart.
-- [ ] `/charts/Bhava`, `/charts/Moon`, `/charts/D2`, `/charts/D3`, `/charts/D4`, `/charts/D5`, `/charts/D6`, `/charts/D7`, `/charts/D8`, `/charts/D9`, `/charts/D10`, `/charts/D11`, `/charts/D12`, `/charts/D16`, `/charts/D20`, `/charts/D24`, `/charts/D27`, `/charts/D30`, `/charts/D40`, `/charts/D45`, and `/charts/D60` all render without unsupported-key fallbacks.
-- [ ] Toggle to South Indian style preserves placements visually.
-- [ ] Toggle to Technical depth shows longitudes + nakshatras.
-- [ ] Clicking any planet opens drawer with correct detail.
-- [ ] Clicking any house opens drawer with correct detail.
-- [ ] Yoga list renders what's in the snapshot.
-- [ ] Compare view renders D1 and D9 side-by-side by default, supports switching both sides, and stacks on mobile.
-- [ ] Table fallback present and readable for SR users.
-- [ ] Typecheck + lint + tests pass.
+- [x] `/charts` groups charts into Base views, Classical divisional charts, and Common extras.
+- [x] Every supported chart key has a clickable thumbnail or list item.
+- [x] `/charts/D1` renders North Indian style by default with correct planet placements against the golden test chart.
+- [x] `/charts/Bhava`, `/charts/Moon`, `/charts/D2`, `/charts/D3`, `/charts/D4`, `/charts/D5`, `/charts/D6`, `/charts/D7`, `/charts/D8`, `/charts/D9`, `/charts/D10`, `/charts/D11`, `/charts/D12`, `/charts/D16`, `/charts/D20`, `/charts/D24`, `/charts/D27`, `/charts/D30`, `/charts/D40`, `/charts/D45`, and `/charts/D60` all render without unsupported-key fallbacks.
+- [x] Toggle to South Indian style preserves placements visually.
+- [x] Toggle to Technical depth shows longitudes + nakshatras.
+- [x] Clicking any planet opens drawer with correct detail.
+- [x] Clicking any house opens drawer with correct detail.
+- [x] Yoga list renders what's in the snapshot.
+- [x] Compare view renders D1 and D9 side-by-side by default, supports switching both sides, and stacks on mobile.
+- [x] Table fallback present and readable for SR users.
+- [x] Typecheck + lint + tests pass.
 
 ## Out of scope
 

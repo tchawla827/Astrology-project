@@ -3,6 +3,30 @@ import { z } from "zod";
 export const ToneModeSchema = z.enum(["balanced", "direct", "brutal"]);
 export const DepthModeSchema = z.enum(["simple", "technical"]);
 export const PlanetSchema = z.enum(["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"]);
+export const ChartKeySchema = z.enum([
+  "D1",
+  "Bhava",
+  "Moon",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7",
+  "D8",
+  "D9",
+  "D10",
+  "D11",
+  "D12",
+  "D16",
+  "D20",
+  "D24",
+  "D27",
+  "D30",
+  "D40",
+  "D45",
+  "D60",
+]);
 export const TopicSchema = z.enum([
   "personality",
   "career",
@@ -55,7 +79,7 @@ export const HousePlacementSchema = z.object({
 });
 
 export const ChartSchema = z.object({
-  chart_key: z.union([z.enum(["D1", "D9", "Moon", "D10"]), z.string()]),
+  chart_key: ChartKeySchema,
   ascendant_sign: z.string(),
   houses: z.array(HousePlacementSchema).length(12),
   planets: z.array(PlanetInChartSchema),
@@ -303,6 +327,7 @@ export const PanchangSchema = z.object({
 export type ToneMode = z.infer<typeof ToneModeSchema>;
 export type DepthMode = z.infer<typeof DepthModeSchema>;
 export type Planet = z.infer<typeof PlanetSchema>;
+export type ChartKey = z.infer<typeof ChartKeySchema>;
 export type Topic = z.infer<typeof TopicSchema>;
 export type User = z.infer<typeof UserSchema>;
 export type BirthProfile = z.infer<typeof BirthProfileSchema>;
