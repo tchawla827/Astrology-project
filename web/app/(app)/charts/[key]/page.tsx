@@ -1,13 +1,19 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import { ChartView } from "@/components/charts/ChartView";
+import { YogaList } from "@/components/charts/YogaList";
 import { DashboardErrorShell, DashboardProcessingShell } from "@/components/insights/DashboardStatusShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CHART_GROUPS, CHART_LABELS } from "@/lib/charts/catalog";
+import { chartTitle, isSupportedChartKey } from "@/lib/charts/catalog";
 import { loadChartExplorer, type SupabaseChartsClient } from "@/lib/server/loadCharts";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function ChartsPage() {
+export default async function ChartDetailPage({ params }: { params: { key: string } }) {
+  if (!isSupportedChartKey(params.key)) {
+    notFound();
+  }
+
   const supabase = createClient();
   const {
     data: { user },
@@ -53,52 +59,34 @@ export default async function ChartsPage() {
     return <DashboardErrorShell message={explorer.errorMessage} profileId={explorer.profileId} />;
   }
 
+  if (!explorer.snapshot.charts[params.key]) {
+    notFound();
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm uppercase text-primary">Chart explorer</p>
-          <h1 className="mt-2 text-3xl font-semibold">{explorer.profile.name}&apos;s chart catalog</h1>
+          <h1 className="mt-2 text-3xl font-semibold">{chartTitle(params.key)}</h1>
         </div>
-        <Link className="rounded-md border px-4 py-2 text-sm hover:bg-muted" href="/charts/compare">
-          Compare charts
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link className="rounded-md border px-4 py-2 text-sm hover:bg-muted" href="/charts">
+            Catalog
+          </Link>
+          <Link className="rounded-md border px-4 py-2 text-sm hover:bg-muted" href="/charts/compare">
+            Compare
+          </Link>
+        </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
         <Card>
           <CardContent className="p-6">
-            <ChartView chartKey="D1" snapshot={explorer.snapshot} />
+            <ChartView chartKey={params.key} snapshot={explorer.snapshot} />
           </CardContent>
         </Card>
-        <div className="space-y-4">
-          {CHART_GROUPS.map((group) => (
-            <Card key={group.title}>
-              <CardHeader>
-                <CardTitle className="text-lg">{group.title}</CardTitle>
-                <p className="text-sm text-muted-foreground">{group.description}</p>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {group.keys.map((key) => {
-                    const isAvailable = Boolean(explorer.snapshot.charts[key]);
-                    return (
-                      <Link
-                        aria-disabled={!isAvailable}
-                        className="rounded-md border bg-background/40 p-3 text-sm transition-colors hover:bg-muted aria-disabled:pointer-events-none aria-disabled:opacity-50"
-                        href={`/charts/${key}`}
-                        key={key}
-                      >
-                        <span className="font-medium">{key}</span>
-                        <span className="ml-2 text-muted-foreground">{CHART_LABELS[key]}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <YogaList yogas={explorer.snapshot.yogas} />
       </div>
     </div>
   );
