@@ -7,15 +7,23 @@ from .constants import (
     ENEMIES,
     EXALTATION_SIGN,
     FRIENDS,
+    MOOLATRIKONA_RANGES,
     OWN_SIGNS,
     SIGN_LORDS,
     Planet,
 )
 
-Dignity = Literal["exalted", "own", "friendly", "neutral", "enemy", "debilitated"]
+Dignity = Literal["exalted", "moolatrikona", "own", "friendly", "neutral", "enemy", "debilitated"]
 
 
-def dignity_for(planet: Planet, sign: str) -> Dignity:
+def dignity_for(planet: Planet, sign: str, longitude_deg: float | None = None) -> Dignity:
+    if longitude_deg is not None:
+        range_spec = MOOLATRIKONA_RANGES.get(planet)
+        if range_spec is not None:
+            range_sign, start_deg, end_deg = range_spec
+            degree_in_sign = longitude_deg % 30.0
+            if sign == range_sign and start_deg <= degree_in_sign < end_deg:
+                return "moolatrikona"
     if EXALTATION_SIGN.get(planet) == sign:
         return "exalted"
     if DEBILITATION_SIGN.get(planet) == sign:

@@ -94,7 +94,7 @@ export const PlanetPlacementSchema = z.object({
   pada: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
   retrograde: z.boolean(),
   combust: z.boolean(),
-  dignity: z.enum(["exalted", "own", "friendly", "neutral", "enemy", "debilitated"]),
+  dignity: z.enum(["exalted", "moolatrikona", "own", "friendly", "neutral", "enemy", "debilitated"]),
 });
 
 export const AspectSchema = z.object({
@@ -137,10 +137,16 @@ export const DashaTimelineSchema = z.object({
   ),
 });
 
+export const TransitOverlaySchema = z.object({
+  triggered_houses: z.array(z.number().int().min(1).max(12)),
+  planet_to_house: z.record(PlanetSchema, z.number().int().min(1).max(12)),
+});
+
 export const TransitSummarySchema = z.object({
   as_of: z.string(),
   positions: z.array(PlanetPlacementSchema),
   highlights: z.array(z.string()),
+  overlay: TransitOverlaySchema.nullable().optional(),
 });
 
 const ChartCollectionSchema = z.record(z.string(), ChartSchema);
@@ -360,6 +366,7 @@ export type Yoga = z.infer<typeof YogaSchema>;
 export type DashaSummary = z.infer<typeof DashaSummarySchema>;
 export type DashaTimeline = z.infer<typeof DashaTimelineSchema>;
 export type DashaPeriod = z.infer<typeof DashaPeriodSchema>;
+export type TransitOverlay = z.infer<typeof TransitOverlaySchema>;
 export type TransitSummary = z.infer<typeof TransitSummarySchema>;
 export type DerivedFeatureSnapshot = z.infer<typeof DerivedFeatureSnapshotSchema>;
 export type DerivedFeaturePayload = z.infer<typeof DerivedFeaturePayloadSchema>;

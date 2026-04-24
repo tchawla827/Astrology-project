@@ -4,6 +4,7 @@ import {
   AskAnswerSchema,
   BirthProfileSchema,
   ChartSnapshotSchema,
+  TransitSummarySchema,
   PanchangSchema,
   ToneModeSchema,
 } from "@/lib/schemas";
@@ -116,6 +117,39 @@ describe("schemas", () => {
         vaara: "Wednesday",
         sunrise: "05:26:23",
         sunset: "19:15:31",
+        muhurta_windows: [
+          { name: "Rahu Kaal", start: "10:30:00", end: "12:00:00", kind: "inauspicious" },
+          { name: "Abhijit Muhurta", start: "11:45:00", end: "12:33:00", kind: "auspicious" },
+        ],
+      })
+    ).not.toThrow();
+  });
+
+  it("accepts transit overlay output and moolatrikona dignity", () => {
+    expect(() =>
+      TransitSummarySchema.parse({
+        as_of: "2026-04-20T06:00:00Z",
+        positions: [
+          {
+            planet: "Sun",
+            longitude_deg: 125.2,
+            sign: "Leo",
+            house: 1,
+            nakshatra: "Magha",
+            pada: 2,
+            retrograde: false,
+            combust: false,
+            dignity: "moolatrikona",
+          },
+        ],
+        highlights: ["Saturn pressure on kendra 10"],
+        overlay: {
+          triggered_houses: [10],
+          planet_to_house: {
+            Saturn: 10,
+            Jupiter: 5,
+          },
+        },
       })
     ).not.toThrow();
   });

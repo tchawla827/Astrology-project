@@ -7,6 +7,14 @@ import {
   PanchangSchema,
   TransitSummarySchema,
 } from "@/lib/schemas";
+import type {
+  Chart as ChartResponse,
+  ChartSnapshot,
+  DashaTimeline,
+  Panchang as PanchangResponse,
+  PlanetPlacement,
+  TransitSummary,
+} from "@/lib/schemas";
 
 export type Ayanamsha = "lahiri" | "raman" | "kp";
 
@@ -34,6 +42,10 @@ export interface DashaRequest extends BirthProfile {
 
 export interface TransitRequest extends BirthProfile {
   at: string;
+  natal?: {
+    lagna_sign: string;
+    planetary_positions: PlanetPlacement[];
+  };
 }
 
 export interface PanchangRequest {
@@ -44,115 +56,7 @@ export interface PanchangRequest {
   ayanamsha?: Ayanamsha;
 }
 
-export interface PlanetPlacement {
-  planet: string;
-  longitude_deg: number;
-  sign: string;
-  house: number;
-  nakshatra: string;
-  pada: number;
-  retrograde: boolean;
-  combust: boolean;
-  dignity: string;
-}
-
-export interface HouseEntry {
-  house: number;
-  sign: string;
-  lord: string;
-}
-
-export interface ChartPlanet {
-  planet: string;
-  sign: string;
-  house: number;
-}
-
-export interface ChartResponse {
-  chart_key: string;
-  ascendant_sign: string;
-  houses: HouseEntry[];
-  planets: ChartPlanet[];
-}
-
-export interface DashaPeriod {
-  lord: string;
-  start: string;
-  end: string;
-}
-
-export interface DashaSummary {
-  system: string;
-  current_mahadasha: DashaPeriod;
-  current_antardasha: DashaPeriod;
-  upcoming: DashaPeriod[];
-}
-
-export interface TransitSummary {
-  as_of: string;
-  positions: PlanetPlacement[];
-  highlights: string[];
-}
-
-export interface YogaEntry {
-  name: string;
-  confidence: "low" | "medium" | "high";
-  source_charts: string[];
-  planets_involved: string[];
-  notes: string[];
-}
-
-export interface ChartSnapshot {
-  id?: string;
-  birth_profile_id?: string;
-  computed_at?: string;
-  birth_time_confidence?: "exact" | "approximate" | "unknown";
-  engine_version: string;
-  summary: {
-    lagna: string;
-    moon_sign: string;
-    nakshatra: string;
-    pada: number;
-  };
-  charts: Record<string, ChartResponse>;
-  planetary_positions: PlanetPlacement[];
-  aspects: unknown[];
-  yogas: YogaEntry[];
-  dasha: DashaSummary;
-  transits: TransitSummary;
-  lagna_longitude_deg?: number;
-}
-
-export interface DashaTimeline {
-  system: string;
-  periods: Array<{
-    level: "mahadasha" | "antardasha" | "pratyantardasha";
-    lord: string;
-    start: string;
-    end: string;
-  }>;
-}
-
-export interface PanchangResponse {
-  date: string;
-  latitude: number;
-  longitude: number;
-  tithi: { name: string; fraction_left: number } | { name: string; end_time: string };
-  nakshatra: { name: string; fraction_left: number } | { name: string; end_time: string };
-  yoga: { name: string; fraction_left: number } | { name: string; end_time: string };
-  karana: { name: string; fraction_left: number } | { name: string; end_time: string };
-  vaara: string;
-  sunrise: string;
-  sunset: string;
-  ayanamsha_deg?: number;
-  sidereal_time?: string;
-  muhurta_windows?: Array<{
-    name: string;
-    start: string;
-    end: string;
-    kind: "auspicious" | "inauspicious";
-  }>;
-}
+export type { ChartResponse, ChartSnapshot, DashaTimeline, PanchangResponse, PlanetPlacement, TransitSummary };
 
 export interface AstroEngineErrorBody {
   error: { code: string; message: string; details?: unknown };

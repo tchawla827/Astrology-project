@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 from pytest import MonkeyPatch
 
+from app.calc.chart_snapshot import BirthInput, build_snapshot
 from app.main import app
 
 SECRET = "test-secret"
@@ -35,6 +36,16 @@ def test_dasha_endpoint_returns_mahadasha(monkeypatch: MonkeyPatch) -> None:
 def test_transits_overlay(monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setenv("ASTRO_ENGINE_SECRET", SECRET)
     client = TestClient(app)
+    natal_snapshot = build_snapshot(
+        BirthInput(
+            birth_date=PROFILE["birth_date"],
+            birth_time=PROFILE["birth_time"],
+            timezone=PROFILE["timezone"],
+            latitude=PROFILE["latitude"],
+            longitude=PROFILE["longitude"],
+            ayanamsha=PROFILE["ayanamsha"],
+        )
+    )
     resp = client.post(
         "/transits",
         headers={"X-Astro-Secret": SECRET},
@@ -43,6 +54,10 @@ def test_transits_overlay(monkeypatch: MonkeyPatch) -> None:
             "latitude": PROFILE["latitude"],
             "longitude": PROFILE["longitude"],
             "ayanamsha": "lahiri",
+            "natal": {
+                "lagna_sign": natal_snapshot["summary"]["lagna"],
+                "planetary_positions": natal_snapshot["planetary_positions"],
+            },
         },
     )
     assert resp.status_code == 200
@@ -50,6 +65,9 @@ def test_transits_overlay(monkeypatch: MonkeyPatch) -> None:
     assert body["as_of"].startswith("2026-04-20")
     planets = {p["planet"] for p in body["positions"]}
     assert {"Sun", "Moon", "Saturn"}.issubset(planets)
+    assert body["overlay"] is not None
+    assert "triggered_houses" in body["overlay"]
+    assert "planet_to_house" in body["overlay"]
 
 
 def test_panchang_endpoint(monkeypatch: MonkeyPatch) -> None:
@@ -73,6 +91,13 @@ def test_panchang_endpoint(monkeypatch: MonkeyPatch) -> None:
     assert "name" in body["nakshatra"]
     assert body["vaara"] in {
         "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+    }
+    assert len(body["muhurta_windows"]) == 4
+    assert {window["name"] for window in body["muhurta_windows"]} == {
+        "Abhijit Muhurta",
+        "Rahu Kaal",
+        "Yamaganda",
+        "Gulika Kaal",
     }
 
 
