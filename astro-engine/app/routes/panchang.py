@@ -31,6 +31,7 @@ def compute_panchang_endpoint(req: PanchangRequest) -> dict[str, Any]:
         "vaara": result.vaara,
         "sunrise": result.sunrise,
         "sunset": result.sunset,
+        "muhurta_windows": result.muhurta_windows,
         "ayanamsha_deg": result.ayanamsha_deg,
         "sidereal_time": result.sidereal_time,
     }

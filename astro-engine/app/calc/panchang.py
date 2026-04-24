@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import swisseph as swe
@@ -89,6 +89,7 @@ class PanchangResult:
     vaara: str
     sunrise: str
     sunset: str
+    muhurta_windows: list[dict[str, str]]
     ayanamsha_deg: float
     sidereal_time: str
 
@@ -138,20 +139,84 @@ def _sunrise_sunset(jd_ut_start: float, latitude: float, longitude: float) -> tu
 
 
 def _jd_to_local_time(jd_ut: float, tz_name: str) -> str:
+    return _jd_to_local_datetime(jd_ut, tz_name).strftime("%H:%M:%S")
+
+
+def _jd_to_local_datetime(jd_ut: float, tz_name: str) -> datetime:
     year, month, day, hour = swe.revjul(jd_ut)
-    h_int = int(hour)
-    m_float = (hour - h_int) * 60
-    m_int = int(m_float)
-    s_int = int(round((m_float - m_int) * 60))
-    if s_int == 60:
-        s_int = 0
-        m_int += 1
-    if m_int == 60:
-        m_int = 0
-        h_int += 1
-    utc_dt = datetime(year, month, day, h_int % 24, m_int, s_int, tzinfo=UTC)
-    local = utc_dt.astimezone(ZoneInfo(tz_name))
-    return local.strftime("%H:%M:%S")
+    whole_seconds = int(round(hour * 3600))
+    utc_dt = datetime(year, month, day, tzinfo=UTC) + timedelta(seconds=whole_seconds)
+    return utc_dt.astimezone(ZoneInfo(tz_name))
+
+
+def _segment_window(
+    sunrise: datetime,
+    sunset: datetime,
+    segment_index: int,
+) -> tuple[datetime, datetime]:
+    segment_duration = (sunset - sunrise) / 8
+    start = sunrise + segment_duration * (segment_index - 1)
+    end = start + segment_duration
+    return start, end
+
+
+def _muhurta_windows(vaara: str, sunrise: datetime, sunset: datetime) -> list[dict[str, str]]:
+    day_length = sunset - sunrise
+    solar_noon = sunrise + day_length / 2
+    abhijit_half_window = day_length / 30
+
+    segment_maps = {
+        "Rahu Kaal": {
+            "Sunday": 8,
+            "Monday": 2,
+            "Tuesday": 7,
+            "Wednesday": 5,
+            "Thursday": 6,
+            "Friday": 4,
+            "Saturday": 3,
+        },
+        "Yamaganda": {
+            "Sunday": 5,
+            "Monday": 4,
+            "Tuesday": 3,
+            "Wednesday": 2,
+            "Thursday": 1,
+            "Friday": 7,
+            "Saturday": 6,
+        },
+        "Gulika Kaal": {
+            "Sunday": 7,
+            "Monday": 6,
+            "Tuesday": 5,
+            "Wednesday": 4,
+            "Thursday": 3,
+            "Friday": 2,
+            "Saturday": 1,
+        },
+    }
+
+    windows = [
+        {
+            "name": "Abhijit Muhurta",
+            "start": (solar_noon - abhijit_half_window).strftime("%H:%M:%S"),
+            "end": (solar_noon + abhijit_half_window).strftime("%H:%M:%S"),
+            "kind": "auspicious",
+        }
+    ]
+
+    for name, segment_by_day in segment_maps.items():
+        segment_index = segment_by_day[vaara]
+        start, end = _segment_window(sunrise, sunset, segment_index)
+        windows.append(
+            {
+                "name": name,
+                "start": start.strftime("%H:%M:%S"),
+                "end": end.strftime("%H:%M:%S"),
+                "kind": "inauspicious",
+            }
+        )
+
+    return sorted(windows, key=lambda window: window["start"])
 
 
 def compute_panchang(
@@ -184,6 +249,8 @@ def compute_panchang(
     python_to_vedic = (1, 2, 3, 4, 5, 6, 0)  # Mon→Moon(1) ... Sun→Sun(0)
     vedic_idx = python_to_vedic[weekday_idx]
     vaara = VEDIC_WEEKDAY_NAMES[vedic_idx]
+    rise_local = _jd_to_local_datetime(rise_jd, timezone_name)
+    set_local = _jd_to_local_datetime(set_jd, timezone_name)
     sid_time_h = swe.sidtime(jd_midnight) + longitude / 15.0
     sid_time_h = sid_time_h % 24.0
     sh = int(sid_time_h)
@@ -206,8 +273,9 @@ def compute_panchang(
         yoga={"name": yoga_name, "fraction_left": yoga_left},
         karana={"name": karana_name, "fraction_left": karana_left},
         vaara=vaara,
-        sunrise=_jd_to_local_time(rise_jd, timezone_name),
-        sunset=_jd_to_local_time(set_jd, timezone_name),
+        sunrise=rise_local.strftime("%H:%M:%S"),
+        sunset=set_local.strftime("%H:%M:%S"),
+        muhurta_windows=_muhurta_windows(vaara, rise_local, set_local),
         ayanamsha_deg=swe.get_ayanamsa_ut(rise_jd),
         sidereal_time=sid_time_str,
     )

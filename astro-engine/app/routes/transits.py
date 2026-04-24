@@ -45,7 +45,7 @@ def compute_transits(req: TransitRequest) -> dict[str, Any]:
                 "pada": pada(pos.longitude_deg),
                 "retrograde": pos.retrograde,
                 "combust": is_combust(p, pos.longitude_deg, sun_lon),
-                "dignity": dignity_for(p, pos.sign),
+                "dignity": dignity_for(p, pos.sign, pos.longitude_deg),
             }
             for p, pos in positions.items()
         ],

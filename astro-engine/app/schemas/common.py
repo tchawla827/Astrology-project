@@ -44,7 +44,15 @@ class PlanetPlacementOut(BaseModel):
     pada: int
     retrograde: bool
     combust: bool
-    dignity: str
+    dignity: Literal[
+        "exalted",
+        "moolatrikona",
+        "own",
+        "friendly",
+        "neutral",
+        "enemy",
+        "debilitated",
+    ]
 
 
 class HouseOut(BaseModel):
@@ -91,6 +99,7 @@ class TransitSummaryOut(BaseModel):
     as_of: str
     positions: list[PlanetPlacementOut]
     highlights: list[str]
+    overlay: dict[str, object] | None = None
 
 
 class ErrorBody(BaseModel):

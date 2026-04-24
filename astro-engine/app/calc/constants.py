@@ -203,6 +203,16 @@ OWN_SIGNS: dict[Planet, tuple[str, ...]] = {
     "Saturn": ("Capricorn", "Aquarius"),
 }
 
+MOOLATRIKONA_RANGES: dict[Planet, tuple[str, float, float]] = {
+    "Sun": ("Leo", 0.0, 20.0),
+    "Moon": ("Taurus", 4.0, 30.0),
+    "Mars": ("Aries", 0.0, 12.0),
+    "Mercury": ("Virgo", 16.0, 20.0),
+    "Jupiter": ("Sagittarius", 0.0, 10.0),
+    "Venus": ("Libra", 0.0, 15.0),
+    "Saturn": ("Aquarius", 0.0, 20.0),
+}
+
 FRIENDS: dict[Planet, frozenset[Planet]] = {
     "Sun": frozenset({"Moon", "Mars", "Jupiter"}),
     "Moon": frozenset({"Sun", "Mercury"}),

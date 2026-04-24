@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { ChartSnapshot } from "@/lib/astro/client";
 import { generateProfileForBirthProfile } from "@/lib/server/generateProfile";
 
-const snapshot = {
+const snapshot: ChartSnapshot = {
   engine_version: "astro_engine_v1",
   summary: { lagna: "Aquarius", moon_sign: "Virgo", nakshatra: "Uttara Phalguni", pada: 4 },
   charts: {

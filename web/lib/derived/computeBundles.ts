@@ -23,7 +23,7 @@ type ComputeBundlesOptions = {
 
 const beneficPlanets = new Set<Planet>(["Jupiter", "Venus", "Mercury", "Moon"]);
 const maleficPlanets = new Set<Planet>(["Sun", "Mars", "Saturn", "Rahu", "Ketu"]);
-const supportiveDignities = new Set<PlanetPlacement["dignity"]>(["own", "exalted"]);
+const supportiveDignities = new Set<PlanetPlacement["dignity"]>(["own", "exalted", "moolatrikona"]);
 const weakDignities = new Set<PlanetPlacement["dignity"]>(["enemy", "debilitated"]);
 const difficultHouses = new Set([6, 8, 12]);
 
@@ -90,6 +90,8 @@ function dignityText(dignity: PlanetPlacement["dignity"]) {
       return "strongly exalted";
     case "own":
       return "steady in its own sign";
+    case "moolatrikona":
+      return "working from its moolatrikona base";
     case "friendly":
       return "supported by a friendly sign";
     case "neutral":

@@ -8,6 +8,7 @@ from typing import Any
 
 from ..versioning import ENGINE_VERSION
 from . import ayanamsha, ephemeris
+from .aspects import build_aspects
 from .combustion import is_combust
 from .constants import SIGNS, Planet
 from .dashas import (
@@ -42,7 +43,7 @@ def _planet_placement(pos: PlanetPosition, asc_sign_index: int, sun_lon: float) 
         "pada": pada(pos.longitude_deg),
         "retrograde": pos.retrograde,
         "combust": is_combust(pos.planet, pos.longitude_deg, sun_lon),
-        "dignity": dignity_for(pos.planet, pos.sign),
+        "dignity": dignity_for(pos.planet, pos.sign, pos.longitude_deg),
     }
 
 
@@ -196,13 +197,14 @@ def build_snapshot(
         p: house_of_sign(pos.sign_index, asc.sign_index) for p, pos in positions.items()
     }
     yogas = detect_all(planet_sign, planet_house, asc.sign_index)
+    aspects = build_aspects(positions, planet_house)
 
     return {
         "engine_version": ENGINE_VERSION,
         "summary": summary,
         "charts": charts,
         "planetary_positions": planetary,
-        "aspects": [],
+        "aspects": aspects,
         "yogas": [
             {
                 "name": y.name,
