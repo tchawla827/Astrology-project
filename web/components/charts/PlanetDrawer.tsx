@@ -4,15 +4,17 @@ import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { aspectsForPlanet, type RenderedPlanet } from "@/lib/charts/renderChart";
+import { aspectsForPlanet, chartSupportsNatalTechnicalDetails, yogaInvolvesPlanet, type RenderedPlanet } from "@/lib/charts/renderChart";
 import type { Aspect, Yoga } from "@/lib/schemas";
 
 export function PlanetDrawer({
+  chartKey,
   planet,
   aspects,
   yogas,
   onClose,
 }: {
+  chartKey: string;
   planet: RenderedPlanet | null;
   aspects: Aspect[];
   yogas: Yoga[];
@@ -22,9 +24,10 @@ export function PlanetDrawer({
     return null;
   }
 
-  const natal = planet.natal;
+  const technicalDetails = planet.technicalDetails;
+  const supportsTechnicalDetails = chartSupportsNatalTechnicalDetails(chartKey);
   const relatedAspects = aspectsForPlanet(aspects, planet.planet);
-  const relatedYogas = yogas.filter((yoga) => yoga.notes.some((note) => note.toLowerCase().includes(planet.planet.toLowerCase())));
+  const relatedYogas = yogas.filter((yoga) => yogaInvolvesPlanet(yoga, planet.planet));
 
   return (
     <Sheet>
@@ -44,10 +47,22 @@ export function PlanetDrawer({
 
         <div className="mt-6 space-y-5 text-sm">
           <Detail label="Placement" value={`${planet.sign}, house ${planet.house}`} />
-          <Detail label="Longitude" value={natal ? `${natal.longitude_deg.toFixed(2)} deg` : "Not available for this divisional chart"} />
-          <Detail label="Nakshatra" value={natal ? `${natal.nakshatra}, pada ${natal.pada}` : "Not available"} />
-          <Detail label="Dignity" value={natal?.dignity ?? "Not available"} />
-          <Detail label="Motion" value={[natal?.retrograde ? "retrograde" : "direct", natal?.combust ? "combust" : "not combust"].join(", ")} />
+          <Detail label="Longitude" value={technicalDetails ? `${technicalDetails.longitude_deg.toFixed(2)} deg` : "Not available for this chart"} />
+          <Detail label="Nakshatra" value={technicalDetails ? `${technicalDetails.nakshatra}, pada ${technicalDetails.pada}` : "Not available for this chart"} />
+          <Detail label="Dignity" value={technicalDetails?.dignity ?? "Not available for this chart"} />
+          <Detail
+            label="Motion"
+            value={
+              technicalDetails
+                ? [technicalDetails.retrograde ? "retrograde" : "direct", technicalDetails.combust ? "combust" : "not combust"].join(", ")
+                : "Not available for this chart"
+            }
+          />
+          {!supportsTechnicalDetails ? (
+            <p className="rounded-md border bg-background/40 p-3 text-muted-foreground">
+              Technical planetary metadata is only stored for D1, Bhava, and Moon views. Divisional charts currently expose sign and house placement only.
+            </p>
+          ) : null}
           <ListDetail label="Aspects cast / received" values={relatedAspects.map((aspect) => `${aspect.from} ${aspect.kind} ${aspect.to}`)} />
           <ListDetail label="Yogas involving this planet" values={relatedYogas.map((yoga) => `${yoga.name}: ${yoga.notes.join(" ")}`)} />
         </div>

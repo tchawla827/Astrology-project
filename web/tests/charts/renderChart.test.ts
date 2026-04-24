@@ -32,6 +32,15 @@ const snapshot: ChartSnapshot = {
         { planet: "Moon", sign: "Cancer", house: 4 },
       ],
     },
+    D9: {
+      chart_key: "D9",
+      ascendant_sign: "Sagittarius",
+      houses: [...houses],
+      planets: [
+        { planet: "Sun", sign: "Cancer", house: 8 },
+        { planet: "Mercury", sign: "Leo", house: 9 },
+      ],
+    },
   },
   planetary_positions: [
     {
@@ -69,7 +78,15 @@ const snapshot: ChartSnapshot = {
     },
   ],
   aspects: [],
-  yogas: [],
+  yogas: [
+    {
+      name: "Raja Yoga",
+      confidence: "medium",
+      source_charts: ["D1"],
+      planets_involved: ["Sun", "Mercury"],
+      notes: ["Sun and Mercury are joined in a kendra."],
+    },
+  ],
   dasha: {
     system: "vimshottari",
     current_mahadasha: { lord: "Moon", start: "2020-01-01", end: "2030-01-01" },
@@ -86,6 +103,7 @@ describe("renderChart", () => {
     expect(rendered?.houses).toHaveLength(12);
     expect(rendered?.planets.find((planet) => planet.planet === "Moon")?.point).toMatchObject({ x: 28, y: 72 });
     expect(rendered?.planets.find((planet) => planet.planet === "Mercury")?.label).toBe("Me(R)");
+    expect(rendered?.planets.find((planet) => planet.planet === "Mercury")?.technicalDetails?.sign).toBe("Taurus");
   });
 
   it("maps South Indian positions by sign while preserving chart houses", () => {
@@ -97,5 +115,12 @@ describe("renderChart", () => {
 
   it("returns null for missing charts", () => {
     expect(renderChart(snapshot, "D99")).toBeNull();
+  });
+
+  it("does not reuse natal technical details for divisional charts", () => {
+    const rendered = renderChart(snapshot, "D9", "north");
+
+    expect(rendered?.planets.find((planet) => planet.planet === "Sun")?.technicalDetails).toBeUndefined();
+    expect(rendered?.planets.find((planet) => planet.planet === "Mercury")?.label).toBe("Me");
   });
 });

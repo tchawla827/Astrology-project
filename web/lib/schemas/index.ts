@@ -108,6 +108,7 @@ export const YogaSchema = z.object({
   name: z.string(),
   confidence: z.enum(["low", "medium", "high"]),
   source_charts: z.array(z.string()),
+  planets_involved: z.array(PlanetSchema),
   notes: z.array(z.string()),
 });
 

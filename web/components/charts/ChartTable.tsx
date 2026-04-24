@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 
+import { chartSupportsNatalTechnicalDetails } from "@/lib/charts/renderChart";
 import type { RenderedChart } from "@/lib/charts/renderChart";
 import type { DepthMode } from "@/lib/schemas";
 
 export function ChartTable({ rendered, depth }: { rendered: RenderedChart; depth: DepthMode }) {
   const [isOpen, setIsOpen] = useState(false);
+  const supportsTechnicalDetails = chartSupportsNatalTechnicalDetails(rendered.chart.chart_key);
 
   return (
     <div className="mt-4">
@@ -38,11 +40,11 @@ export function ChartTable({ rendered, depth }: { rendered: RenderedChart; depth
                     <td className="p-2 text-muted-foreground">
                       {planets
                         .map((planet) =>
-                          planet.natal
-                            ? `${planet.planet}: ${planet.natal.longitude_deg.toFixed(2)} deg, ${planet.natal.nakshatra} pada ${planet.natal.pada}, ${planet.natal.dignity}`
+                          planet.technicalDetails
+                            ? `${planet.planet}: ${planet.technicalDetails.longitude_deg.toFixed(2)} deg, ${planet.technicalDetails.nakshatra} pada ${planet.technicalDetails.pada}, ${planet.technicalDetails.dignity}`
                             : planet.planet,
                         )
-                        .join("; ") || "No planet detail"}
+                        .join("; ") || (supportsTechnicalDetails ? "No planet detail" : "Technical detail is not stored for this chart")}
                     </td>
                   ) : null}
                 </tr>

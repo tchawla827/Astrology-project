@@ -78,7 +78,15 @@ describe("schemas", () => {
           },
         ],
         aspects: [],
-        yogas: [],
+        yogas: [
+          {
+            name: "Gajakesari",
+            confidence: "high",
+            source_charts: ["D1"],
+            planets_involved: ["Moon", "Jupiter"],
+            notes: ["Moon and Jupiter are in kendra relation."],
+          },
+        ],
         dasha: {
           system: "vimshottari",
           current_mahadasha: { lord: "Rahu", start: "2006-05-16", end: "2024-05-16" },

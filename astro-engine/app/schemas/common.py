@@ -70,6 +70,7 @@ class YogaOut(BaseModel):
     name: str
     confidence: Literal["low", "medium", "high"]
     source_charts: list[str]
+    planets_involved: list[Planet]
     notes: list[str]
 
 

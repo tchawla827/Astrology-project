@@ -15,6 +15,7 @@ class Yoga:
     name: str
     confidence: Literal["low", "medium", "high"]
     source_charts: list[str]
+    planets_involved: list[Planet]
     notes: list[str]
 
 
@@ -47,6 +48,7 @@ def detect_raja_yoga(
                         name="Raja Yoga",
                         confidence="medium",
                         source_charts=["D1"],
+                        planets_involved=sorted([k, t]),
                         notes=[f"Kendra lord {k} conjunct trikona lord {t} in house {hk}"],
                     )
                 )
@@ -76,6 +78,7 @@ def detect_dhana_yoga(
                         name="Dhana Yoga",
                         confidence="medium",
                         source_charts=["D1"],
+                        planets_involved=sorted([a, b]),
                         notes=[f"Dhana lords {a} & {b} conjunct in house {ha}"],
                     )
                 )
@@ -99,6 +102,7 @@ def detect_kemadruma(planet_house: dict[Planet, int]) -> list[Yoga]:
                 name="Kemadruma",
                 confidence="high",
                 source_charts=["D1"],
+                planets_involved=["Moon"],
                 notes=["No planets in 2nd or 12th from Moon"],
             )
         ]
@@ -118,6 +122,7 @@ def detect_gajakesari(planet_house: dict[Planet, int]) -> list[Yoga]:
                 name="Gajakesari",
                 confidence="high",
                 source_charts=["D1"],
+                planets_involved=["Jupiter", "Moon"],
                 notes=[f"Moon in house {mh}, Jupiter in house {jh} (kendra relation)"],
             )
         ]
@@ -153,6 +158,7 @@ def detect_neechabhanga(
                         name="Neechabhanga Raja Yoga",
                         confidence="medium",
                         source_charts=["D1"],
+                        planets_involved=sorted([planet, c]),
                         notes=[
                             f"{planet} debilitated in {sign}; "
                             f"cancelled by {c} in kendra {house}"

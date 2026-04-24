@@ -59,10 +59,10 @@ export function NorthIndianChart({ rendered, depth, onPlanetSelect, onHouseSelec
           <text className="pointer-events-none fill-primary text-[3px] font-semibold" textAnchor="middle" x={planet.point.x} y={planet.point.y + 6.1}>
             {planet.label}
           </text>
-          {planet.natal?.combust ? <circle className="fill-destructive" cx={planet.point.x + 4.6} cy={planet.point.y + 2.2} r="1" /> : null}
-          {depth === "technical" && planet.natal ? (
+          {planet.technicalDetails?.combust ? <circle className="fill-destructive" cx={planet.point.x + 4.6} cy={planet.point.y + 2.2} r="1" /> : null}
+          {depth === "technical" && planet.technicalDetails ? (
             <text className="pointer-events-none fill-muted-foreground text-[2.2px]" textAnchor="middle" x={planet.point.x} y={planet.point.y + 10}>
-              {planet.natal.longitude_deg.toFixed(1)} {planet.natal.nakshatra.slice(0, 3)}-{planet.natal.pada}
+              {planet.technicalDetails.longitude_deg.toFixed(1)} {planet.technicalDetails.nakshatra.slice(0, 3)}-{planet.technicalDetails.pada}
             </text>
           ) : null}
         </g>
