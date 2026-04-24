@@ -1,6 +1,6 @@
 # Phase 06 — Life Area Reports
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** 05
 **Scope:** M
 **Recommended model:** `claude-haiku-4-5-20251001` — pure rendering work: read a bundle, map it to a view model, render sections. No novel logic; just turning a known data shape into a page.
@@ -93,11 +93,11 @@ Life-area pages render in **direct** tone by default (not user's tone preference
 
 ## Acceptance criteria
 
-- [ ] `/life-areas` shows 4 tiles: Personality, Career, Wealth, Relationships.
-- [ ] `/life-areas/career` renders all sections with real data from the derived bundle.
-- [ ] Confidence badge reflects both bundle signal consistency and birth-time confidence.
-- [ ] CTA deeplink opens `/ask` with topic and tone prefilled (verified in phase 08).
-- [ ] Typecheck + lint + tests pass.
+- [x] `/life-areas` shows 4 tiles: Personality, Career, Wealth, Relationships.
+- [x] `/life-areas/career` renders all sections with real data from the derived bundle.
+- [x] Confidence badge reflects both bundle signal consistency and birth-time confidence.
+- [x] CTA deeplink opens `/ask` with topic and tone prefilled (verified in phase 08).
+- [x] Typecheck + lint + tests pass.
 
 ## Out of scope
 

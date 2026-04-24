@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "default" | "secondary" | "outline" | "ghost" | "destructive";
   size?: "default" | "sm" | "lg";
+  asChild?: boolean;
 };
 
 const variantClasses: Record<NonNullable<ButtonProps["variant"]>, string> = {
@@ -22,17 +23,21 @@ const sizeClasses: Record<NonNullable<ButtonProps["size"]>, string> = {
 };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "default", size = "default", ...props }, ref) => (
-    <button
-      ref={ref}
-      className={cn(
-        "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
-        variantClasses[variant],
-        sizeClasses[size],
-        className
-      )}
-      {...props}
-    />
-  )
+  ({ asChild = false, className, variant = "default", size = "default", ...props }, ref) => {
+    const classes = cn(
+      "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+      variantClasses[variant],
+      sizeClasses[size],
+      className
+    );
+
+    if (asChild && React.isValidElement(props.children)) {
+      return React.cloneElement(props.children, {
+        className: cn(classes, props.children.props.className),
+      });
+    }
+
+    return <button ref={ref} className={classes} {...props} />;
+  }
 );
 Button.displayName = "Button";
