@@ -115,8 +115,9 @@ Key rules:
 3. `web/` inserts `birth_profiles` row with `status = 'processing'`.
 4. `web/` calls `astro-engine` `/profile` with resolved lat/lon/tz/ayanamsha.
 5. Engine returns full `ChartSnapshot` (D1, Bhava, Moon, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11, D12, D16, D20, D24, D27, D30, D40, D45, D60, planets, houses, Vimshottari dasha, current transits).
-6. `web/` stores `chart_snapshots` row + flips `birth_profiles.status = 'ready'`.
-7. (Phase 05) Derived-feature job enqueued — precomputes topic bundles.
+6. `web/` stores `chart_snapshots` row.
+7. (Phase 05) `web/` computes and stores `derived_feature_snapshots` for topic bundles, dashboard summary, and time sensitivity.
+8. `web/` flips `birth_profiles.status = 'ready'` only after both snapshot rows exist.
 
 ## Data flow — Ask Astrology
 

@@ -199,17 +199,35 @@ export const DashboardSummarySchema = z.object({
   focus_cards: z.array(FocusCardSchema).min(1).max(3),
 });
 
-export const DerivedFeatureSnapshotSchema = z.object({
+export const TimeSensitivitySchema = z.object({
+  overall: z.enum(["low", "medium", "high"]),
+  note: z.string(),
+});
+
+export const TopicBundleCollectionSchema = z.object({
+  personality: TopicBundleSchema,
+  career: TopicBundleSchema,
+  wealth: TopicBundleSchema,
+  relationships: TopicBundleSchema,
+  marriage: TopicBundleSchema,
+  family: TopicBundleSchema,
+  health: TopicBundleSchema,
+  education: TopicBundleSchema,
+  spirituality: TopicBundleSchema,
+  relocation: TopicBundleSchema,
+});
+
+export const DerivedFeaturePayloadSchema = z.object({
+  topic_bundles: TopicBundleCollectionSchema,
+  dashboard_summary: DashboardSummarySchema,
+  time_sensitivity: TimeSensitivitySchema,
+});
+
+export const DerivedFeatureSnapshotSchema = DerivedFeaturePayloadSchema.extend({
   id: z.string().uuid(),
   birth_profile_id: z.string().uuid(),
   chart_snapshot_id: z.string().uuid(),
   schema_version: z.string(),
-  topic_bundles: z.record(TopicSchema, TopicBundleSchema),
-  dashboard_summary: DashboardSummarySchema,
-  time_sensitivity: z.object({
-    overall: z.enum(["low", "medium", "high"]),
-    note: z.string(),
-  }),
   computed_at: z.string(),
 });
 
@@ -344,9 +362,12 @@ export type DashaTimeline = z.infer<typeof DashaTimelineSchema>;
 export type DashaPeriod = z.infer<typeof DashaPeriodSchema>;
 export type TransitSummary = z.infer<typeof TransitSummarySchema>;
 export type DerivedFeatureSnapshot = z.infer<typeof DerivedFeatureSnapshotSchema>;
+export type DerivedFeaturePayload = z.infer<typeof DerivedFeaturePayloadSchema>;
 export type TopicBundle = z.infer<typeof TopicBundleSchema>;
+export type TopicBundleCollection = z.infer<typeof TopicBundleCollectionSchema>;
 export type DashboardSummary = z.infer<typeof DashboardSummarySchema>;
 export type FocusCard = z.infer<typeof FocusCardSchema>;
+export type TimeSensitivity = z.infer<typeof TimeSensitivitySchema>;
 export type AskSession = z.infer<typeof AskSessionSchema>;
 export type AskMessage = z.infer<typeof AskMessageSchema>;
 export type AskAnswer = z.infer<typeof AskAnswerSchema>;
