@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ChartView } from "@/components/charts/ChartView";
+import { RegenerateChartButton } from "@/components/common/RegenerateChartButton";
 import { DashboardErrorShell, DashboardProcessingShell } from "@/components/insights/DashboardStatusShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHART_GROUPS, CHART_LABELS } from "@/lib/charts/catalog";
@@ -60,9 +61,12 @@ export default async function ChartsPage() {
           <p className="text-sm uppercase text-primary">Chart explorer</p>
           <h1 className="mt-2 text-3xl font-semibold">{explorer.profile.name}&apos;s chart catalog</h1>
         </div>
-        <Link className="rounded-md border px-4 py-2 text-sm hover:bg-muted" href="/charts/compare">
-          Compare charts
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <RegenerateChartButton profileId={explorer.profileId} />
+          <Link className="rounded-md border px-4 py-2 text-sm hover:bg-muted" href="/charts/compare">
+            Compare charts
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">

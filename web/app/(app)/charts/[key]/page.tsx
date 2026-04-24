@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ChartView } from "@/components/charts/ChartView";
+import { RegenerateChartButton } from "@/components/common/RegenerateChartButton";
 import { YogaList } from "@/components/charts/YogaList";
 import { DashboardErrorShell, DashboardProcessingShell } from "@/components/insights/DashboardStatusShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,6 +72,7 @@ export default async function ChartDetailPage({ params }: { params: { key: strin
           <h1 className="mt-2 text-3xl font-semibold">{chartTitle(params.key)}</h1>
         </div>
         <div className="flex flex-wrap gap-2">
+          <RegenerateChartButton profileId={explorer.profileId} />
           <Link className="rounded-md border px-4 py-2 text-sm hover:bg-muted" href="/charts">
             Catalog
           </Link>
