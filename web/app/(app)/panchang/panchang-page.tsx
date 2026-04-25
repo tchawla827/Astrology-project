@@ -6,6 +6,7 @@ import { PanchangCard } from "@/components/panchang/PanchangCard";
 import { PanchangDatePicker } from "@/components/panchang/PanchangDatePicker";
 import { SunTimes } from "@/components/panchang/SunTimes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { track } from "@/lib/analytics/events";
 import { LlmContextError } from "@/lib/llm/errors";
 import { loadPanchang, type SupabasePanchangClient } from "@/lib/server/loadPanchang";
 import { createClient } from "@/lib/supabase/server";
@@ -68,6 +69,7 @@ export async function PanchangPageContent({
       date,
       override: parseOverride(searchParams),
     });
+    await track(supabase, "panchang_viewed", {}, user.id);
 
     return (
       <div className="space-y-6">

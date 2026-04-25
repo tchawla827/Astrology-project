@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { track } from "@/lib/analytics/events";
 import { generateProfileForBirthProfile } from "@/lib/server/generateProfile";
 import { normalizeProfileSubmission } from "@/lib/server/profileIntake";
 import { createClient } from "@/lib/supabase/server";
@@ -69,6 +70,12 @@ export async function POST(request: Request) {
           ayanamsha: normalized.data.ayanamsha,
         },
       });
+      await track(
+        backgroundClient,
+        "profile_generated",
+        { birth_time_confidence: normalized.data.birth_time_confidence },
+        user.id,
+      );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown profile generation failure.";
 

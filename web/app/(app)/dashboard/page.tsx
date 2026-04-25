@@ -10,6 +10,7 @@ import { ThemesCard } from "@/components/insights/ThemesCard";
 import { TransitCard } from "@/components/insights/TransitCard";
 import { DashboardPanchangStrip } from "@/components/panchang/DashboardPanchangStrip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { track } from "@/lib/analytics/events";
 import { loadDashboard, type SupabaseDashboardClient } from "@/lib/server/loadDashboard";
 import { loadPanchang, type SupabasePanchangClient } from "@/lib/server/loadPanchang";
 import { createClient } from "@/lib/supabase/server";
@@ -97,6 +98,7 @@ export default async function DashboardPage() {
     profileId: dashboard.profile.id,
     date: "today",
   }).catch(() => null);
+  await track(supabase, "dashboard_viewed", {}, user.id);
 
   return (
     <div className="space-y-6">

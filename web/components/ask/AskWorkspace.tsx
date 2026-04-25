@@ -14,6 +14,15 @@ import { useAskSession } from "@/hooks/useAskSession";
 import type { DepthMode, ToneMode } from "@/lib/schemas";
 import type { AskSessionSummary, AskThreadMessage } from "@/lib/server/loadAsk";
 
+type AskQuotaView = {
+  allowed: boolean;
+  tier: "free" | "premium";
+  used: number;
+  limit: number | null;
+  remaining: number | null;
+  upgrade_url?: string;
+};
+
 export function AskWorkspace({
   profileId,
   initialSessionId,
@@ -22,6 +31,7 @@ export function AskWorkspace({
   initialQuestion,
   starterQuestions,
   sessions,
+  quota,
 }: {
   profileId: string;
   initialSessionId?: string;
@@ -30,6 +40,7 @@ export function AskWorkspace({
   initialQuestion?: string;
   starterQuestions: string[];
   sessions: AskSessionSummary[];
+  quota?: AskQuotaView;
 }) {
   const [draft, setDraft] = useState(initialQuestion ?? "");
   const ask = useAskSession({
@@ -48,7 +59,7 @@ export function AskWorkspace({
         <DepthToggle disabled={ask.isSubmitting} onChange={ask.setDepth as (value: DepthMode) => void} value={ask.depth} />
       </div>
       <QuestionInput
-        disabled={ask.isSubmitting}
+        disabled={ask.isSubmitting || quota?.allowed === false}
         onChange={setDraft}
         onSubmit={() => {
           const question = draft;
@@ -57,6 +68,27 @@ export function AskWorkspace({
         }}
         value={draft}
       />
+      {quota?.tier === "free" && quota.limit !== null ? (
+        <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+          {quota.allowed ? (
+            <p>
+              {quota.remaining} of {quota.limit} free Ask questions remain this month.
+              {quota.remaining !== null && quota.remaining <= 1 ? (
+                <a className="ml-2 text-primary hover:underline" href="/pricing">
+                  Upgrade for unlimited Ask
+                </a>
+              ) : null}
+            </p>
+          ) : (
+            <p>
+              Monthly Ask limit reached.
+              <a className="ml-2 text-primary hover:underline" href={quota.upgrade_url ?? "/pricing"}>
+                Upgrade for unlimited Ask
+              </a>
+            </p>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 

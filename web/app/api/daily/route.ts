@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { LlmContextError, LlmProviderError } from "@/lib/llm/errors";
+import { track } from "@/lib/analytics/events";
 import { generateDailyPrediction, type SupabaseDailyClient } from "@/lib/server/generateDailyPrediction";
 import { createClient } from "@/lib/supabase/server";
 import { ToneModeSchema } from "@/lib/schemas";
@@ -95,6 +96,13 @@ export async function GET(request: Request) {
       date: parsed.data.date,
       tone: parsed.data.tone,
     });
+
+    await track(
+      supabase,
+      "daily_viewed",
+      { date_offset_days: null, tone: parsed.data.tone },
+      user.id,
+    );
 
     return NextResponse.json({
       prediction: result.prediction,

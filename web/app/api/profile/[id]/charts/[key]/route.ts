@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isSupportedChartKey } from "@/lib/charts/catalog";
+import { canAccessChart } from "@/lib/quotas/features";
 import { ChartSnapshotSchema } from "@/lib/schemas";
 import { createClient } from "@/lib/supabase/server";
 
@@ -31,6 +32,21 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
 
   if (!profile) {
     return NextResponse.json({ error: "Profile not found." }, { status: 404 });
+  }
+
+  const { data: userProfile, error: userProfileError } = await supabase
+    .from("user_profiles")
+    .select("subscription_tier,subscription_current_period_end")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (userProfileError) {
+    return NextResponse.json({ error: userProfileError.message }, { status: 500 });
+  }
+  if (!canAccessChart(params.key, userProfile as { subscription_tier?: "free" | "premium"; subscription_current_period_end?: string | null } | null)) {
+    return NextResponse.json(
+      { error: "This chart is a Premium feature.", reason: "premium_required", upgrade_url: "/pricing" },
+      { status: 402 },
+    );
   }
 
   const { data: snapshotRow, error: snapshotError } = await supabase

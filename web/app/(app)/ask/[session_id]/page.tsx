@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { AskWorkspace } from "@/components/ask/AskWorkspace";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { checkAskQuota, type SupabaseAskQuotaClient } from "@/lib/quotas/askQuota";
 import {
   loadAskSessionSummaries,
   loadAskThread,
@@ -40,6 +41,7 @@ export default async function AskSessionPage({ params }: { params: { session_id:
     supabase as unknown as SupabaseAskUiClient,
     thread.session.birth_profile_id,
   );
+  const quota = await checkAskQuota({ supabase: supabase as unknown as SupabaseAskQuotaClient, userId: user.id });
 
   return (
     <AskWorkspace
@@ -47,6 +49,7 @@ export default async function AskSessionPage({ params }: { params: { session_id:
       initialSessionId={thread.session.id}
       initialTone={thread.session.tone_mode}
       profileId={thread.session.birth_profile_id}
+      quota={quota}
       sessions={sessions}
       starterQuestions={[]}
     />
