@@ -8,6 +8,7 @@ import { HouseBreakdown } from "@/components/life-areas/HouseBreakdown";
 import { LifeAreaHeader } from "@/components/life-areas/LifeAreaHeader";
 import { PlanetBreakdown } from "@/components/life-areas/PlanetBreakdown";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { track } from "@/lib/analytics/events";
 import { isSupportedLifeAreaTopic, renderLifeArea } from "@/lib/life-areas/render";
 import { loadLifeAreaContext, type SupabaseLifeAreaClient } from "@/lib/server/loadLifeArea";
 import { createClient } from "@/lib/supabase/server";
@@ -79,6 +80,7 @@ export default async function LifeAreaPage({ params }: { params: { topic: string
     context.snapshot,
     context.profile.birth_time_confidence,
   );
+  await track(supabase, "life_area_viewed", { topic: params.topic }, user.id);
 
   return (
     <div className="space-y-6">

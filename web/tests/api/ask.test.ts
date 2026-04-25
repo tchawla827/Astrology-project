@@ -23,6 +23,11 @@ describe("/api/ask", () => {
       auth: { getUser: async () => ({ data: { user: { id: "user-1" } } }) },
       from(table: string) {
         if (table !== "birth_profiles") {
+          if (table === "ask_usage" || table === "analytics_events") {
+            return {
+              insert: async () => ({ error: null }),
+            };
+          }
           throw new Error(`Unexpected table ${table}`);
         }
 

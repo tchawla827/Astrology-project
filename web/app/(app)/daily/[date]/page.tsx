@@ -2,7 +2,9 @@ import Link from "next/link";
 
 import { DailyCard } from "@/components/daily/DailyCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { track } from "@/lib/analytics/events";
 import { LlmContextError, LlmProviderError } from "@/lib/llm/errors";
+import { checkDailyQuota, type SupabaseDailyQuotaClient } from "@/lib/quotas/dailyQuota";
 import { generateDailyPrediction, resolveDailyDate, type SupabaseDailyClient } from "@/lib/server/generateDailyPrediction";
 import { createClient } from "@/lib/supabase/server";
 import { ToneModeSchema } from "@/lib/schemas";
@@ -93,6 +95,26 @@ export default async function DailyDatePage({
     );
   }
 
+  const quota = await checkDailyQuota({
+    supabase: supabase as unknown as SupabaseDailyQuotaClient,
+    userId: user.id,
+    date: params.date,
+  });
+  if (!quota.allowed) {
+    return (
+      <StatusCard title="Daily prediction upgrade required">
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Free accounts include today and the next 7 days. This date is {quota.date_offset_days} days from today.
+          </p>
+          <Link className="text-primary hover:underline" href="/pricing">
+            Upgrade to unlock any date
+          </Link>
+        </div>
+      </StatusCard>
+    );
+  }
+
   try {
     const result = await generateDailyPrediction({
       supabase: supabase as unknown as SupabaseDailyClient,
@@ -106,6 +128,12 @@ export default async function DailyDatePage({
       result.prediction.technical_basis.triggered_houses.some((house) => angularHouses.has(house));
     const cacheLabel = `Prediction ${result.cache.prediction}; transits ${result.cache.transits}`;
     const todayDate = resolveDailyDate("today", result.profile.timezone);
+    await track(
+      supabase,
+      "daily_viewed",
+      { date_offset_days: quota.date_offset_days ?? null, tone: parsedTone.data },
+      user.id,
+    );
 
     return (
       <div className="space-y-6">

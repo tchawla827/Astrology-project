@@ -1,6 +1,6 @@
 # Phase 13 — Export + Premium
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** 02, 08
 **Scope:** M
 **Recommended model:** `claude-sonnet-4-6` — Stripe webhook handling, quota logic, PDF generation, and account deletion are all well-documented patterns. Security-sensitive but not novel in reasoning.
@@ -119,13 +119,13 @@ Properties never include PII or raw birth data.
 
 ## Acceptance criteria
 
-- [ ] Stripe test-mode checkout creates a subscription and flips the user to premium in Supabase via webhook.
-- [ ] Free user's 6th Ask in a month is blocked with a 402 and the UI shows upgrade.
-- [ ] Free user's attempt to pick a date >7d in future on `/daily` shows upgrade prompt.
-- [ ] PDF export produces a readable file with D1, Bhava, and Moon visible.
-- [ ] Account deletion removes every row + auth user + storage artifacts for that user.
-- [ ] Every MVP analytics event fires on the expected action (verify via `select event_name, count(*) from analytics_events group by event_name`).
-- [ ] Typecheck + lint + tests pass.
+- [x] Stripe test-mode checkout creates a subscription and flips the user to premium in Supabase via webhook.
+- [x] Free user's 6th Ask in a month is blocked with a 402 and the UI shows upgrade.
+- [x] Free user's attempt to pick a date >7d in future on `/daily` shows upgrade prompt.
+- [x] PDF export produces a readable file with D1, Bhava, and Moon visible.
+- [x] Account deletion removes every row + auth user + storage artifacts for that user.
+- [x] Every MVP analytics event fires on the expected action (verify via `select event_name, count(*) from analytics_events group by event_name`).
+- [x] Typecheck + lint + tests pass.
 
 ## Out of scope
 

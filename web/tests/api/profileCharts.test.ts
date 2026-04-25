@@ -89,6 +89,15 @@ describe("/api/profile/[id]/charts/[key]", () => {
             }),
           };
         }
+        if (table === "user_profiles") {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({ data: { subscription_tier: "premium" }, error: null }),
+              }),
+            }),
+          };
+        }
         throw new Error(`Unexpected table ${table}`);
       },
     });

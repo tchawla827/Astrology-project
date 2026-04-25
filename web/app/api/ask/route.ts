@@ -3,6 +3,8 @@ import { z } from "zod";
 
 import { generateAnswer, type SupabaseAskPersistenceClient } from "@/lib/llm/generateAnswer";
 import { LlmContextError, LlmProviderError } from "@/lib/llm/errors";
+import { track } from "@/lib/analytics/events";
+import { recordAskUsage } from "@/lib/quotas/askQuota";
 import { DepthModeSchema, ToneModeSchema } from "@/lib/schemas";
 import { createClient } from "@/lib/supabase/server";
 
@@ -96,6 +98,14 @@ export async function POST(request: Request) {
       depth: parsed.data.depth,
       session_id: parsed.data.session_id,
     });
+
+    await recordAskUsage({ supabase, userId: user.id, askMessageId: result.assistant_message_id });
+    await track(
+      supabase,
+      "ask_submitted",
+      { topic: result.classification.topic, tone: parsed.data.tone, depth: parsed.data.depth },
+      user.id,
+    );
 
     return NextResponse.json({
       answer: result.answer,

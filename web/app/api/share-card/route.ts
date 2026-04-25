@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { track } from "@/lib/analytics/events";
 import { renderShareCard } from "@/lib/sharing/renderCard";
 import {
   getSiteUrl,
@@ -97,6 +98,7 @@ export async function POST(request: Request) {
     const {
       data: { publicUrl },
     } = supabase.storage.from("share-cards").getPublicUrl(storagePath);
+    await track(supabase, "share_card_created", {}, user.id);
 
     return NextResponse.json({
       token,
