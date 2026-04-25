@@ -20,7 +20,7 @@ export default function ContactPage() {
         <p className="text-sm font-medium uppercase tracking-[0.16em] text-primary">Contact</p>
         <h1 className="mt-3 text-4xl font-semibold">Support</h1>
         <p className="mt-4 text-sm leading-6 text-muted-foreground">
-          For account, billing, privacy, or product support, email the Astri team.
+          For account, privacy, or product support, email the Astri team.
         </p>
         <Link className="mt-8 inline-flex items-center gap-2 rounded-md border px-4 py-3 text-sm hover:bg-muted" href="mailto:support@astri.app">
           <Mail className="h-4 w-4 text-primary" aria-hidden="true" />

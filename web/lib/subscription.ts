@@ -6,18 +6,13 @@ export type SubscriptionRow = {
 };
 
 export function hasPremiumAccess(row: SubscriptionRow | null | undefined, now = new Date()) {
-  if (!row) {
-    return false;
-  }
-  if (row.subscription_tier === "premium") {
-    return true;
-  }
-  if (!row.subscription_current_period_end) {
-    return false;
-  }
-  return Date.parse(row.subscription_current_period_end) > now.getTime();
+  void row;
+  void now;
+  return false;
 }
 
 export function normalizeTier(row: SubscriptionRow | null | undefined, now = new Date()): SubscriptionTier {
-  return hasPremiumAccess(row, now) ? "premium" : "free";
+  void row;
+  void now;
+  return "free";
 }

@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { checkAskQuota, type SupabaseAskQuotaClient } from "@/lib/quotas/askQuota";
 import { createClient } from "@/lib/supabase/server";
 
 const navItems = [
@@ -10,7 +9,6 @@ const navItems = [
   { href: "/ask", label: "Ask" },
   { href: "/daily", label: "Daily" },
   { href: "/panchang", label: "Panchang" },
-  { href: "/pricing", label: "Pricing" },
   { href: "/profile", label: "Profile" },
 ];
 
@@ -19,9 +17,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const quota = user
-    ? await checkAskQuota({ supabase: supabase as unknown as SupabaseAskQuotaClient, userId: user.id }).catch(() => null)
-    : null;
 
   return (
     <div className="min-h-screen">
@@ -38,13 +33,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             ))}
           </nav>
           <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
-            {quota?.tier === "free" && quota.limit !== null ? (
-              <Link className="rounded-full border px-2 py-1 hover:text-foreground" href="/pricing">
-                Ask {quota.remaining}/{quota.limit}
-              </Link>
-            ) : quota?.tier === "premium" ? (
-              <span className="rounded-full border border-primary/30 px-2 py-1 text-primary">Premium</span>
-            ) : null}
+            {user ? <span className="rounded-full border border-primary/30 px-2 py-1 text-primary">Free plan</span> : null}
             <span>{user?.email}</span>
           </div>
         </div>

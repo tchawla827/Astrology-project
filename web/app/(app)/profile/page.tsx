@@ -3,7 +3,6 @@ import Link from "next/link";
 import { ProfileSettingsForm } from "@/components/profile/ProfileSettingsForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
-import { normalizeTier } from "@/lib/subscription";
 
 export default async function ProfilePage() {
   const supabase = createClient();
@@ -29,7 +28,7 @@ export default async function ProfilePage() {
   const [{ data: profileData, error: profileError }, { data: birthProfileData }] = await Promise.all([
     supabase
       .from("user_profiles")
-      .select("email,name,default_tone_mode,subscription_tier,stripe_customer_id,subscription_current_period_end")
+      .select("email,name,default_tone_mode")
       .eq("id", user.id)
       .maybeSingle(),
     supabase
@@ -58,12 +57,8 @@ export default async function ProfilePage() {
     email?: string;
     name?: string | null;
     default_tone_mode?: "balanced" | "direct" | "brutal";
-    subscription_tier?: "free" | "premium";
-    stripe_customer_id?: string | null;
-    subscription_current_period_end?: string | null;
   } | null;
   const birthProfile = birthProfileData as { ayanamsha?: "lahiri" | "raman" | "kp" } | null;
-  const tier = normalizeTier(profile);
 
   return (
     <div className="space-y-6">
@@ -81,15 +76,8 @@ export default async function ProfilePage() {
             ayanamsha={birthProfile?.ayanamsha ?? "lahiri"}
             defaultToneMode={profile?.default_tone_mode ?? "direct"}
             email={profile?.email ?? user.email ?? ""}
-            hasStripeCustomer={Boolean(profile?.stripe_customer_id)}
             name={profile?.name ?? ""}
-            subscriptionLabel={
-              tier === "premium"
-                ? "Premium active"
-                : profile?.subscription_current_period_end
-                  ? `Free after ${new Date(profile.subscription_current_period_end).toLocaleDateString()}`
-                  : "Free"
-            }
+            subscriptionLabel="Free plan"
           />
         </CardContent>
       </Card>

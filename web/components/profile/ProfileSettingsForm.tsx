@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, ExternalLink, Save, Trash2 } from "lucide-react";
+import { Download, Save, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -14,7 +14,6 @@ type Props = {
   email: string;
   defaultToneMode: ToneMode;
   ayanamsha: "lahiri" | "raman" | "kp";
-  hasStripeCustomer: boolean;
   subscriptionLabel: string;
 };
 
@@ -23,7 +22,6 @@ export function ProfileSettingsForm({
   email,
   defaultToneMode,
   ayanamsha,
-  hasStripeCustomer,
   subscriptionLabel,
 }: Props) {
   const router = useRouter();
@@ -56,19 +54,6 @@ export function ProfileSettingsForm({
     }
     setStatus(body.regeneration_started ? "Settings saved. Chart recomputation has started." : "Settings saved.");
     router.refresh();
-  }
-
-  async function openPortal() {
-    setIsWorking(true);
-    setError(null);
-    const response = await fetch("/api/stripe/portal", { method: "POST" });
-    const body = await parseJson(response);
-    setIsWorking(false);
-    if (!response.ok || !body.url) {
-      setError(body.error ?? "Could not open billing portal.");
-      return;
-    }
-    window.location.assign(body.url);
   }
 
   async function exportPdf() {
@@ -155,19 +140,10 @@ export function ProfileSettingsForm({
       <section className="rounded-md border p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-semibold">Subscription</h2>
+            <h2 className="font-semibold">Plan</h2>
             <p className="text-sm text-muted-foreground">{subscriptionLabel}</p>
           </div>
-          {hasStripeCustomer ? (
-            <Button className="gap-2" disabled={isWorking} onClick={openPortal} type="button" variant="outline">
-              <ExternalLink className="h-4 w-4" aria-hidden="true" />
-              Manage
-            </Button>
-          ) : (
-            <Button asChild variant="outline">
-              <a href="/pricing">View pricing</a>
-            </Button>
-          )}
+          <p className="text-sm text-muted-foreground">All current features are included.</p>
         </div>
       </section>
 

@@ -7,7 +7,7 @@ export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "How Astri handles account, birth profile, astrology, billing, and deletion data.",
+  description: "How Astri handles account, birth profile, astrology, and deletion data.",
   alternates: { canonical: "/privacy" },
 };
 
@@ -26,7 +26,7 @@ export default function PrivacyPage() {
             Birth data can include name, birth date, birth time, birth-time confidence, place text, latitude, longitude, time zone, ayanamsha, and derived chart output. This data is used to calculate charts, timing, daily predictions, and answers.
           </p>
           <p>
-            Billing is processed by Stripe. Astri stores subscription identifiers and status, but does not store full card numbers.
+            Payments are not required for current product features. If paid plans return later, card processing would be handled by a payment provider rather than stored by Astri.
           </p>
           <p>
             You can delete your account from the app. Deletion removes profile data tied to your account, including generated chart records, Ask history, exports, analytics events, and share tokens according to database cascade rules.
