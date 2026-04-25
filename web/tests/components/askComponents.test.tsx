@@ -32,6 +32,12 @@ describe("Ask components", () => {
     expect(screen.getByRole("button", { name: /Share/i })).toHaveProperty("disabled", true);
   });
 
+  it("enables sharing when an assistant message id is available", () => {
+    render(<AnswerCard answer={answer} messageId="00000000-0000-4000-8000-000000000001" />);
+
+    expect(screen.getByRole("button", { name: /Share/i })).toHaveProperty("disabled", false);
+  });
+
   it("expands transparency factors from technical basis", () => {
     render(<AnswerCard answer={answer} />);
 

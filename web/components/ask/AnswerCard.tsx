@@ -1,9 +1,8 @@
 import React from "react";
-import { Share2 } from "lucide-react";
 
+import { ShareButton } from "@/components/ask/ShareButton";
 import { TransparencyPanel } from "@/components/ask/TransparencyPanel";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { AskAnswer, LlmMetadata } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
@@ -51,10 +50,7 @@ export function AnswerCard({
             <p className="text-xs uppercase tracking-[0.18em] text-primary">Verdict</p>
             <CardTitle className="text-xl leading-7">{answer.verdict}</CardTitle>
           </div>
-          <Button disabled size="sm" title="Coming next" type="button" variant="outline">
-            <Share2 aria-hidden="true" className="mr-2 h-4 w-4" />
-            Share
-          </Button>
+          <ShareButton askMessageId={messageId} />
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
