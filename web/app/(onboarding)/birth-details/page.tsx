@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { BirthDatePicker } from "@/components/onboarding/BirthDatePicker";
 import { PlaceAutocomplete, type PlaceSelection } from "@/components/onboarding/PlaceAutocomplete";
 import { TimeInput } from "@/components/onboarding/TimeInput";
 import { Button } from "@/components/ui/button";
@@ -77,7 +78,7 @@ export default function BirthDetailsPage() {
           <label className="text-sm font-medium" htmlFor="birth-date">
             Birth date
           </label>
-          <Input id="birth-date" onChange={(event) => setBirthDate(event.target.value)} required type="date" value={birthDate} />
+          <BirthDatePicker id="birth-date" onChange={setBirthDate} required value={birthDate} />
           {errors.birth_date?.map((error) => <p className="text-xs text-destructive" key={error}>{error}</p>)}
         </div>
         <div className="space-y-2">
@@ -107,4 +108,3 @@ export default function BirthDetailsPage() {
     </main>
   );
 }
-
