@@ -2,10 +2,14 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from app.observability import configure_logging, request_log_middleware
 from app.routes import charts, dasha, health, panchang, profile, transits
 from app.versioning import ENGINE_VERSION
 
+configure_logging()
+
 app = FastAPI(title="astri-astro-engine", version=ENGINE_VERSION)
+app.middleware("http")(request_log_middleware)
 app.include_router(health.router)
 app.include_router(profile.router)
 app.include_router(charts.router)

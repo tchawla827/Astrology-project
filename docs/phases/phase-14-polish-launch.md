@@ -1,6 +1,6 @@
 # Phase 14 — Polish + Launch
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** all previous phases
 **Scope:** M
 **Recommended model:** `claude-sonnet-4-6` — checklist execution: Lighthouse fixes, Axe remediation, rate limits, deploy config. Broad surface area but each task is concrete and well-bounded.

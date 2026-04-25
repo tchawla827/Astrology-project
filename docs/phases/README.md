@@ -36,7 +36,7 @@ Phases are not allowed to skip or reorder. If a dependency isn't Done, Claude st
 | 11 | [Panchang + muhurta](phase-11-panchang-muhurta.md) | Done | 01 | S |
 | 12 | [Share cards](phase-12-share-cards.md) | Done | 08 | S |
 | 13 | [Export + premium](phase-13-export-premium.md) | Done | 02, 08 | M |
-| 14 | [Polish + launch](phase-14-polish-launch.md) | Not started | all | M |
+| 14 | [Polish + launch](phase-14-polish-launch.md) | Done | all | M |
 
 Scope key: S = half-day, M = 1-2 days, L = 2-4 days of focused Claude Code work.
 
