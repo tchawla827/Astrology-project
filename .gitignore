@@ -22,6 +22,7 @@ astro-engine/*.egg-info/
 .env.local
 web/.env.local
 astro-engine/.env
+client_secret*
 
 # Python artifacts
 __pycache__/
