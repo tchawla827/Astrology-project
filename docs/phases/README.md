@@ -31,7 +31,7 @@ Phases are not allowed to skip or reorder. If a dependency isn't Done, Claude st
 | 06 | [Life area reports](phase-06-life-areas.md) | Done | 05 | M |
 | 07 | [LLM orchestration](phase-07-llm-orchestration.md) | Done | 05 | L |
 | 08 | [Ask Astrology](phase-08-ask-astrology.md) | Done | 07 | L |
-| 09 | [Transparency panel](phase-09-transparency-panel.md) | Not started | 08 | S |
+| 09 | [Transparency panel](phase-09-transparency-panel.md) | Done | 08 | S |
 | 10 | [Daily predictions + date machine](phase-10-daily-predictions.md) | Not started | 01, 05, 07 | M |
 | 11 | [Panchang + muhurta](phase-11-panchang-muhurta.md) | Not started | 01 | S |
 | 12 | [Share cards](phase-12-share-cards.md) | Not started | 08 | S |

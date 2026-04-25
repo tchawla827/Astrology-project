@@ -101,6 +101,7 @@ export async function POST(request: Request) {
       answer: result.answer,
       llm_metadata: result.meta,
       session_id: result.session_id,
+      assistant_message_id: result.assistant_message_id,
       classification: result.classification,
     });
   } catch (error) {

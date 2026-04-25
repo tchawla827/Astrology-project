@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET as getSession } from "@/app/api/ask/sessions/[id]/route";
+import { GET as getTransparency } from "@/app/api/ask/messages/[id]/transparency/route";
 import { GET as listSessions } from "@/app/api/ask/sessions/route";
+import { goldenDerivedPayload } from "@/lib/llm/tests/golden-questions";
 import type { AskAnswer, LlmMetadata } from "@/lib/schemas";
+import { goldenSnapshot } from "@/tests/derived/goldenSnapshot";
 
 const createClient = vi.fn();
 
@@ -152,5 +155,61 @@ describe("/api/ask/sessions", () => {
 
     expect(response.status).toBe(200);
     expect(body.messages?.map((message) => message.role)).toEqual(["user", "assistant"]);
+  });
+
+  it("returns transparency details for a stored assistant message", async () => {
+    createClient.mockReturnValueOnce({
+      auth: { getUser: async () => ({ data: { user: { id: "user-1" } } }) },
+      from(table: string) {
+        if (table === "ask_messages") {
+          return {
+            select: () =>
+              query({
+                singleData: {
+                  id: "message-2",
+                  role: "assistant",
+                  content_structured: answer,
+                  llm_metadata: {
+                    ...metadata,
+                    context_bundle_id: "derived-1",
+                    classification: {
+                      topic: "career",
+                      needs_timing: false,
+                      needs_technical_depth: false,
+                      birth_time_sensitive: true,
+                      is_mixed: false,
+                      matched_terms: ["career"],
+                      confidence: "high",
+                    },
+                  },
+                  ask_sessions: {
+                    birth_profile_id: "profile-1",
+                    birth_profiles: {
+                      user_id: "user-1",
+                      birth_time_confidence: "approximate",
+                    },
+                  },
+                },
+              }),
+          };
+        }
+        if (table === "derived_feature_snapshots") {
+          return { select: () => query({ singleData: { id: "derived-1", schema_version: "derived_v1", payload: goldenDerivedPayload } }) };
+        }
+        if (table === "chart_snapshots") {
+          return { select: () => query({ singleData: { payload: goldenSnapshot } }) };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      },
+    });
+
+    const response = await getTransparency({} as never, { params: { id: "message-2" } });
+    const body = (await response.json()) as {
+      transparency?: { charts?: Array<{ key: string }>; birth_time_sensitivity?: { confidence: string } };
+    };
+
+    expect(response.status).toBe(200);
+    expect(body.transparency?.charts?.map((chart) => chart.key)).toEqual(["D1"]);
+    expect(body.transparency?.birth_time_sensitivity?.confidence).toBe("approximate");
   });
 });

@@ -1,6 +1,6 @@
 import React from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AnswerCard } from "@/components/ask/AnswerCard";
 import { FollowUpSuggestions } from "@/components/ask/FollowUpSuggestions";
@@ -17,17 +17,31 @@ const answer: AskAnswer = {
 };
 
 describe("Ask components", () => {
+  afterEach(() => cleanup());
+
   it("renders structured answer sections and collapsed reasoning details", () => {
     render(<AnswerCard answer={answer} />);
 
     expect(screen.getByText("Verdict")).toBeTruthy();
     expect(screen.getByText(answer.verdict)).toBeTruthy();
     expect(screen.getByText("Why")).toBeTruthy();
-    expect(screen.getByText("Timing")).toBeTruthy();
+    expect(screen.getAllByText("Timing").length).toBeGreaterThan(0);
     expect(screen.getByText("Confidence")).toBeTruthy();
     expect(screen.getByText("What to do")).toBeTruthy();
     expect(screen.getByText("Show reasoning")).toBeTruthy();
     expect(screen.getByRole("button", { name: /Share/i })).toHaveProperty("disabled", true);
+  });
+
+  it("expands transparency factors from technical basis", () => {
+    render(<AnswerCard answer={answer} />);
+
+    fireEvent.click(screen.getByText("Show reasoning"));
+
+    expect(screen.getByText("Based on charts")).toBeTruthy();
+    expect(screen.getByText("D1")).toBeTruthy();
+    expect(screen.getByText("D10")).toBeTruthy();
+    expect(screen.getByText("10: cited")).toBeTruthy();
+    expect(screen.getAllByText(/Saturn/).length).toBeGreaterThan(0);
   });
 
   it("lets starter and follow-up chips populate the question draft", () => {
