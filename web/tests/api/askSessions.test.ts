@@ -1,0 +1,156 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { GET as getSession } from "@/app/api/ask/sessions/[id]/route";
+import { GET as listSessions } from "@/app/api/ask/sessions/route";
+import type { AskAnswer, LlmMetadata } from "@/lib/schemas";
+
+const createClient = vi.fn();
+
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: () => createClient(),
+}));
+
+const answer: AskAnswer = {
+  verdict: "Career is active.",
+  why: ["Saturn is involved."],
+  timing: { summary: "Current period", type: ["dasha"] },
+  confidence: { level: "medium", note: "Grounded in supplied context." },
+  advice: ["Act on the strongest signal first."],
+  technical_basis: { charts_used: ["D1"], houses_used: [10], planets_used: ["Saturn"] },
+};
+
+const metadata: LlmMetadata = {
+  provider: "gemini",
+  model: "gemini-mock",
+  prompt_version: "ask_v1",
+  answer_schema_version: "answer_v1",
+  context_bundle_type: "career",
+  latency_ms: 1,
+};
+
+function query({ singleData, listData }: { singleData?: unknown; listData?: unknown }) {
+  const result = { data: listData ?? singleData ?? null, error: null };
+  const q = {
+    eq: vi.fn(() => q),
+    order: vi.fn(() => q),
+    limit: vi.fn(() => q),
+    maybeSingle: vi.fn(async () => ({ data: singleData ?? null, error: null })),
+    then: (onFulfilled: (value: typeof result) => unknown, onRejected?: (reason: unknown) => unknown) =>
+      Promise.resolve(result).then(onFulfilled, onRejected),
+  };
+  return q;
+}
+
+describe("/api/ask/sessions", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("lists session summaries with first-question previews", async () => {
+    createClient.mockReturnValueOnce({
+      auth: { getUser: async () => ({ data: { user: { id: "user-1" } } }) },
+      from(table: string) {
+        if (table === "birth_profiles") {
+          return { select: () => query({ singleData: { id: "profile-1", status: "ready" } }) };
+        }
+        if (table === "ask_sessions") {
+          return {
+            select: () =>
+              query({
+                listData: [
+                  {
+                    id: "session-1",
+                    birth_profile_id: "profile-1",
+                    topic: "career",
+                    tone_mode: "direct",
+                    created_at: "2026-04-25T01:00:00Z",
+                    ask_messages: [
+                      {
+                        id: "message-1",
+                        ask_session_id: "session-1",
+                        role: "user",
+                        content: "Why is career stuck?",
+                        created_at: "2026-04-25T01:00:01Z",
+                      },
+                      {
+                        id: "message-2",
+                        ask_session_id: "session-1",
+                        role: "assistant",
+                        content_structured: answer,
+                        llm_metadata: metadata,
+                        created_at: "2026-04-25T01:00:02Z",
+                      },
+                    ],
+                  },
+                ],
+              }),
+          };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      },
+    });
+
+    const response = await listSessions();
+    const body = (await response.json()) as { sessions?: Array<{ first_question_preview?: string; last_updated?: string }> };
+
+    expect(response.status).toBe(200);
+    expect(body.sessions?.[0]?.first_question_preview).toBe("Why is career stuck?");
+    expect(body.sessions?.[0]?.last_updated).toBe("2026-04-25T01:00:02Z");
+  });
+
+  it("returns one resumed session with ordered messages", async () => {
+    createClient.mockReturnValueOnce({
+      auth: { getUser: async () => ({ data: { user: { id: "user-1" } } }) },
+      from(table: string) {
+        if (table === "ask_sessions") {
+          return {
+            select: () =>
+              query({
+                singleData: {
+                  id: "session-1",
+                  birth_profile_id: "profile-1",
+                  topic: "career",
+                  tone_mode: "direct",
+                  created_at: "2026-04-25T01:00:00Z",
+                },
+              }),
+          };
+        }
+        if (table === "birth_profiles") {
+          return { select: () => query({ singleData: { id: "profile-1" } }) };
+        }
+        if (table === "ask_messages") {
+          return {
+            select: () =>
+              query({
+                listData: [
+                  {
+                    id: "message-2",
+                    ask_session_id: "session-1",
+                    role: "assistant",
+                    content_structured: answer,
+                    llm_metadata: metadata,
+                    created_at: "2026-04-25T01:00:02Z",
+                  },
+                  {
+                    id: "message-1",
+                    ask_session_id: "session-1",
+                    role: "user",
+                    content: "Why is career stuck?",
+                    created_at: "2026-04-25T01:00:01Z",
+                  },
+                ],
+              }),
+          };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      },
+    });
+
+    const response = await getSession({} as never, { params: { id: "session-1" } });
+    const body = (await response.json()) as { messages?: Array<{ role?: string }> };
+
+    expect(response.status).toBe(200);
+    expect(body.messages?.map((message) => message.role)).toEqual(["user", "assistant"]);
+  });
+});
