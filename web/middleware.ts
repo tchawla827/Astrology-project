@@ -2,8 +2,10 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { track } from "@/lib/analytics/events";
+import { captureException, logWarn } from "@/lib/observability/logging";
 import { checkAskQuota, type SupabaseAskQuotaClient } from "@/lib/quotas/askQuota";
 import { checkDailyQuota, type SupabaseDailyQuotaClient } from "@/lib/quotas/dailyQuota";
+import { checkApiRateLimit, type ApiRateLimitKey, type SupabaseRateLimitClient } from "@/lib/rate-limit/apiRateLimit";
 
 type CookieToSet = {
   name: string;
@@ -18,7 +20,6 @@ const protectedRoutes = [
   "/ask",
   "/daily",
   "/panchang",
-  "/pricing",
   "/profile",
   "/welcome",
   "/intent",
@@ -27,11 +28,28 @@ const protectedRoutes = [
   "/generating",
 ];
 
+function rateLimitKey(request: NextRequest): ApiRateLimitKey | null {
+  if (request.nextUrl.pathname === "/api/ask" && request.method === "POST") {
+    return "ask";
+  }
+  if (request.nextUrl.pathname === "/api/daily" && request.method === "GET") {
+    return "daily";
+  }
+  if (request.nextUrl.pathname === "/api/profile" && request.method === "POST") {
+    return "profile_create";
+  }
+  if (request.nextUrl.pathname === "/api/share-card" && request.method === "POST") {
+    return "share_card_create";
+  }
+  return null;
+}
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
   const isProtectedRoute = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
   const isAskApi = request.nextUrl.pathname === "/api/ask" && request.method === "POST";
   const isDailyApi = request.nextUrl.pathname === "/api/daily" && request.method === "GET";
+  const apiRateLimitKey = rateLimitKey(request);
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -76,8 +94,55 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if ((isAskApi || isDailyApi) && !user) {
+  if ((isAskApi || isDailyApi || apiRateLimitKey) && !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (apiRateLimitKey && user) {
+    try {
+      const rateLimit = await checkApiRateLimit({
+        supabase: supabase as unknown as SupabaseRateLimitClient,
+        userId: user.id,
+        key: apiRateLimitKey,
+      });
+      response.headers.set("RateLimit-Limit", String(rateLimit.limit));
+      response.headers.set("RateLimit-Remaining", String(rateLimit.remaining));
+      response.headers.set("RateLimit-Reset", rateLimit.resetAt);
+
+      if (!rateLimit.allowed) {
+        logWarn("api_rate_limit_hit", {
+          key: apiRateLimitKey,
+          user_id: user.id,
+          path: request.nextUrl.pathname,
+          used: rateLimit.used,
+          limit: rateLimit.limit,
+        });
+        return NextResponse.json(
+          {
+            error: "Rate limit exceeded.",
+            key: rateLimit.key,
+            limit: rateLimit.limit,
+            retry_after_seconds: rateLimit.retryAfterSeconds,
+            reset_at: rateLimit.resetAt,
+          },
+          {
+            status: 429,
+            headers: {
+              "Retry-After": String(rateLimit.retryAfterSeconds),
+              "RateLimit-Limit": String(rateLimit.limit),
+              "RateLimit-Remaining": "0",
+              "RateLimit-Reset": rateLimit.resetAt,
+            },
+          },
+        );
+      }
+    } catch (error) {
+      captureException(error, { key: apiRateLimitKey, user_id: user.id, path: request.nextUrl.pathname });
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Could not check rate limit." },
+        { status: 500 },
+      );
+    }
   }
 
   if (isAskApi && user) {
@@ -98,6 +163,7 @@ export async function middleware(request: NextRequest) {
         );
       }
     } catch (error) {
+      captureException(error, { key: "ask_quota", user_id: user.id });
       return NextResponse.json(
         { error: error instanceof Error ? error.message : "Could not check Ask quota." },
         { status: 500 },
@@ -126,6 +192,7 @@ export async function middleware(request: NextRequest) {
         );
       }
     } catch (error) {
+      captureException(error, { key: "daily_quota", user_id: user.id });
       return NextResponse.json(
         { error: error instanceof Error ? error.message : "Could not check daily quota." },
         { status: 500 },
