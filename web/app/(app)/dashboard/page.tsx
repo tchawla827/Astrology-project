@@ -8,8 +8,10 @@ import { FocusCard } from "@/components/insights/FocusCard";
 import { ProfileSummaryCard } from "@/components/insights/ProfileSummaryCard";
 import { ThemesCard } from "@/components/insights/ThemesCard";
 import { TransitCard } from "@/components/insights/TransitCard";
+import { DashboardPanchangStrip } from "@/components/panchang/DashboardPanchangStrip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { loadDashboard, type SupabaseDashboardClient } from "@/lib/server/loadDashboard";
+import { loadPanchang, type SupabasePanchangClient } from "@/lib/server/loadPanchang";
 import { createClient } from "@/lib/supabase/server";
 
 function orderLowerCards(intent: string | null | undefined, cards: React.ReactNode[]) {
@@ -89,6 +91,12 @@ export default async function DashboardPage() {
     <ThemesCard themes={dashboard.topThemes} key="themes" />,
     <AskCtaCard questions={dashboard.askQuestions} key="ask" />,
   ]);
+  const panchang = await loadPanchang({
+    supabase: supabase as unknown as SupabasePanchangClient,
+    userId: user.id,
+    profileId: dashboard.profile.id,
+    date: "today",
+  }).catch(() => null);
 
   return (
     <div className="space-y-6">
@@ -103,6 +111,7 @@ export default async function DashboardPage() {
       </div>
 
       <BirthTimeBanner confidence={dashboard.profile.birth_time_confidence} />
+      {panchang ? <DashboardPanchangStrip panchang={panchang.panchang} timezone={panchang.location.timezone} /> : null}
 
       <div className="grid gap-4 lg:grid-cols-3">
         <ProfileSummaryCard summary={dashboard.summary} />

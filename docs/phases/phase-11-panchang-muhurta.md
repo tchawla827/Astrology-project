@@ -1,6 +1,6 @@
 # Phase 11 — Panchang + Muhurta
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** 01
 **Scope:** S
 **Recommended model:** `claude-haiku-4-5-20251001` — calls an engine endpoint that already exists, renders the response into a card with a timeline. Simple data display with light caching.
@@ -76,12 +76,12 @@ Phase 03's dashboard gets a thin panchang strip once this phase ships. The strip
 
 ## Acceptance criteria
 
-- [ ] `/panchang` renders today's five elements + sun times + 4 muhurta bars for the user's birth location.
-- [ ] Date picker loads a different date correctly.
-- [ ] Location override switches location and redraws.
-- [ ] Cache hit on second view of the same (date, location).
-- [ ] Dashboard strip renders and links to `/panchang` (requires phase 03 to be shipped — integration is a small patch).
-- [ ] Typecheck + lint + tests pass.
+- [x] `/panchang` renders today's five elements + sun times + 4 muhurta bars for the user's birth location.
+- [x] Date picker loads a different date correctly.
+- [x] Location override switches location and redraws.
+- [x] Cache hit on second view of the same (date, location).
+- [x] Dashboard strip renders and links to `/panchang` (requires phase 03 to be shipped — integration is a small patch).
+- [x] Typecheck + lint + tests pass.
 
 ## Out of scope
 
