@@ -100,20 +100,6 @@ export default async function DailyDatePage({
     userId: user.id,
     date: params.date,
   });
-  if (!quota.allowed) {
-    return (
-      <StatusCard title="Daily prediction upgrade required">
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Free accounts include today and the next 7 days. This date is {quota.date_offset_days} days from today.
-          </p>
-          <Link className="text-primary hover:underline" href="/pricing">
-            Upgrade to unlock any date
-          </Link>
-        </div>
-      </StatusCard>
-    );
-  }
 
   try {
     const result = await generateDailyPrediction({

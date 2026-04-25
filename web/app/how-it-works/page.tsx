@@ -62,8 +62,8 @@ export default function HowItWorksPage() {
       <section className="border-t bg-muted/30">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-10 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold">Start with the free chart.</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Upgrade only when you need unlimited questions, broader daily timing, and exports.</p>
+            <h2 className="text-2xl font-semibold">Start with the free workspace.</h2>
+            <p className="mt-1 text-sm text-muted-foreground">All current chart, Ask, Daily, and export features are included.</p>
           </div>
           <Button asChild>
             <Link href="/signup">Create account</Link>

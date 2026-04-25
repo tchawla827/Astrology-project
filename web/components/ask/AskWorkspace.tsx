@@ -20,7 +20,6 @@ type AskQuotaView = {
   used: number;
   limit: number | null;
   remaining: number | null;
-  upgrade_url?: string;
 };
 
 export function AskWorkspace({
@@ -73,19 +72,9 @@ export function AskWorkspace({
           {quota.allowed ? (
             <p>
               {quota.remaining} of {quota.limit} free Ask questions remain this month.
-              {quota.remaining !== null && quota.remaining <= 1 ? (
-                <a className="ml-2 text-primary hover:underline" href="/pricing">
-                  Upgrade for unlimited Ask
-                </a>
-              ) : null}
             </p>
           ) : (
-            <p>
-              Monthly Ask limit reached.
-              <a className="ml-2 text-primary hover:underline" href={quota.upgrade_url ?? "/pricing"}>
-                Upgrade for unlimited Ask
-              </a>
-            </p>
+            <p>Ask is temporarily unavailable.</p>
           )}
         </div>
       ) : null}
