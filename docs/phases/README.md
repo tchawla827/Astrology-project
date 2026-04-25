@@ -33,7 +33,7 @@ Phases are not allowed to skip or reorder. If a dependency isn't Done, Claude st
 | 08 | [Ask Astrology](phase-08-ask-astrology.md) | Done | 07 | L |
 | 09 | [Transparency panel](phase-09-transparency-panel.md) | Done | 08 | S |
 | 10 | [Daily predictions + date machine](phase-10-daily-predictions.md) | Done | 01, 05, 07 | M |
-| 11 | [Panchang + muhurta](phase-11-panchang-muhurta.md) | Not started | 01 | S |
+| 11 | [Panchang + muhurta](phase-11-panchang-muhurta.md) | Done | 01 | S |
 | 12 | [Share cards](phase-12-share-cards.md) | Not started | 08 | S |
 | 13 | [Export + premium](phase-13-export-premium.md) | Not started | 02, 08 | M |
 | 14 | [Polish + launch](phase-14-polish-launch.md) | Not started | all | M |
