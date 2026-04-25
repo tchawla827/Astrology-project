@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DailyPredictionSchema, type DailyPrediction } from "@/lib/schemas/daily";
 
 export const ToneModeSchema = z.enum(["balanced", "direct", "brutal"]);
 export const DepthModeSchema = z.enum(["simple", "technical"]);
@@ -274,7 +275,7 @@ export const LlmMetadataSchema = z.object({
     user: z.string(),
   }).optional(),
   answer_schema_version: z.string(),
-  context_bundle_type: z.union([TopicSchema, z.literal("mixed")]),
+  context_bundle_type: z.union([TopicSchema, z.literal("mixed"), z.literal("daily")]),
   context_bundle_id: z.string().optional(),
   classification: z.object({
     topic: TopicSchema,
@@ -309,26 +310,6 @@ export const AssistantAskMessageSchema = z.object({
 });
 
 export const AskMessageSchema = z.discriminatedUnion("role", [UserAskMessageSchema, AssistantAskMessageSchema]);
-
-export const DailyPredictionSchema = z.object({
-  birth_profile_id: z.string().uuid(),
-  date: z.string(),
-  transits: TransitSummarySchema,
-  natal_overlays: z.object({
-    triggered_houses: z.array(z.number().int().min(1).max(12)),
-    key_notes: z.array(z.string()),
-  }),
-  tone: ToneModeSchema,
-  interpretation: z.object({
-    verdict: z.string(),
-    favorable: z.array(z.string()),
-    caution: z.array(z.string()),
-    technical_basis: z.object({
-      planets_used: z.array(PlanetSchema),
-      houses_used: z.array(z.number().int().min(1).max(12)),
-    }),
-  }),
-});
 
 export const PanchangSchema = z.object({
   date: z.string(),
@@ -395,5 +376,6 @@ export type AskSession = z.infer<typeof AskSessionSchema>;
 export type AskMessage = z.infer<typeof AskMessageSchema>;
 export type AskAnswer = z.infer<typeof AskAnswerSchema>;
 export type LlmMetadata = z.infer<typeof LlmMetadataSchema>;
-export type DailyPrediction = z.infer<typeof DailyPredictionSchema>;
+export { DailyPredictionSchema };
+export type { DailyPrediction };
 export type Panchang = z.infer<typeof PanchangSchema>;

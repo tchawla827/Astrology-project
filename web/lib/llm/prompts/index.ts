@@ -17,8 +17,10 @@ export const PROMPT_VERSIONS = {
     spirituality: "route_spirituality_v1",
     relocation: "route_relocation_v1",
   } satisfies Record<Topic, string>,
+  daily_route: "route_daily_v1",
   user: "user_v1",
   answer_schema: "answer_v1",
+  daily_answer_schema: "daily_v1",
 } as const;
 
 export { routePromptFor, systemPromptV1, userPromptV1 };

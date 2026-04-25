@@ -7,13 +7,15 @@ import { LlmProviderError } from "@/lib/llm/errors";
 import type { AskClassification } from "@/lib/llm/classify";
 import type { LlmMetadata, Topic } from "@/lib/schemas";
 
+type ContextBundleType = Topic | "daily";
+
 export type { LlmMessage, LlmProvider };
 
 export type CallWithFallbackArgs = {
   system: string;
   messages: LlmMessage[];
   schema: ZodSchema<unknown>;
-  topic: Topic;
+  topic: ContextBundleType;
   classification?: AskClassification;
   context_bundle_id?: string;
   prompt_versions?: {
@@ -21,6 +23,7 @@ export type CallWithFallbackArgs = {
     route: string;
     user: string;
   };
+  answer_schema_version?: string;
   model?: string;
   temperature?: number;
   max_attempts_per_provider?: number;
@@ -49,7 +52,7 @@ export async function callWithFallback(args: CallWithFallbackArgs): Promise<{ ou
           model: args.model ?? provider.defaultModel,
           prompt_version: "ask_v1",
           prompt_versions: args.prompt_versions,
-          answer_schema_version: PROMPT_VERSIONS.answer_schema,
+          answer_schema_version: args.answer_schema_version ?? PROMPT_VERSIONS.answer_schema,
           context_bundle_type: args.topic,
           context_bundle_id: args.context_bundle_id,
           classification: args.classification,
