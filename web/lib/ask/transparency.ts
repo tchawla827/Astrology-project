@@ -127,6 +127,26 @@ function fallbackBundle(topic: Topic, answer: AskAnswer): TopicBundle {
   };
 }
 
+function topicFromMetadata(metadata: LlmMetadata): Topic {
+  if (metadata.classification?.topic) {
+    return metadata.classification.topic;
+  }
+  if (metadata.context_bundle_type === "mixed" || metadata.context_bundle_type === "daily") {
+    return "personality";
+  }
+  return metadata.context_bundle_type;
+}
+
+function askTopicFromMetadata(metadata: LlmMetadata): Topic | null {
+  if (metadata.classification?.topic) {
+    return metadata.classification.topic;
+  }
+  if (metadata.context_bundle_type === "mixed" || metadata.context_bundle_type === "daily") {
+    return null;
+  }
+  return metadata.context_bundle_type;
+}
+
 export function buildTransparencyViewModel(input: {
   answer: AskAnswer;
   metadata: LlmMetadata;
@@ -135,7 +155,7 @@ export function buildTransparencyViewModel(input: {
   birthTimeConfidence?: "exact" | "approximate" | "unknown";
   bundleOutdated?: boolean;
 }): TransparencyViewModel {
-  const topic = input.metadata.classification?.topic ?? (input.metadata.context_bundle_type === "mixed" ? "personality" : input.metadata.context_bundle_type);
+  const topic = topicFromMetadata(input.metadata);
   const bundle = input.bundle ?? fallbackBundle(topic, input.answer);
   const chartSnapshot = ChartSnapshotSchema.safeParse(input.chartPayload).success
     ? ChartSnapshotSchema.parse(input.chartPayload)
@@ -238,7 +258,7 @@ export async function loadMessageTransparency(input: {
   const derivedRow = asSnapshotRow(derivedData);
   const chartRow = asSnapshotRow(chartData) as ChartRow | null;
   const parsedDerived = DerivedFeaturePayloadSchema.safeParse(derivedRow?.payload);
-  const topic = metadata.data.classification?.topic ?? (metadata.data.context_bundle_type === "mixed" ? null : metadata.data.context_bundle_type);
+  const topic = askTopicFromMetadata(metadata.data);
   const bundle = parsedDerived.success && topic ? parsedDerived.data.topic_bundles[topic] : undefined;
   const bundleOutdated = Boolean(metadata.data.context_bundle_id && derivedRow?.id && metadata.data.context_bundle_id !== derivedRow.id);
   const confidence = session.birth_profiles?.birth_time_confidence;

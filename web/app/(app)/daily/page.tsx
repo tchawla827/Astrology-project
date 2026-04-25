@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/app/PlaceholderPage";
+import { redirect } from "next/navigation";
 
 export default function DailyPage() {
-  return <PlaceholderPage description="Daily predictions and date machine ship in Phase 10." title="Daily" />;
+  redirect("/daily/today");
 }

@@ -1,6 +1,6 @@
 # Phase 10 — Daily Predictions + Date Machine
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** 01, 05, 07
 **Scope:** M
 **Recommended model:** `claude-sonnet-4-6` — integrates existing engine + LLM plumbing into a new pipeline plus a caching layer and date-picker UI. Non-trivial but all patterns are established by prior phases.
@@ -114,14 +114,14 @@ This phase ships fully unlocked. Phase 13 adds quotas (e.g. free users limited t
 
 ## Acceptance criteria
 
-- [ ] `/daily` loads today's prediction for a signed-in user with a ready profile.
-- [ ] Date picker changes the route; predictions recompute for new dates.
-- [ ] Same (profile, date, tone) pair re-renders instantly from cache.
-- [ ] Transit-only cache hit reduces second-user latency for the same date.
-- [ ] `technical_basis.triggered_houses` accurately reflects the overlay output.
-- [ ] Switching tone recomputes and caches under the new tone key.
-- [ ] Birth-time sensitivity banner shown if the triggered houses rely on Lagna (1/4/7/10) AND profile is not exact.
-- [ ] Typecheck + lint + tests pass.
+- [x] `/daily` loads today's prediction for a signed-in user with a ready profile.
+- [x] Date picker changes the route; predictions recompute for new dates.
+- [x] Same (profile, date, tone) pair re-renders instantly from cache.
+- [x] Transit-only cache hit reduces second-user latency for the same date.
+- [x] `technical_basis.triggered_houses` accurately reflects the overlay output.
+- [x] Switching tone recomputes and caches under the new tone key.
+- [x] Birth-time sensitivity banner shown if the triggered houses rely on Lagna (1/4/7/10) AND profile is not exact.
+- [x] Typecheck + lint + tests pass.
 
 ## Out of scope
 

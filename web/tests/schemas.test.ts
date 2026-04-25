@@ -4,6 +4,7 @@ import {
   AskAnswerSchema,
   BirthProfileSchema,
   ChartSnapshotSchema,
+  DailyPredictionSchema,
   TransitSummarySchema,
   PanchangSchema,
   ToneModeSchema,
@@ -150,6 +151,24 @@ describe("schemas", () => {
             Jupiter: 5,
           },
         },
+      })
+    ).not.toThrow();
+  });
+
+  it("validates phase 10 daily prediction shape", () => {
+    expect(() =>
+      DailyPredictionSchema.parse({
+        date: "2026-04-25",
+        verdict: "Saturn puts pressure on the day, but Jupiter keeps one practical opening.",
+        favorable: ["Use the Jupiter trine for planning."],
+        caution: ["Do not overload the angular Saturn pressure."],
+        technical_basis: {
+          triggered_houses: [1, 10],
+          planets_used: ["Saturn", "Jupiter"],
+          transit_rules: ["saturn_kendra_pressure", "jupiter_trine_support"],
+        },
+        tone: "direct",
+        answer_schema_version: "daily_v1",
       })
     ).not.toThrow();
   });
