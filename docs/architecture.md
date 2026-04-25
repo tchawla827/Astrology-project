@@ -111,7 +111,7 @@ Key rules:
 ## Data flow — profile generation
 
 1. User submits birth details via Server Action.
-2. `web/` validates + geocodes place (Mapbox or Nominatim — see env below).
+2. `web/` validates + geocodes place through server-side Nominatim search.
 3. `web/` inserts `birth_profiles` row with `status = 'processing'`.
 4. `web/` calls `astro-engine` `/profile` with resolved lat/lon/tz/ayanamsha.
 5. Engine returns full `ChartSnapshot` (D1, Bhava, Moon, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11, D12, D16, D20, D24, D27, D30, D40, D45, D60, planets, houses, Vimshottari dasha, current transits).
@@ -162,7 +162,9 @@ ASTRO_ENGINE_URL=                  # e.g. https://astro-engine.fly.dev
 ASTRO_ENGINE_SECRET=               # shared HMAC for service-to-service auth
 GEMINI_API_KEY=
 GROQ_API_KEY=
-MAPBOX_TOKEN=                      # for place autocomplete
+NOMINATIM_BASE_URL=                # optional, defaults to public Nominatim search endpoint
+NOMINATIM_USER_AGENT=              # identify this app to Nominatim or your hosted provider
+NOMINATIM_EMAIL=                   # optional contact email sent to Nominatim
 STRIPE_SECRET_KEY=                 # phase 13
 STRIPE_WEBHOOK_SECRET=             # phase 13
 

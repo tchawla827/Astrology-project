@@ -1,17 +1,19 @@
 "use client";
 
+import { Search } from "lucide-react";
 import React from "react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { resolveTimezoneFromCoordinates } from "@/lib/server/profileIntake";
 
-type MapboxFeature = {
+type PlaceSearchResult = {
   id: string;
-  place_name: string;
-  center: [number, number];
-  place_type?: string[];
+  label: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  warning?: string;
 };
 
 export type PlaceSelection = {
@@ -23,64 +25,64 @@ export type PlaceSelection = {
 };
 
 type Props = {
-  mapboxToken?: string;
   onSelect: (place: PlaceSelection) => void;
+  searchEndpoint?: string;
 };
 
-export function PlaceAutocomplete({ mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN, onSelect }: Props) {
+export function PlaceAutocomplete({ onSelect, searchEndpoint = "/api/places/search" }: Props) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<MapboxFeature[]>([]);
+  const [results, setResults] = useState<PlaceSearchResult[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const selectedLabel = useRef<string | null>(null);
+  const activeRequest = useRef<AbortController | null>(null);
 
-  async function search(nextQuery: string) {
-    setQuery(nextQuery);
-    setMessage(null);
-    if (nextQuery.trim().length < 2 || !mapboxToken) {
+  async function searchPlaces() {
+    const trimmed = query.trim();
+    if (trimmed.length < 2 || trimmed === selectedLabel.current) {
       setResults([]);
+      setIsLoading(false);
       return;
     }
 
+    setMessage(null);
+    const controller = new AbortController();
+    activeRequest.current?.abort();
+    activeRequest.current = controller;
     setIsLoading(true);
-    const params = new URLSearchParams({
-      access_token: mapboxToken,
-      autocomplete: "true",
-      limit: "5",
-      types: "place,locality,district,region,country",
-    });
 
     try {
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(nextQuery.trim())}.json?${params}`
-      );
+      const params = new URLSearchParams({ q: trimmed });
+      const response = await fetch(`${searchEndpoint}?${params}`, { signal: controller.signal });
+      const body = (await response.json()) as { places?: PlaceSearchResult[]; error?: string };
       if (!response.ok) {
-        throw new Error(`Mapbox lookup failed: ${response.status}`);
+        throw new Error(body.error ?? `Place lookup failed: ${response.status}`);
       }
-      const body = (await response.json()) as { features?: MapboxFeature[] };
-      setResults(body.features ?? []);
+      setResults(body.places ?? []);
     } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
       setMessage(error instanceof Error ? error.message : "Could not search places.");
       setResults([]);
     } finally {
-      setIsLoading(false);
+      if (activeRequest.current === controller) {
+        setIsLoading(false);
+      }
     }
   }
 
-  function choose(feature: MapboxFeature) {
-    const [longitude, latitude] = feature.center;
-    const warning = feature.place_type?.includes("country")
-      ? "This is a broad country-level match. Choose a city when possible."
-      : undefined;
-
-    setQuery(feature.place_name);
+  function choose(place: PlaceSearchResult) {
+    selectedLabel.current = place.label;
+    setQuery(place.label);
     setResults([]);
-    setMessage(warning ?? null);
+    setMessage(place.warning ?? null);
     onSelect({
-      label: feature.place_name,
-      latitude,
-      longitude,
-      timezone: resolveTimezoneFromCoordinates(latitude, longitude),
-      warning,
+      label: place.label,
+      latitude: place.latitude,
+      longitude: place.longitude,
+      timezone: place.timezone,
+      warning: place.warning,
     });
   }
 
@@ -89,13 +91,28 @@ export function PlaceAutocomplete({ mapboxToken = process.env.NEXT_PUBLIC_MAPBOX
       <label className="text-sm font-medium" htmlFor="birth-place">
         Birth place
       </label>
-      <Input
-        autoComplete="off"
-        id="birth-place"
-        onChange={(event) => void search(event.target.value)}
-        placeholder="City, region, country"
-        value={query}
-      />
+      <div className="flex gap-2">
+        <Input
+          autoComplete="off"
+          id="birth-place"
+          onChange={(event) => {
+            selectedLabel.current = null;
+            setMessage(null);
+            setQuery(event.target.value);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              void searchPlaces();
+            }
+          }}
+          placeholder="City, region, country"
+          value={query}
+        />
+        <Button aria-label="Search places" disabled={isLoading} onClick={() => void searchPlaces()} type="button" variant="secondary">
+          <Search aria-hidden="true" className="h-4 w-4" />
+        </Button>
+      </div>
       {isLoading ? <p className="text-xs text-muted-foreground">Searching places...</p> : null}
       {results.length > 0 ? (
         <div className="rounded-md border bg-background">
@@ -107,12 +124,13 @@ export function PlaceAutocomplete({ mapboxToken = process.env.NEXT_PUBLIC_MAPBOX
               type="button"
               variant="ghost"
             >
-              {result.place_name}
+              {result.label}
             </Button>
           ))}
         </div>
       ) : null}
       {message ? <p className="text-xs text-muted-foreground">{message}</p> : null}
+      <p className="text-[0.68rem] text-muted-foreground">Place search data © OpenStreetMap contributors.</p>
     </div>
   );
 }

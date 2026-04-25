@@ -57,3 +57,11 @@ Use a hosted Supabase project for database, auth, and storage verification.
 cd web
 npx supabase db push --db-url "$DATABASE_URL"
 ```
+
+Google OAuth is hidden by default. To enable it:
+
+1. In Google Cloud, create a Web application OAuth client and add this authorized redirect URI:
+   `https://<your-supabase-project-ref>.supabase.co/auth/v1/callback`
+2. In Supabase Auth > Providers > Google, enable Google and paste the Google client ID and secret.
+3. In Supabase Auth > URL Configuration, set the local Site URL to `http://localhost:3000` and allow `http://localhost:3000/auth/callback` as a redirect URL.
+4. Set `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true` in the web environment.

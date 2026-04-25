@@ -29,7 +29,7 @@ All from `astro-engine`'s `POST /panchang` (shipped in phase 01). Response shape
 
 ### Location default
 
-Default = user's birth location. Override via `LocationPicker` (Mapbox autocomplete, same component from phase 02). Override persists in URL query.
+Default = user's birth location. Override via `LocationPicker` (Nominatim search, same component from phase 02). Override persists in URL query.
 
 ### Card layout
 

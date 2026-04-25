@@ -8,7 +8,7 @@ Grouped by module. Each feature points at the phase that owns it. The phase file
 |---|---|---|
 | Sign up / login (email + OAuth) | 00 | Supabase Auth |
 | Intent selection (know-self / career / marriage / etc.) | 02 | Seeds first dashboard emphasis |
-| Birth details intake (name, date, time, place) | 02 | Mapbox place autocomplete, tz resolution |
+| Birth details intake (name, date, time, place) | 02 | Nominatim place search, tz resolution |
 | Birth-time confidence (exact / approximate / unknown) | 02 | Drives `confidence` downstream |
 | Profile generation loading screen | 02 | Animated labels of compute stages |
 | Tone default preference | 02 | Stored on `user_profiles.default_tone_mode` |

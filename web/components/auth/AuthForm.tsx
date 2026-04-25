@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,23 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const googleAuthEnabled = process.env.NEXT_PUBLIC_ENABLE_GOOGLE_AUTH === "true";
+
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const authError = query.get("error_description") ?? hash.get("error_description") ?? query.get("error");
+
+    if (authError) {
+      setMessage(authError);
+    }
+  }, []);
+
+  function callbackUrl() {
+    const url = new URL("/auth/callback", window.location.origin);
+    url.searchParams.set("next", "/welcome");
+    return url.toString();
+  }
 
   async function handleEmailAuth(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -20,7 +37,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     setIsSubmitting(true);
     const supabase = createClient();
 
-    const redirectTo = `${window.location.origin}/welcome`;
+    const redirectTo = callbackUrl();
     const result =
       mode === "login"
         ? await supabase.auth.signInWithPassword({ email, password })
@@ -42,12 +59,18 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   }
 
   async function handleGoogle() {
+    setMessage(null);
     setIsSubmitting(true);
     const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
+    const result = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/welcome` },
+      options: { redirectTo: callbackUrl() },
     });
+
+    if (result.error) {
+      setIsSubmitting(false);
+      setMessage(result.error.message);
+    }
   }
 
   return (
@@ -74,9 +97,11 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       <Button className="w-full" disabled={isSubmitting} type="submit">
         {mode === "login" ? "Log in" : "Sign up"}
       </Button>
-      <Button className="w-full" disabled={isSubmitting} onClick={handleGoogle} type="button" variant="outline">
-        Continue with Google
-      </Button>
+      {googleAuthEnabled ? (
+        <Button className="w-full" disabled={isSubmitting} onClick={handleGoogle} type="button" variant="outline">
+          Continue with Google
+        </Button>
+      ) : null}
       {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
     </form>
   );
