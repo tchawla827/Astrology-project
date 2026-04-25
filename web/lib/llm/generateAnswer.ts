@@ -16,12 +16,16 @@ type SupabaseQuery = {
 };
 
 type SupabaseInsertQuery = {
-  select(columns: string): {
-    single(): QueryResult;
-  };
+  select(columns: string): SupabaseInsertSelection;
 };
 
 type SupabaseInsertResult = PromiseLike<{ error: { message: string } | Error | null }>;
+
+type SupabaseInsertSelection =
+  | PromiseLike<{ data: unknown; error: { message: string } | Error | null }>
+  | {
+      single(): QueryResult;
+    };
 
 export type SupabaseAskPersistenceClient = {
   from(table: string): {
@@ -73,6 +77,16 @@ function isInsertQuery(value: SupabaseInsertQuery | SupabaseInsertResult): value
   return typeof (value as SupabaseInsertQuery).select === "function";
 }
 
+function isPromiseLikeSelection(
+  value: SupabaseInsertSelection,
+): value is PromiseLike<{ data: unknown; error: { message: string } | Error | null }> {
+  return typeof (value as PromiseLike<unknown>).then === "function";
+}
+
+function hasSingle(value: SupabaseInsertSelection): value is { single(): QueryResult } {
+  return typeof (value as { single?: unknown }).single === "function";
+}
+
 async function ensureSession(input: {
   supabase: SupabaseAskPersistenceClient;
   session_id?: string;
@@ -111,7 +125,12 @@ async function ensureSession(input: {
     throw new Error("Ask session insert did not return a selectable query.");
   }
 
-  const { data, error } = await insert.select("id").single();
+  const sessionSelection = insert.select("id");
+  if (!hasSingle(sessionSelection)) {
+    throw new Error("Ask session insert did not return a selectable single query.");
+  }
+
+  const { data, error } = await sessionSelection.single();
   if (error) {
     throw new Error(errorMessage(error, "Could not create Ask session."));
   }
@@ -144,10 +163,33 @@ async function insertAskMessages(input: {
     },
   ]);
 
+  if (isInsertQuery(result)) {
+    const selection = result.select("id,role");
+    if (!isPromiseLikeSelection(selection)) {
+      return undefined;
+    }
+
+    const { data, error } = await selection;
+    if (error) {
+      throw new Error(errorMessage(error, "Could not store Ask messages."));
+    }
+
+    const rows = Array.isArray(data) ? data : [];
+    const assistant = rows.find((row) => {
+      if (!row || typeof row !== "object") {
+        return false;
+      }
+      return (row as { role?: unknown }).role === "assistant" && typeof (row as { id?: unknown }).id === "string";
+    }) as { id: string } | undefined;
+
+    return assistant?.id;
+  }
+
   const awaited = await result;
   if ("error" in awaited && awaited.error) {
     throw new Error(errorMessage(awaited.error, "Could not store Ask messages."));
   }
+  return undefined;
 }
 
 function buildPrompt(input: {
@@ -198,6 +240,7 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<{
   answer: AskAnswer;
   meta: LlmMetadata;
   session_id: string;
+  assistant_message_id?: string;
   classification: AskClassification;
 }> {
   const classification = await classifyQuestion({ question: input.question });
@@ -262,7 +305,7 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<{
     tone: input.tone,
   });
 
-  await insertAskMessages({
+  const assistant_message_id = await insertAskMessages({
     supabase: input.supabase,
     session_id,
     question: input.question,
@@ -270,5 +313,5 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<{
     meta,
   });
 
-  return { answer, meta, session_id, classification };
+  return { answer, meta, session_id, assistant_message_id, classification };
 }

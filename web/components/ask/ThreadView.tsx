@@ -47,7 +47,7 @@ export function ThreadView({
         if (message.role === "assistant") {
           return (
             <div className="space-y-3" key={message.id}>
-              <AnswerCard answer={message.content_structured} />
+              <AnswerCard answer={message.content_structured} messageId={message.id} metadata={message.llm_metadata} />
               {index === lastAssistantIndex ? <FollowUpSuggestions depth={depth} onSelect={onFollowUp} tone={tone} /> : null}
             </div>
           );

@@ -1,10 +1,11 @@
 import React from "react";
-import { ChevronDown, Share2 } from "lucide-react";
+import { Share2 } from "lucide-react";
 
+import { TransparencyPanel } from "@/components/ask/TransparencyPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { AskAnswer } from "@/lib/schemas";
+import type { AskAnswer, LlmMetadata } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
 
 function confidenceClass(level: AskAnswer["confidence"]["level"]) {
@@ -31,7 +32,17 @@ function BulletList({ items }: { items: string[] }) {
   );
 }
 
-export function AnswerCard({ answer, className }: { answer: AskAnswer; className?: string }) {
+export function AnswerCard({
+  answer,
+  metadata,
+  messageId,
+  className,
+}: {
+  answer: AskAnswer;
+  metadata?: LlmMetadata;
+  messageId?: string;
+  className?: string;
+}) {
   return (
     <Card className={cn("overflow-hidden", className)}>
       <CardHeader className="space-y-4">
@@ -81,26 +92,7 @@ export function AnswerCard({ answer, className }: { answer: AskAnswer; className
           </section>
         ) : null}
 
-        <details className="group rounded-md border bg-background/60 px-3 py-2">
-          <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium">
-            Show reasoning
-            <ChevronDown aria-hidden="true" className="h-4 w-4 transition-transform group-open:rotate-180" />
-          </summary>
-          <div className="mt-3 grid gap-3 text-xs text-muted-foreground md:grid-cols-3">
-            <div>
-              <span className="font-medium text-foreground">Charts</span>
-              <p>{answer.technical_basis.charts_used.join(", ")}</p>
-            </div>
-            <div>
-              <span className="font-medium text-foreground">Houses</span>
-              <p>{answer.technical_basis.houses_used.join(", ")}</p>
-            </div>
-            <div>
-              <span className="font-medium text-foreground">Planets</span>
-              <p>{answer.technical_basis.planets_used.join(", ")}</p>
-            </div>
-          </div>
-        </details>
+        <TransparencyPanel answer={answer} messageId={messageId} metadata={metadata} />
       </CardContent>
     </Card>
   );

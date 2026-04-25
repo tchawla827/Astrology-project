@@ -1,6 +1,6 @@
 # Phase 09 — Transparency Panel
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** 08
 **Scope:** S
 **Recommended model:** `claude-haiku-4-5-20251001` — reads existing `technical_basis` data and renders it into a disclosure panel. Well-defined inputs and outputs, small scope.
@@ -81,14 +81,14 @@ Panel stays collapsed by default. Expanded panel is visually distinct (muted bac
 
 ## Acceptance criteria
 
-- [ ] Every AnswerCard has a working "Show reasoning" toggle.
-- [ ] Expanded panel lists every chart/house/planet in `technical_basis` with chip styling.
-- [ ] Clicking a chart chip navigates to that chart's explorer page.
-- [ ] House tooltips display the bundle's house summary text.
-- [ ] Planet rows show role + bundle summary (not raw AskAnswer text).
-- [ ] Birth-time sensitivity note appears for sensitive questions with non-exact times, and only then.
-- [ ] For a message whose bundle is on an older `schema_version`, a muted "analysis is based on an older bundle — recompute profile to refresh" is shown.
-- [ ] Typecheck + lint + component tests pass.
+- [x] Every AnswerCard has a working "Show reasoning" toggle.
+- [x] Expanded panel lists every chart/house/planet in `technical_basis` with chip styling.
+- [x] Clicking a chart chip navigates to that chart's explorer page.
+- [x] House tooltips display the bundle's house summary text.
+- [x] Planet rows show role + bundle summary (not raw AskAnswer text).
+- [x] Birth-time sensitivity note appears for sensitive questions with non-exact times, and only then.
+- [x] For a message whose bundle is on an older `schema_version`, a muted "analysis is based on an older bundle — recompute profile to refresh" is shown.
+- [x] Typecheck + lint + component tests pass.
 
 ## Out of scope
 

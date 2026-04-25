@@ -18,6 +18,7 @@ type AskApiResponse = {
   answer?: unknown;
   llm_metadata?: unknown;
   session_id?: string;
+  assistant_message_id?: string;
   error?: string;
 };
 
@@ -95,7 +96,7 @@ export function useAskSession(input: {
         }
 
         const assistantMessage: AskUiMessage = {
-          id: makeId("assistant"),
+          id: body.assistant_message_id ?? makeId("assistant"),
           ask_session_id: nextSessionId,
           role: "assistant",
           content_structured: answer,
