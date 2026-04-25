@@ -37,6 +37,10 @@ function toIsoDate(year: number, month: number, day: number) {
   return [year, String(month + 1).padStart(2, "0"), String(day).padStart(2, "0")].join("-");
 }
 
+function toDisplayDate(year: number, month: number, day: number) {
+  return [String(day).padStart(2, "0"), String(month + 1).padStart(2, "0"), year].join("-");
+}
+
 function parseIsoDate(value: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) {
@@ -52,6 +56,28 @@ function parseIsoDate(value: string) {
   }
 
   return { year, month, day };
+}
+
+function parseDisplayDate(value: string) {
+  const match = /^(\d{2})-(\d{2})-(\d{4})$/.exec(value);
+  if (!match) {
+    return null;
+  }
+
+  const day = Number.parseInt(match[1] ?? "", 10);
+  const month = Number.parseInt(match[2] ?? "", 10) - 1;
+  const year = Number.parseInt(match[3] ?? "", 10);
+  const date = new Date(year, month, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
+    return null;
+  }
+
+  return { year, month, day };
+}
+
+function formatIsoForDisplay(value: string) {
+  const parsed = parseIsoDate(value);
+  return parsed ? toDisplayDate(parsed.year, parsed.month, parsed.day) : "";
 }
 
 function defaultViewDate() {
@@ -73,8 +99,11 @@ export function BirthDatePicker({
   const parsedValue = parseIsoDate(value);
   const initialView = parsedValue ?? defaultViewDate();
   const [isOpen, setIsOpen] = useState(false);
+  const [draftDisplay, setDraftDisplay] = useState(() => formatIsoForDisplay(value));
   const [viewYear, setViewYear] = useState(initialView.year);
   const [viewMonth, setViewMonth] = useState(initialView.month);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const lastEmittedValueRef = useRef(value);
   const rootRef = useRef<HTMLDivElement>(null);
   const maxDate = todayIso();
   const currentYear = Number.parseInt(maxDate.slice(0, 4), 10);
@@ -85,6 +114,10 @@ export function BirthDatePicker({
   );
 
   useEffect(() => {
+    if (value !== lastEmittedValueRef.current) {
+      setDraftDisplay(formatIsoForDisplay(value));
+    }
+
     const parsed = parseIsoDate(value);
     if (parsed) {
       setViewYear(parsed.year);
@@ -121,9 +154,43 @@ export function BirthDatePicker({
   function selectDay(day: number) {
     const nextValue = toIsoDate(viewYear, viewMonth, day);
     if (nextValue <= maxDate) {
+      inputRef.current?.setCustomValidity("");
+      setDraftDisplay(toDisplayDate(viewYear, viewMonth, day));
+      lastEmittedValueRef.current = nextValue;
       onChange(nextValue);
       setIsOpen(false);
     }
+  }
+
+  function changeDraftDisplay(nextDisplay: string) {
+    setDraftDisplay(nextDisplay);
+    inputRef.current?.setCustomValidity("");
+
+    if (nextDisplay.trim() === "") {
+      lastEmittedValueRef.current = "";
+      onChange("");
+      return;
+    }
+
+    if (nextDisplay.length !== 10) {
+      lastEmittedValueRef.current = "";
+      onChange("");
+      return;
+    }
+
+    const parsed = parseDisplayDate(nextDisplay);
+    const nextValue = parsed ? toIsoDate(parsed.year, parsed.month, parsed.day) : "";
+    if (!parsed || nextValue > maxDate) {
+      inputRef.current?.setCustomValidity("Enter a valid birth date in DD-MM-YYYY.");
+      lastEmittedValueRef.current = "";
+      onChange("");
+      return;
+    }
+
+    setViewYear(parsed.year);
+    setViewMonth(parsed.month);
+    lastEmittedValueRef.current = nextValue;
+    onChange(nextValue);
   }
 
   const selectedValue = parsedValue ? toIsoDate(parsedValue.year, parsedValue.month, parsedValue.day) : "";
@@ -141,13 +208,14 @@ export function BirthDatePicker({
             inputMode="numeric"
             max={maxDate}
             maxLength={10}
-            onChange={(event) => onChange(event.target.value)}
+            onChange={(event) => changeDraftDisplay(event.target.value)}
             onFocus={() => setIsOpen(true)}
-            pattern="\d{4}-\d{2}-\d{2}"
-            placeholder="YYYY-MM-DD"
+            pattern="\d{2}-\d{2}-\d{4}"
+            placeholder="DD-MM-YYYY"
+            ref={inputRef}
             required={required}
             type="text"
-            value={value}
+            value={draftDisplay}
           />
         </div>
         <Button

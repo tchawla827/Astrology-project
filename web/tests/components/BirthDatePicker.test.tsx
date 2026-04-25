@@ -8,6 +8,10 @@ afterEach(() => {
   cleanup();
 });
 
+function birthDateInput() {
+  return screen.getByLabelText("Birth date") as HTMLInputElement;
+}
+
 describe("BirthDatePicker", () => {
   it("selects a birth date from the calendar panel", () => {
     const onChange = vi.fn();
@@ -20,14 +24,16 @@ describe("BirthDatePicker", () => {
     fireEvent.click(screen.getByLabelText("Select May 16, 1995"));
 
     expect(onChange).toHaveBeenCalledWith("1995-05-16");
+    expect(birthDateInput().value).toBe("16-05-1995");
   });
 
-  it("keeps typed date input wired to the parent value", () => {
+  it("accepts typed dates in DD-MM-YYYY format", () => {
     const onChange = vi.fn();
 
     render(<BirthDatePicker id="birth-date" onChange={onChange} value="1995-05-16" />);
 
-    fireEvent.change(screen.getByLabelText("Birth date"), { target: { value: "1995-05-17" } });
+    expect(birthDateInput().value).toBe("16-05-1995");
+    fireEvent.change(birthDateInput(), { target: { value: "17-05-1995" } });
 
     expect(onChange).toHaveBeenCalledWith("1995-05-17");
   });
