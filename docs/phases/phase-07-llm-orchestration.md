@@ -1,6 +1,6 @@
 # Phase 07 — LLM Orchestration
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** 05
 **Scope:** L
 **Recommended model:** `claude-opus-4-7` — the hardest architectural phase: provider abstraction with fallback, multi-layer prompt system, citation validation logic, schema repair, golden-question harness. Subtle bugs here corrupt every Ask answer forever.
@@ -24,7 +24,7 @@ The full LLM plumbing behind Ask Astrology: provider adapter, classifier, contex
 - `web/lib/llm/validate.ts` — Zod validation + citation checks from [../llm-layer.md](../llm-layer.md) § Hallucination controls.
 - `web/lib/schemas/ask.ts` — `AskAnswerSchema`, `LlmMetadataSchema`.
 - `web/lib/llm/errors.ts` — `LlmSchemaError`, `LlmProviderError`, `LlmCitationError`.
-- `web/app/api/ask/route.ts` — `POST /api/ask` endpoint. Body: `{ question, tone, depth, session_id? }`. Returns `AskAnswer + session_id`.
+- `web/app/api/ask/route.ts` — `POST /api/ask` endpoint. Body: `{ question, tone, depth, session_id?, profile_id? }`. If `profile_id` is omitted, uses the caller's latest ready profile. Returns `AskAnswer + session_id`.
 - `web/lib/llm/tests/golden-questions.ts` — harness and dataset of `(question, profile_fixture, expected_topic, min_charts_cited, min_planets_cited)` tuples.
 - `web/tests/llm/orchestration.test.ts` — runs the harness in CI against mocked provider.
 
@@ -132,13 +132,13 @@ Provider is mocked with recorded responses in CI (record-replay pattern). Real c
 
 ## Acceptance criteria
 
-- [ ] `POST /api/ask` returns a valid `AskAnswer` for each topic against the test fixture profile.
-- [ ] Provider fallback works: forcing Gemini to 500 results in a Groq-served answer.
-- [ ] Citation validator rejects a response that cites a chart not in the context. Repair attempt runs. Final answer is clean.
-- [ ] Birth-time consistency downgrade works: question marked `birth_time_sensitive` + non-exact profile → answer's `confidence.level` is never `high`.
-- [ ] Golden-question harness passes in CI (mocked providers).
-- [ ] `ask_messages` row contains full `llm_metadata` with exact prompt versions.
-- [ ] Typecheck + lint + tests pass.
+- [x] `POST /api/ask` returns a valid `AskAnswer` for each topic against the test fixture profile.
+- [x] Provider fallback works: forcing Gemini to 500 results in a Groq-served answer.
+- [x] Citation validator rejects a response that cites a chart not in the context. Repair attempt runs. Final answer is clean.
+- [x] Birth-time consistency downgrade works: question marked `birth_time_sensitive` + non-exact profile → answer's `confidence.level` is never `high`.
+- [x] Golden-question harness passes in CI (mocked providers).
+- [x] `ask_messages` row contains full `llm_metadata` with exact prompt versions.
+- [x] Typecheck + lint + tests pass.
 
 ## Out of scope
 

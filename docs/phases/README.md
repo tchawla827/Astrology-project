@@ -29,7 +29,7 @@ Phases are not allowed to skip or reorder. If a dependency isn't Done, Claude st
 | 04 | [Chart explorer](phase-04-chart-explorer.md) | Done | 02 | M |
 | 05 | [Derived features](phase-05-derived-features.md) | Done | 01, 02 | M |
 | 06 | [Life area reports](phase-06-life-areas.md) | Done | 05 | M |
-| 07 | [LLM orchestration](phase-07-llm-orchestration.md) | Not started | 05 | L |
+| 07 | [LLM orchestration](phase-07-llm-orchestration.md) | Done | 05 | L |
 | 08 | [Ask Astrology](phase-08-ask-astrology.md) | Not started | 07 | L |
 | 09 | [Transparency panel](phase-09-transparency-panel.md) | Not started | 08 | S |
 | 10 | [Daily predictions + date machine](phase-10-daily-predictions.md) | Not started | 01, 05, 07 | M |
