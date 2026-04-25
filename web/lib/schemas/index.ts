@@ -246,21 +246,21 @@ export const AskSessionSchema = z.object({
 });
 
 export const AskAnswerSchema = z.object({
-  verdict: z.string(),
-  why: z.array(z.string()),
+  verdict: z.string().min(1).max(280),
+  why: z.array(z.string().min(1)).min(1).max(5),
   timing: z.object({
-    summary: z.string(),
-    type: z.array(z.enum(["natal", "dasha", "transit"])),
+    summary: z.string().min(1),
+    type: z.array(z.enum(["natal", "dasha", "transit"])).min(1),
   }),
   confidence: z.object({
     level: z.enum(["high", "medium", "low"]),
-    note: z.string(),
+    note: z.string().min(1),
   }),
-  advice: z.array(z.string()),
+  advice: z.array(z.string().min(1)).max(5),
   technical_basis: z.object({
-    charts_used: z.array(z.string()),
-    houses_used: z.array(z.number().int().min(1).max(12)),
-    planets_used: z.array(PlanetSchema),
+    charts_used: z.array(z.string()).min(1),
+    houses_used: z.array(z.number().int().min(1).max(12)).min(1),
+    planets_used: z.array(PlanetSchema).min(1),
   }),
 });
 
@@ -268,8 +268,24 @@ export const LlmMetadataSchema = z.object({
   provider: z.enum(["gemini", "groq"]),
   model: z.string(),
   prompt_version: z.string(),
+  prompt_versions: z.object({
+    system: z.string(),
+    route: z.string(),
+    user: z.string(),
+  }).optional(),
   answer_schema_version: z.string(),
   context_bundle_type: z.union([TopicSchema, z.literal("mixed")]),
+  context_bundle_id: z.string().optional(),
+  classification: z.object({
+    topic: TopicSchema,
+    needs_timing: z.boolean(),
+    needs_technical_depth: z.boolean(),
+    birth_time_sensitive: z.boolean(),
+    is_mixed: z.boolean(),
+    matched_terms: z.array(z.string()),
+    confidence: z.enum(["low", "medium", "high"]),
+  }).optional(),
+  repaired_from_provider: z.enum(["gemini", "groq"]).optional(),
   latency_ms: z.number().int().nonnegative(),
   tokens_in: z.number().int().nonnegative().optional(),
   tokens_out: z.number().int().nonnegative().optional(),

@@ -41,18 +41,17 @@ Never hardcode a provider name outside `web/lib/llm/`.
 
 ```ts
 async function classifyQuestion(input: { question: string; profile_summary: ProfileSummary }): Promise<{
-  topic: Topic | 'mixed';
+  topic: Topic;
   needs_timing: boolean;
   needs_technical_depth: boolean;
   birth_time_sensitive: boolean;
+  is_mixed: boolean;
 }>;
 ```
 
-Implemented with a small Gemini call using a constrained JSON schema. Prompt is short:
+Implemented deterministic-first with a constrained topic vocabulary. This keeps Ask fast, cheap, and aligned with the product rule that deterministic routing should happen before generative interpretation. The classifier can still expose `is_mixed`, but it always chooses one primary topic bundle so the LLM never receives the full profile.
 
-> Classify the user's astrology question. Return only valid JSON matching the schema. Do not answer the question.
-
-Topics: `personality | career | wealth | relationships | marriage | family | health | education | spirituality | relocation | timing | compatibility | mixed`.
+Topics: `personality | career | wealth | relationships | marriage | family | health | education | spirituality | relocation`.
 
 ## Context bundles
 
