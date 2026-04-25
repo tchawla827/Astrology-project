@@ -19,7 +19,7 @@ export function AskCtaCard({ questions }: { questions: string[] }) {
           {questions.map((question) => (
             <Link
               className="rounded-md border bg-background/40 p-3 text-sm transition-colors hover:bg-muted"
-              href={`/ask?q=${encodeURIComponent(question)}`}
+              href={`/ask?question=${encodeURIComponent(question)}`}
               key={question}
             >
               {question}

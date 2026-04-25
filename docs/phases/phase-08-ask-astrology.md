@@ -1,6 +1,6 @@
 # Phase 08 — Ask Astrology
 
-**Status:** Not started
+**Status:** Done
 **Depends on:** 07
 **Scope:** L
 **Recommended model:** `claude-sonnet-4-6` — complex UI (chat flow, session state, tone toggles, follow-ups) but no novel domain reasoning; wires the phase 07 backend into a chat interface.
@@ -104,15 +104,15 @@ Phase 12 adds share-as-image. This phase wires the share button placeholder (dis
 
 ## Acceptance criteria
 
-- [ ] Empty-state Ask page renders 4–6 chart-derived starter questions.
-- [ ] Submitting a question shows a skeleton, then the structured answer card.
-- [ ] Tone toggle actually changes the response style (verify manually with same question across all three tones).
-- [ ] Depth toggle changes technical-basis inclusion in `why`.
-- [ ] Follow-ups land in the same session; URL updates to `/ask/[session_id]`.
-- [ ] Session list at `/ask` shows prior sessions; clicking one resumes it.
-- [ ] Provider-failure error state is graceful, retryable.
-- [ ] Query params prefill question and tone (life-area CTA smoke test).
-- [ ] Typecheck + lint + component tests pass.
+- [x] Empty-state Ask page renders 4–6 chart-derived starter questions.
+- [x] Submitting a question shows a skeleton, then the structured answer card.
+- [x] Tone toggle actually changes the response style (verify manually with same question across all three tones).
+- [x] Depth toggle changes technical-basis inclusion in `why`.
+- [x] Follow-ups land in the same session; URL updates to `/ask/[session_id]`.
+- [x] Session list at `/ask` shows prior sessions; clicking one resumes it.
+- [x] Provider-failure error state is graceful, retryable.
+- [x] Query params prefill question and tone (life-area CTA smoke test).
+- [x] Typecheck + lint + component tests pass.
 
 ## Out of scope
 
