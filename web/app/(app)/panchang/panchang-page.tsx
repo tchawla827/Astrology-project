@@ -73,13 +73,18 @@ export async function PanchangPageContent({
 
     return (
       <div className="space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm uppercase text-primary">Panchang</p>
-            <h1 className="mt-2 text-3xl font-semibold">{result.profile.name}&apos;s daily timing</h1>
+        <section className="cosmic-surface relative overflow-hidden rounded-lg border border-primary/20 p-6 shadow-bronze sm:p-8">
+          <div className="cosmic-veil absolute inset-0" aria-hidden="true" />
+          <div className="relative flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.24em] text-primary">Panchang</p>
+              <h1 className="mt-4 font-display text-5xl font-semibold leading-tight sm:text-6xl">
+                {result.profile.name}&apos;s daily timing
+              </h1>
+            </div>
+            <p className="text-sm text-muted-foreground">Cache {result.cache}</p>
           </div>
-          <p className="text-sm text-muted-foreground">Cache {result.cache}</p>
-        </div>
+        </section>
 
         {result.stale ? (
           <div className="rounded-lg border border-primary/35 bg-primary/10 p-4 text-sm text-primary">

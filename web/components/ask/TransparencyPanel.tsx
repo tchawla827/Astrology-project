@@ -79,9 +79,12 @@ export function TransparencyPanel({ answer, metadata, messageId }: Props) {
   }, [messageId]);
 
   return (
-    <details className="group rounded-md border bg-muted/30 px-3 py-2">
+    <details className="group rounded-md border border-primary/20 bg-primary/10 px-3 py-2">
       <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium">
-        Show reasoning
+        <span>
+          Why this answer?
+          <span className="sr-only">Show reasoning</span>
+        </span>
         <ChevronDown aria-hidden="true" className="h-4 w-4 transition-transform group-open:rotate-180" />
       </summary>
       <div className="mt-4 space-y-4 text-sm">

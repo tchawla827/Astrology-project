@@ -5,6 +5,7 @@ import { ChartView } from "@/components/charts/ChartView";
 import { RegenerateChartButton } from "@/components/common/RegenerateChartButton";
 import { YogaList } from "@/components/charts/YogaList";
 import { DashboardErrorShell, DashboardProcessingShell } from "@/components/insights/DashboardStatusShell";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { track } from "@/lib/analytics/events";
 import { chartTitle, isSupportedChartKey } from "@/lib/charts/catalog";
@@ -68,24 +69,27 @@ export default async function ChartDetailPage({ params }: { params: { key: strin
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm uppercase text-primary">Chart explorer</p>
-          <h1 className="mt-2 text-3xl font-semibold">{chartTitle(params.key)}</h1>
+      <section className="cosmic-surface relative overflow-hidden rounded-lg border border-primary/20 p-6 shadow-bronze sm:p-8">
+        <div className="cosmic-veil absolute inset-0" aria-hidden="true" />
+        <div className="relative flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.24em] text-primary">Chart explorer</p>
+            <h1 className="mt-4 font-display text-5xl font-semibold leading-tight sm:text-6xl">{chartTitle(params.key)}</h1>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <RegenerateChartButton profileId={explorer.profileId} />
+            <Button asChild variant="outline">
+              <Link href="/charts">Catalog</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/charts/compare">Compare</Link>
+            </Button>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <RegenerateChartButton profileId={explorer.profileId} />
-          <Link className="rounded-md border px-4 py-2 text-sm hover:bg-muted" href="/charts">
-            Catalog
-          </Link>
-          <Link className="rounded-md border px-4 py-2 text-sm hover:bg-muted" href="/charts/compare">
-            Compare
-          </Link>
-        </div>
-      </div>
+      </section>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
-        <Card>
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <Card className="border-primary/20 bg-background/55">
           <CardContent className="p-6">
             <ChartView chartKey={params.key} snapshot={explorer.snapshot} />
           </CardContent>

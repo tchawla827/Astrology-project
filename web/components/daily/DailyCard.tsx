@@ -1,4 +1,4 @@
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, CalendarDays, CheckCircle2, ShieldAlert, Sparkles } from "lucide-react";
 
 import { DatePicker } from "@/components/daily/DatePicker";
 import { NatalOverlay } from "@/components/daily/NatalOverlay";
@@ -7,18 +7,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DailyPrediction, ToneMode, TransitSummary } from "@/lib/schemas";
 import type { TransitRuleHit } from "@/lib/server/generateDailyPrediction";
 
-function ListSection({ title, items }: { title: string; items: string[] }) {
+function ListSection({ title, items, mode }: { title: string; items: string[]; mode: "favorable" | "caution" }) {
+  const Icon = mode === "favorable" ? CheckCircle2 : ShieldAlert;
   return (
-    <section>
-      <h2 className="text-sm font-semibold uppercase text-muted-foreground">{title}</h2>
+    <section className="rounded-lg border border-primary/15 bg-background/45 p-4">
+      <div className="flex items-center gap-2">
+        <Icon className={mode === "favorable" ? "h-4 w-4 text-emerald-300" : "h-4 w-4 text-accent"} aria-hidden="true" />
+        <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">{title}</h2>
+      </div>
       {items.length > 0 ? (
-        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm">
+        <ul className="mt-4 space-y-3 text-sm">
           {items.map((item) => (
-            <li key={item}>{item}</li>
+            <li className="flex gap-3 leading-6" key={item}>
+              <span className={mode === "favorable" ? "mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-300" : "mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"} />
+              <span>{item}</span>
+            </li>
           ))}
         </ul>
       ) : (
-        <p className="mt-3 text-sm text-muted-foreground">No strong signal in this lane for the selected date.</p>
+        <p className="mt-4 text-sm text-muted-foreground">No strong signal in this lane for the selected date.</p>
       )}
     </section>
   );
@@ -46,7 +53,7 @@ export function DailyCard({
   cacheLabel: string;
 }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <DatePicker date={prediction.date} max={maxDate} min={minDate} todayDate={todayDate} tone={tone} />
 
       {showBirthTimeSensitivity ? (
@@ -56,37 +63,55 @@ export function DailyCard({
         </div>
       ) : null}
 
-      <Card>
-        <CardHeader className="gap-2">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm uppercase text-primary">{prediction.date}</p>
-            <p className="text-xs text-muted-foreground">{cacheLabel}</p>
+      <Card className="overflow-hidden border-primary/20 bg-card/70">
+        <CardHeader className="cosmic-surface relative gap-4 p-6 sm:p-8">
+          <div className="cosmic-veil absolute inset-0" aria-hidden="true" />
+          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-3 text-primary">
+                <CalendarDays className="h-5 w-5" aria-hidden="true" />
+                <p className="text-sm uppercase tracking-[0.22em]">{prediction.date}</p>
+              </div>
+              <CardTitle className="mt-5 max-w-4xl font-display text-4xl leading-tight sm:text-5xl">
+                {prediction.verdict}
+              </CardTitle>
+            </div>
+            <div className="rounded-md border border-primary/25 bg-background/60 px-3 py-2 text-xs capitalize text-primary">
+              {tone} tone
+            </div>
           </div>
-          <CardTitle className="text-2xl leading-snug">{prediction.verdict}</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-2">
-            <ListSection items={prediction.favorable} title="Favorable" />
-            <ListSection items={prediction.caution} title="Caution" />
+        <CardContent className="space-y-6 p-5 sm:p-6">
+          <div className="luxury-panel rounded-lg p-5">
+            <div className="flex items-center gap-3 text-primary">
+              <Sparkles className="h-5 w-5" aria-hidden="true" />
+              <h2 className="text-sm font-semibold uppercase tracking-[0.18em]">Prediction lanes</h2>
+            </div>
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              <ListSection items={prediction.favorable} mode="favorable" title="Favorable periods" />
+              <ListSection items={prediction.caution} mode="caution" title="Caution periods" />
+            </div>
           </div>
+
           <NatalOverlay overlay={transits.overlay} positions={transits.positions} />
           <TransitHighlights hits={transitRules} />
-          <section className="rounded-lg border bg-background p-4">
-            <h2 className="text-sm font-semibold uppercase text-muted-foreground">Transparency</h2>
-            <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
-              <div>
+          <section className="rounded-lg border border-primary/15 bg-background/45 p-4">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">Transparency</h2>
+            <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+              <div className="rounded-md border border-primary/10 bg-card/70 p-3">
                 <dt className="text-muted-foreground">Triggered houses</dt>
-                <dd>{prediction.technical_basis.triggered_houses.join(", ") || "None"}</dd>
+                <dd className="mt-1 font-medium">{prediction.technical_basis.triggered_houses.join(", ") || "None"}</dd>
               </div>
-              <div>
+              <div className="rounded-md border border-primary/10 bg-card/70 p-3">
                 <dt className="text-muted-foreground">Planets</dt>
-                <dd>{prediction.technical_basis.planets_used.join(", ") || "None"}</dd>
+                <dd className="mt-1 font-medium">{prediction.technical_basis.planets_used.join(", ") || "None"}</dd>
               </div>
-              <div>
+              <div className="rounded-md border border-primary/10 bg-card/70 p-3">
                 <dt className="text-muted-foreground">Rules</dt>
-                <dd>{prediction.technical_basis.transit_rules.join(", ") || "None"}</dd>
+                <dd className="mt-1 font-medium">{prediction.technical_basis.transit_rules.join(", ") || "None"}</dd>
               </div>
             </dl>
+            <p className="mt-4 text-xs text-muted-foreground">{cacheLabel}</p>
           </section>
         </CardContent>
       </Card>

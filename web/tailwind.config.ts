@@ -9,6 +9,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        display: ["var(--font-display)"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -44,6 +47,9 @@ const config: Config = {
         lg: "0.5rem",
         md: "0.375rem",
         sm: "0.25rem",
+      },
+      boxShadow: {
+        bronze: "0 18px 70px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(244, 211, 152, 0.16)",
       },
     },
   },

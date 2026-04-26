@@ -11,15 +11,15 @@ const navItems = [
 
 export function PublicShell({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
-          <Link className="text-lg font-semibold text-primary" href="/">
+    <div className="min-h-screen overflow-hidden bg-background">
+      <header className="fixed left-0 right-0 top-0 z-40 px-4 pt-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-lg border border-primary/15 bg-background/70 px-4 py-3 shadow-bronze backdrop-blur-xl sm:px-5">
+          <Link className="font-display text-2xl font-semibold text-primary" href="/">
             Astri
           </Link>
-          <nav aria-label="Public navigation" className="flex items-center gap-3 text-sm text-muted-foreground">
+          <nav aria-label="Public navigation" className="flex items-center gap-3 text-sm text-muted-foreground sm:gap-5">
             {navItems.map((item) => (
-              <Link className="hidden hover:text-foreground sm:inline" href={item.href} key={item.href}>
+              <Link className="hidden transition-colors hover:text-foreground md:inline" href={item.href} key={item.href}>
                 {item.label}
               </Link>
             ))}
@@ -30,17 +30,17 @@ export function PublicShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main>{children}</main>
-      <footer className="border-t">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 Astri. All rights reserved.</p>
+      <footer className="border-t border-primary/15 bg-background">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <p>&copy; 2026 Astri. All rights reserved.</p>
           <nav aria-label="Legal navigation" className="flex flex-wrap gap-4">
-            <Link className="hover:text-foreground" href="/privacy">
+            <Link className="transition-colors hover:text-foreground" href="/privacy">
               Privacy
             </Link>
-            <Link className="hover:text-foreground" href="/terms">
+            <Link className="transition-colors hover:text-foreground" href="/terms">
               Terms
             </Link>
-            <Link className="hover:text-foreground" href="/contact">
+            <Link className="transition-colors hover:text-foreground" href="/contact">
               Contact
             </Link>
           </nav>

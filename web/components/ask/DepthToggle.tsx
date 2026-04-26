@@ -20,12 +20,12 @@ export function DepthToggle({
   disabled?: boolean;
 }) {
   return (
-    <div className="inline-flex rounded-md border bg-background p-1" role="group" aria-label="Depth">
+    <div className="inline-flex rounded-md border border-primary/20 bg-background/70 p-1" role="group" aria-label="Depth">
       {depthOptions.map((option) => (
         <button
           aria-pressed={value === option.value}
           className={cn(
-            "h-8 rounded-sm px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+            "min-h-10 cursor-pointer rounded-sm px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
             value === option.value && "bg-secondary text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground",
           )}
           disabled={disabled}
