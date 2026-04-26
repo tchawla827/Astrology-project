@@ -12,6 +12,15 @@ pnpm install
 pnpm dev
 ```
 
+Run the web app with all routes compiled before the server starts:
+
+```bash
+cd web
+pnpm start
+```
+
+`pnpm dev` uses Next.js development mode, which compiles routes on first access. `pnpm start` now runs a full `next build` first, then serves the precompiled app with `next start`.
+
 Run the astrology engine:
 
 ```bash
