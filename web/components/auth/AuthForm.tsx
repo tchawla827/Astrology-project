@@ -25,9 +25,14 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     }
   }, []);
 
+  function requestedNext() {
+    const query = new URLSearchParams(window.location.search);
+    return query.get("next") ?? (mode === "login" ? "/dashboard" : "/welcome");
+  }
+
   function callbackUrl() {
     const url = new URL("/auth/callback", window.location.origin);
-    url.searchParams.set("next", "/welcome");
+    url.searchParams.set("next", requestedNext());
     return url.toString();
   }
 
@@ -51,7 +56,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     }
 
     if (mode === "login") {
-      window.location.assign("/dashboard");
+      window.location.assign(requestedNext());
       return;
     }
 

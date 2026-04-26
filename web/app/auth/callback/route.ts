@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { resolvePostAuthPath, type SupabaseAccountRoutingClient } from "@/lib/accountRouting";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -14,8 +15,21 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      redirectTo.pathname = next.startsWith("/") ? next : "/welcome";
-      redirectTo.search = "";
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const destination = user
+        ? await resolvePostAuthPath({
+            supabase: supabase as unknown as SupabaseAccountRoutingClient,
+            userId: user.id,
+            requestedPath: next,
+          })
+        : next.startsWith("/")
+          ? next
+          : "/welcome";
+      const destinationUrl = new URL(destination, requestUrl.origin);
+      redirectTo.pathname = destinationUrl.pathname;
+      redirectTo.search = destinationUrl.search;
       return NextResponse.redirect(redirectTo);
     }
   }
