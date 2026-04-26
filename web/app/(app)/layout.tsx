@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { LogoutButton } from "@/components/auth/LogoutButton";
 import { createClient } from "@/lib/supabase/server";
 
 const navItems = [
@@ -32,9 +33,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               </Link>
             ))}
           </nav>
-          <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
-            {user ? <span className="rounded-full border border-primary/30 px-2 py-1 text-primary">Free plan</span> : null}
-            <span>{user?.email}</span>
+          <div className="flex items-start gap-3">
+            <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
+              {user ? <span className="rounded-full border border-primary/30 px-2 py-1 text-primary">Free plan</span> : null}
+              <span>{user?.email}</span>
+            </div>
+            {user ? <LogoutButton /> : null}
           </div>
         </div>
       </header>

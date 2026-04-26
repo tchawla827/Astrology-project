@@ -25,6 +25,14 @@ const protectedRoutes = [
   "/generating",
 ];
 
+function loginRedirect(request: NextRequest) {
+  const url = request.nextUrl.clone();
+  url.pathname = "/login";
+  url.search = "";
+  url.searchParams.set("next", `${request.nextUrl.pathname}${request.nextUrl.search}`);
+  return NextResponse.redirect(url);
+}
+
 function rateLimitKey(request: NextRequest): ApiRateLimitKey | null {
   if (request.nextUrl.pathname === "/api/ask" && request.method === "POST") {
     return "ask";
@@ -55,9 +63,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isProtectedRoute && (!supabaseUrl || !supabaseAnonKey)) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+    return loginRedirect(request);
   }
 
   if (!supabaseUrl || !supabaseAnonKey) {
@@ -86,9 +92,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (isProtectedRoute && !user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+    return loginRedirect(request);
   }
 
   if ((isAskApi || isDailyApi || apiRateLimitKey) && !user) {
