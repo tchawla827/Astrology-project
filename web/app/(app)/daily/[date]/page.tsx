@@ -123,10 +123,18 @@ export default async function DailyDatePage({
 
     return (
       <div className="space-y-6">
-        <div>
-          <p className="text-sm uppercase text-primary">Daily</p>
-          <h1 className="mt-2 text-3xl font-semibold">{result.profile.name}&apos;s date machine</h1>
-        </div>
+        <section className="cosmic-surface relative overflow-hidden rounded-lg border border-primary/20 p-6 shadow-bronze sm:p-8">
+          <div className="cosmic-veil absolute inset-0" aria-hidden="true" />
+          <div className="relative">
+            <p className="text-sm uppercase tracking-[0.24em] text-primary">Timeline and predictions</p>
+            <h1 className="mt-4 font-display text-5xl font-semibold leading-tight sm:text-6xl">
+              {result.profile.name}&apos;s date machine
+            </h1>
+            <p className="mt-4 max-w-3xl text-sm leading-6 text-muted-foreground">
+              Move through favorable periods, caution windows, natal overlays, and transit triggers for a selected date.
+            </p>
+          </div>
+        </section>
         <DailyCard
           cacheLabel={cacheLabel}
           maxDate={plusYears(result.profile.birth_date, 120)}

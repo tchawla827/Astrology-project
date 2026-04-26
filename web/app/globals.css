@@ -3,23 +3,24 @@
 @tailwind utilities;
 
 :root {
-  --background: 240 18% 8%;
-  --foreground: 45 38% 94%;
-  --card: 240 16% 12%;
-  --card-foreground: 45 38% 94%;
-  --primary: 43 74% 62%;
-  --primary-foreground: 240 18% 8%;
-  --secondary: 178 42% 34%;
-  --secondary-foreground: 45 38% 94%;
-  --muted: 240 12% 18%;
-  --muted-foreground: 45 18% 72%;
-  --accent: 339 54% 48%;
+  --background: 235 30% 5%;
+  --foreground: 42 45% 93%;
+  --card: 238 24% 9%;
+  --card-foreground: 42 45% 93%;
+  --primary: 39 72% 63%;
+  --primary-foreground: 236 36% 7%;
+  --secondary: 254 30% 28%;
+  --secondary-foreground: 42 45% 93%;
+  --muted: 236 20% 15%;
+  --muted-foreground: 38 19% 72%;
+  --accent: 15 64% 57%;
   --accent-foreground: 45 38% 94%;
   --destructive: 0 72% 51%;
   --destructive-foreground: 45 38% 94%;
-  --border: 240 12% 24%;
-  --input: 240 12% 24%;
-  --ring: 43 74% 62%;
+  --border: 36 28% 23%;
+  --input: 236 18% 18%;
+  --ring: 39 72% 63%;
+  --font-display: "Cormorant Garamond", "Bodoni 72", "Georgia", serif;
 }
 
 * {
@@ -27,6 +28,83 @@
 }
 
 body {
-  background: hsl(var(--background));
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(6, 7, 18, 0.78), rgba(6, 7, 18, 0.96)),
+    radial-gradient(circle at 50% 0%, rgba(196, 134, 77, 0.13), transparent 34rem),
+    hsl(var(--background));
   color: hsl(var(--foreground));
+  text-rendering: optimizeLegibility;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: hsl(var(--primary) / 0.3);
+  color: hsl(var(--foreground));
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .cosmic-surface {
+    background:
+      linear-gradient(180deg, rgba(13, 15, 32, 0.82), rgba(8, 9, 20, 0.96)),
+      url("/bg.png");
+    background-position: center;
+    background-size: cover;
+  }
+
+  .cosmic-veil {
+    background:
+      linear-gradient(180deg, rgba(4, 5, 13, 0.18), rgba(4, 5, 13, 0.94) 78%),
+      linear-gradient(90deg, rgba(4, 5, 13, 0.92), rgba(4, 5, 13, 0.42), rgba(4, 5, 13, 0.9));
+  }
+
+  .star-noise {
+    background-image:
+      radial-gradient(circle at 18% 22%, rgba(247, 229, 190, 0.72) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 68% 16%, rgba(255, 255, 255, 0.5) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 78% 72%, rgba(247, 229, 190, 0.42) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 34% 84%, rgba(255, 255, 255, 0.34) 0 1px, transparent 1.5px);
+  }
+
+  .luxury-panel {
+    border: 1px solid hsl(var(--border) / 0.78);
+    background:
+      linear-gradient(145deg, hsl(var(--card) / 0.92), hsl(248 26% 10% / 0.72)),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(18px);
+  }
+
+  .bronze-edge {
+    box-shadow: inset 0 1px 0 rgba(244, 211, 152, 0.18), 0 0 0 1px rgba(176, 119, 61, 0.18);
+  }
+
+  .premium-rule {
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.72), transparent);
+  }
+
+  .celestial-grid {
+    background-image:
+      linear-gradient(rgba(234, 197, 138, 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(234, 197, 138, 0.07) 1px, transparent 1px);
+    background-size: 4.5rem 4.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

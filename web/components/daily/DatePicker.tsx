@@ -49,12 +49,12 @@ export function DatePicker({
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border bg-background p-4">
+    <div className="flex flex-col gap-3 rounded-lg border border-primary/20 bg-background/70 p-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <label className="flex items-center gap-2 text-sm font-medium">
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
           <input
-            className="h-9 rounded-md border bg-background px-3 text-sm"
+            className="min-h-11 rounded-md border border-primary/20 bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             max={max}
             min={min}
             onChange={(event) => setDraftDate(event.target.value)}

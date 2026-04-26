@@ -21,12 +21,12 @@ export function ToneSelector({
   disabled?: boolean;
 }) {
   return (
-    <div className="inline-flex rounded-md border bg-background p-1" role="group" aria-label="Tone">
+    <div className="inline-flex rounded-md border border-primary/20 bg-background/70 p-1" role="group" aria-label="Tone">
       {toneOptions.map((option) => (
         <button
           aria-pressed={value === option.value}
           className={cn(
-            "h-8 rounded-sm px-3 text-xs font-medium capitalize text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+            "min-h-10 cursor-pointer rounded-sm px-3 text-xs font-medium capitalize text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
             value === option.value && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
           )}
           disabled={disabled}
