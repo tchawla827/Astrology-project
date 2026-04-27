@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ChartCatalogSidebar } from "@/components/charts/ChartCatalogSidebar";
 import { ChartView } from "@/components/charts/ChartView";
 import { RegenerateChartButton } from "@/components/common/RegenerateChartButton";
 import { YogaList } from "@/components/charts/YogaList";
@@ -88,7 +89,8 @@ export default async function ChartDetailPage({ params }: { params: { key: strin
         </div>
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid gap-5 xl:grid-cols-[18rem_minmax(0,1fr)_360px]">
+        <ChartCatalogSidebar currentKey={params.key} snapshot={explorer.snapshot} />
         <Card className="border-primary/20 bg-background/55">
           <CardContent className="p-6">
             <ChartView chartKey={params.key} snapshot={explorer.snapshot} />

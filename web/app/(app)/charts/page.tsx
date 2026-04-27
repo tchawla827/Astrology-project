@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, GitCompare, Layers3, PanelRightOpen, SlidersHorizontal, Telescope } from "lucide-react";
+import { BookOpen, GitCompare, PanelRightOpen, SlidersHorizontal, Telescope } from "lucide-react";
 
+import { ChartCatalogSidebar } from "@/components/charts/ChartCatalogSidebar";
 import { ChartView } from "@/components/charts/ChartView";
 import { RegenerateChartButton } from "@/components/common/RegenerateChartButton";
 import { DashboardErrorShell, DashboardProcessingShell } from "@/components/insights/DashboardStatusShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CHART_GROUPS, CHART_LABELS } from "@/lib/charts/catalog";
 import { loadChartExplorer, type SupabaseChartsClient } from "@/lib/server/loadCharts";
 import { createClient } from "@/lib/supabase/server";
 
@@ -101,40 +101,7 @@ export default async function ChartsPage() {
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[18rem_minmax(0,1fr)_21rem]">
-        <aside className="space-y-4">
-          <div className="luxury-panel rounded-lg p-4">
-            <div className="flex items-center gap-3 text-primary">
-              <Layers3 className="h-5 w-5" aria-hidden="true" />
-              <p className="text-xs uppercase tracking-[0.18em]">Switch chart</p>
-            </div>
-            <div className="mt-4 space-y-5">
-              {CHART_GROUPS.map((group) => (
-                <div key={group.title}>
-                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">{group.title}</p>
-                  <div className="mt-2 grid gap-2">
-                    {group.keys.map((key) => {
-                      const isAvailable = Boolean(explorer.snapshot.charts[key]);
-                      return (
-                        <Link
-                          aria-disabled={!isAvailable}
-                          className="flex min-h-11 items-center justify-between rounded-md border border-primary/10 bg-background/45 px-3 text-sm transition-colors hover:border-primary/40 hover:bg-primary/10 aria-disabled:pointer-events-none aria-disabled:opacity-50"
-                          href={`/charts/${key}`}
-                          key={key}
-                        >
-                          <span>
-                            <span className="font-semibold text-primary">{key}</span>
-                            <span className="ml-2 text-muted-foreground">{CHART_LABELS[key]}</span>
-                          </span>
-                          <ArrowRight className="h-4 w-4 text-primary/80" aria-hidden="true" />
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </aside>
+        <ChartCatalogSidebar currentKey="D1" snapshot={explorer.snapshot} />
 
         <Card className="overflow-hidden border-primary/20 bg-background/55">
           <CardContent className="p-4 sm:p-6">
