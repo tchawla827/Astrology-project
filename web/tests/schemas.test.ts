@@ -160,6 +160,37 @@ describe("schemas", () => {
       DailyPredictionSchema.parse({
         date: "2026-04-25",
         verdict: "Saturn puts pressure on the day, but Jupiter keeps one practical opening.",
+        felt_sense: "You may feel focused but slightly pressured.",
+        aspect_scores: [
+          {
+            aspect: "love",
+            score: 5,
+            label: "mixed",
+            sentence: "Love is workable if expectations stay simple.",
+            basis: { houses: [5], planets: ["Jupiter", "Moon"], transit_rules: ["jupiter_trine_support"] },
+          },
+          {
+            aspect: "emotional",
+            score: 4,
+            label: "mixed",
+            sentence: "Emotionally, the day is sensitive but manageable.",
+            basis: { houses: [1], planets: ["Saturn", "Moon"], transit_rules: ["saturn_kendra_pressure"] },
+          },
+          {
+            aspect: "career",
+            score: 6,
+            label: "steady",
+            sentence: "Career work is supported through steady execution.",
+            basis: { houses: [10], planets: ["Saturn", "Jupiter"], transit_rules: ["saturn_kendra_pressure", "jupiter_trine_support"] },
+          },
+          {
+            aspect: "focus",
+            score: 7,
+            label: "steady",
+            sentence: "Focus is steady enough for one clear priority.",
+            basis: { houses: [10], planets: ["Saturn"], transit_rules: ["saturn_kendra_pressure"] },
+          },
+        ],
         favorable: ["Use the Jupiter trine for planning."],
         caution: ["Do not overload the angular Saturn pressure."],
         technical_basis: {
@@ -168,7 +199,7 @@ describe("schemas", () => {
           transit_rules: ["saturn_kendra_pressure", "jupiter_trine_support"],
         },
         tone: "direct",
-        answer_schema_version: "daily_v1",
+        answer_schema_version: "daily_v2",
       })
     ).not.toThrow();
   });

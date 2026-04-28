@@ -1,6 +1,6 @@
 import { DailyPredictionSchema, TransitSummarySchema, type DailyPrediction, type TransitSummary } from "@/lib/schemas";
 
-const DAILY_SCHEMA_VERSION = "daily_v1_timing_context" as const;
+const DAILY_SCHEMA_VERSION = "daily_v2_timing_aspects" as const;
 
 type DbError = { message: string } | Error;
 type QueryResult = PromiseLike<{ data: unknown; error: DbError | null }>;

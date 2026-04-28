@@ -1,4 +1,4 @@
-import { AlertTriangle, CalendarDays, CheckCircle2, ShieldAlert, Sparkles } from "lucide-react";
+import { AlertTriangle, Brain, BriefcaseBusiness, CalendarDays, CheckCircle2, Heart, ShieldAlert, Sparkles, Target } from "lucide-react";
 
 import { DatePicker } from "@/components/daily/DatePicker";
 import { NatalOverlay } from "@/components/daily/NatalOverlay";
@@ -27,6 +27,41 @@ function ListSection({ title, items, mode }: { title: string; items: string[]; m
       ) : (
         <p className="mt-4 text-sm text-muted-foreground">No strong signal in this lane for the selected date.</p>
       )}
+    </section>
+  );
+}
+
+const aspectCopy = {
+  love: { label: "Love", Icon: Heart, bar: "bg-rose-300" },
+  emotional: { label: "Emotional", Icon: Brain, bar: "bg-sky-300" },
+  career: { label: "Career", Icon: BriefcaseBusiness, bar: "bg-amber-300" },
+  focus: { label: "Focus", Icon: Target, bar: "bg-emerald-300" },
+} satisfies Record<DailyPrediction["aspect_scores"][number]["aspect"], { label: string; Icon: typeof Heart; bar: string }>;
+
+function AspectScoreGrid({ scores }: { scores: DailyPrediction["aspect_scores"] }) {
+  return (
+    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {scores.map((score) => {
+        const { label, Icon, bar } = aspectCopy[score.aspect];
+        return (
+          <div className="rounded-lg border border-primary/15 bg-background/45 p-4" key={score.aspect}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-primary">
+                <Icon className="h-4 w-4" aria-hidden="true" />
+                <h2 className="text-sm font-semibold">{label}</h2>
+              </div>
+              <div className="rounded-md border border-primary/20 bg-card/70 px-2 py-1 text-sm font-semibold">
+                {score.score}/10
+              </div>
+            </div>
+            <div className="mt-3 h-2 rounded-full bg-muted">
+              <div className={`h-2 rounded-full ${bar}`} style={{ width: `${score.score * 10}%` }} />
+            </div>
+            <p className="mt-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">{score.label}</p>
+            <p className="mt-2 text-sm leading-6">{score.sentence}</p>
+          </div>
+        );
+      })}
     </section>
   );
 }
@@ -85,7 +120,11 @@ export function DailyCard({
           <div className="luxury-panel rounded-lg p-5">
             <div className="flex items-center gap-3 text-primary">
               <Sparkles className="h-5 w-5" aria-hidden="true" />
-              <h2 className="text-sm font-semibold uppercase tracking-[0.18em]">Prediction lanes</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.18em]">Daily scores</h2>
+            </div>
+            <p className="mt-3 text-lg font-medium leading-7">{prediction.felt_sense}</p>
+            <div className="mt-5">
+              <AspectScoreGrid scores={prediction.aspect_scores} />
             </div>
             <div className="mt-5 grid gap-4 lg:grid-cols-2">
               <ListSection items={prediction.favorable} mode="favorable" title="Favorable periods" />
