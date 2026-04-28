@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Send } from "lucide-react";
+import { LoaderCircle, Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -11,12 +11,14 @@ export function QuestionInput({
   onChange,
   onSubmit,
   disabled,
+  isSubmitting,
   className,
 }: {
   value: string;
   onChange(value: string): void;
   onSubmit(): void;
   disabled?: boolean;
+  isSubmitting?: boolean;
   className?: string;
 }) {
   return (
@@ -41,13 +43,23 @@ export function QuestionInput({
           value={value}
         />
         <Button
-          aria-label="Submit question"
-          className="self-end"
+          aria-label={isSubmitting ? "Predicting answer" : "Submit question"}
+          className="min-w-28 gap-2 self-end"
           disabled={disabled || value.trim().length < 3}
           size="sm"
           type="submit"
         >
-          <Send aria-hidden="true" className="h-4 w-4" />
+          {isSubmitting ? (
+            <>
+              <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
+              Predicting
+            </>
+          ) : (
+            <>
+              <Send aria-hidden="true" className="h-4 w-4" />
+              Ask
+            </>
+          )}
         </Button>
       </div>
     </form>

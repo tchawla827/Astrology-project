@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, LoaderCircle } from "lucide-react";
 
 import { AnswerCard } from "@/components/ask/AnswerCard";
 import { FollowUpSuggestions } from "@/components/ask/FollowUpSuggestions";
@@ -57,6 +57,10 @@ export function ThreadView({
           return (
             <Card key={message.id}>
               <CardContent className="space-y-3 p-5">
+                <div className="flex items-center gap-2 text-sm font-medium text-primary" role="status" aria-live="polite">
+                  <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  Predicting answer from your chart context...
+                </div>
                 <Skeleton className="h-5 w-2/3" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-5/6" />

@@ -87,6 +87,7 @@ export function AskWorkspace({
       </div>
       <QuestionInput
         disabled={ask.isSubmitting || quota?.allowed === false}
+        isSubmitting={ask.isSubmitting}
         onChange={setDraft}
         onSubmit={() => {
           const question = draft;

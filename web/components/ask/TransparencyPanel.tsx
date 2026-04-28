@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, LoaderCircle } from "lucide-react";
 
 import { BirthTimeSensitivityNote } from "@/components/ask/BirthTimeSensitivityNote";
 import { FactorChip } from "@/components/ask/FactorChip";
@@ -46,6 +46,7 @@ function fallbackModel(answer: AskAnswer, metadata?: LlmMetadata): TransparencyV
 export function TransparencyPanel({ answer, metadata, messageId }: Props) {
   const [model, setModel] = useState<TransparencyViewModel>(() => fallbackModel(answer, metadata));
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!messageId || messageId.startsWith("assistant-")) {
@@ -53,6 +54,7 @@ export function TransparencyPanel({ answer, metadata, messageId }: Props) {
     }
 
     let cancelled = false;
+    setIsLoading(true);
     void fetch(`/api/ask/messages/${messageId}/transparency`)
       .then(async (response) => {
         const body = (await response.json().catch(() => ({}))) as {
@@ -65,11 +67,13 @@ export function TransparencyPanel({ answer, metadata, messageId }: Props) {
         if (!cancelled) {
           setModel(body.transparency);
           setError(null);
+          setIsLoading(false);
         }
       })
       .catch((fetchError) => {
         if (!cancelled) {
           setError(fetchError instanceof Error ? fetchError.message : "Could not load reasoning details.");
+          setIsLoading(false);
         }
       });
 
@@ -88,6 +92,12 @@ export function TransparencyPanel({ answer, metadata, messageId }: Props) {
         <ChevronDown aria-hidden="true" className="h-4 w-4 transition-transform group-open:rotate-180" />
       </summary>
       <div className="mt-4 space-y-4 text-sm">
+        {isLoading ? (
+          <div className="flex items-center gap-2 rounded-md border bg-background/70 p-2 text-xs text-muted-foreground" role="status" aria-live="polite">
+            <LoaderCircle className="h-3.5 w-3.5 animate-spin text-primary" aria-hidden="true" />
+            Loading reasoning details...
+          </div>
+        ) : null}
         <div className="space-y-2">
           <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Based on charts</p>
           <div className="flex flex-wrap gap-2">
