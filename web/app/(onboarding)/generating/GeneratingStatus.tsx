@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { LoaderCircle, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -43,10 +44,13 @@ export function GeneratingStatus() {
 
   return (
     <>
-      <p className="text-sm uppercase tracking-widest text-primary">Generating</p>
-      <h1 className="mt-3 text-3xl font-semibold">{message}</h1>
-      <div className="mx-auto mt-8 h-2 w-48 overflow-hidden rounded bg-muted">
-        <div className="h-full w-1/2 animate-pulse rounded bg-primary" />
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-md border border-primary/25 bg-primary/10 text-primary">
+        {hasError ? <Sparkles className="h-6 w-6" aria-hidden="true" /> : <LoaderCircle className="h-6 w-6 animate-spin" aria-hidden="true" />}
+      </div>
+      <p className="mt-6 text-sm uppercase tracking-[0.24em] text-primary">Generating</p>
+      <h1 className="mx-auto mt-4 max-w-xl font-display text-5xl font-semibold leading-tight text-glow">{message}</h1>
+      <div className="mx-auto mt-8 h-2 w-64 overflow-hidden rounded bg-background/70">
+        <div className="h-full w-1/2 animate-pulse rounded bg-primary shadow-[0_0_28px_rgba(223,164,83,0.36)]" />
       </div>
       {hasError ? (
         <Button className="mx-auto mt-6" onClick={() => router.push("/birth-details")} type="button">

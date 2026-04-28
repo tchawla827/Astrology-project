@@ -25,17 +25,20 @@ const included = [
 export default function PricingPage() {
   return (
     <PublicShell>
-      <section className="mx-auto max-w-6xl px-6 py-14">
-        <p className="text-sm font-medium uppercase tracking-[0.16em] text-primary">Free plan</p>
-        <h1 className="mt-3 text-4xl font-semibold">Everything is included for $0</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-          Astri is currently free while the product is being developed. No current feature requires payment.
-        </p>
+      <section className="mx-auto max-w-6xl px-6 pb-20 pt-32">
+        <div className="cinematic-hero p-6 sm:p-8">
+          <div className="star-noise absolute inset-0 opacity-70" aria-hidden="true" />
+          <p className="text-sm font-medium uppercase tracking-[0.22em] text-primary">Free plan</p>
+          <h1 className="mt-4 max-w-3xl font-display text-5xl font-semibold leading-tight text-glow sm:text-6xl">Everything is included for $0</h1>
+          <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground">
+            Astri is currently free while the product is being developed. No current feature requires payment.
+          </p>
+        </div>
 
-        <div className="mt-8 max-w-xl">
+        <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <Card className="border-primary/40">
             <CardHeader>
-              <CardTitle>Free</CardTitle>
+              <CardTitle className="font-display text-4xl">Free</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
               <p className="text-3xl font-semibold">$0</p>
@@ -52,6 +55,14 @@ export default function PricingPage() {
               </Button>
             </CardContent>
           </Card>
+
+          <div className="ritual-panel rounded-lg p-5">
+            <p className="text-xs uppercase tracking-[0.18em] text-primary">Current access</p>
+            <p className="mt-4 text-2xl font-semibold">No locked chart rooms.</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              Chart explorer, Ask AI, life areas, panchang, daily predictions, and exports are open while the product is in this build phase.
+            </p>
+          </div>
         </div>
       </section>
     </PublicShell>

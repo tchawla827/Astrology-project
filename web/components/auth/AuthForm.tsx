@@ -31,8 +31,9 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   }
 
   function callbackUrl() {
+    const query = new URLSearchParams(window.location.search);
     const url = new URL("/auth/callback", window.location.origin);
-    url.searchParams.set("next", requestedNext());
+    url.searchParams.set("next", query.get("next") ?? "/welcome");
     return url.toString();
   }
 
@@ -81,6 +82,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   return (
     <form className="space-y-4" onSubmit={handleEmailAuth}>
       <Input
+        aria-label="Email"
         autoComplete="email"
         name="email"
         onChange={(event) => setEmail(event.target.value)}
@@ -90,6 +92,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         value={email}
       />
       <Input
+        aria-label="Password"
         autoComplete={mode === "login" ? "current-password" : "new-password"}
         minLength={8}
         name="password"
@@ -107,7 +110,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           Continue with Google
         </Button>
       ) : null}
-      {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
+      {message ? <p className="rounded-md border border-primary/20 bg-primary/10 px-3 py-2 text-sm text-muted-foreground">{message}</p> : null}
     </form>
   );
 }

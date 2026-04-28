@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CalendarDays, MapPin, Settings, UserRound } from "lucide-react";
 
 import { RegenerateChartButton } from "@/components/common/RegenerateChartButton";
 import { ProfileSettingsForm } from "@/components/profile/ProfileSettingsForm";
@@ -43,7 +44,7 @@ function formatBirthTime(
 
 function statusClass(status: "processing" | "ready" | "error") {
   if (status === "ready") {
-    return "border-emerald-500/40 bg-emerald-500/10 text-emerald-700";
+    return "border-emerald-400/40 bg-emerald-500/10 text-emerald-200";
   }
   if (status === "error") {
     return "border-destructive/40 bg-destructive/10 text-destructive";
@@ -118,15 +119,28 @@ export default async function ProfilePage() {
   } | null;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-sm uppercase text-primary">Profile</p>
-        <h1 className="mt-2 text-3xl font-semibold">Settings</h1>
-      </div>
+    <div className="space-y-8">
+      <section className="cinematic-hero p-6 sm:p-8">
+        <div className="star-noise absolute inset-0 opacity-70" aria-hidden="true" />
+        <div className="max-w-4xl">
+          <div className="flex items-center gap-3 text-primary">
+            <Settings className="h-5 w-5" aria-hidden="true" />
+            <p className="text-sm uppercase tracking-[0.24em]">Profile</p>
+          </div>
+          <h1 className="mt-4 font-display text-5xl font-semibold leading-tight text-glow sm:text-6xl">Settings and birth profile</h1>
+          <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground">
+            Manage the account defaults and the source birth profile that powers the chart rooms, life areas, daily timing, and Ask sessions.
+          </p>
+        </div>
+      </section>
 
       <Card>
         <CardHeader>
-          <CardTitle>Saved birth profile</CardTitle>
+          <div className="flex items-center gap-3 text-primary">
+            <UserRound className="h-5 w-5" aria-hidden="true" />
+            <p className="text-xs uppercase tracking-[0.18em]">Source data</p>
+          </div>
+          <CardTitle className="mt-2 text-2xl">Saved birth profile</CardTitle>
         </CardHeader>
         <CardContent>
           {birthProfile ? (
@@ -150,25 +164,31 @@ export default async function ProfilePage() {
               </div>
 
               <dl className="grid gap-4 md:grid-cols-2">
-                <div>
+                <div className="rounded-lg border border-primary/15 bg-background/45 p-4">
                   <dt className="text-sm text-muted-foreground">Birth date</dt>
-                  <dd className="mt-1 font-medium">{formatBirthDate(birthProfile.birth_date)}</dd>
+                  <dd className="mt-2 flex items-center gap-2 font-medium">
+                    <CalendarDays className="h-4 w-4 text-primary" aria-hidden="true" />
+                    {formatBirthDate(birthProfile.birth_date)}
+                  </dd>
                 </div>
-                <div>
+                <div className="rounded-lg border border-primary/15 bg-background/45 p-4">
                   <dt className="text-sm text-muted-foreground">Birth time</dt>
                   <dd className="mt-1 font-medium">
                     {formatBirthTime(birthProfile.birth_time, birthProfile.birth_time_confidence)}
                   </dd>
                 </div>
-                <div>
+                <div className="rounded-lg border border-primary/15 bg-background/45 p-4">
                   <dt className="text-sm text-muted-foreground">Birth-time confidence</dt>
                   <dd className="mt-1 font-medium capitalize">{birthProfile.birth_time_confidence}</dd>
                 </div>
-                <div>
+                <div className="rounded-lg border border-primary/15 bg-background/45 p-4">
                   <dt className="text-sm text-muted-foreground">Place</dt>
-                  <dd className="mt-1 font-medium">{birthProfile.birth_place_text}</dd>
+                  <dd className="mt-2 flex items-center gap-2 font-medium">
+                    <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                    {birthProfile.birth_place_text}
+                  </dd>
                 </div>
-                <div>
+                <div className="rounded-lg border border-primary/15 bg-background/45 p-4">
                   <dt className="text-sm text-muted-foreground">Ayanamsha</dt>
                   <dd className="mt-1 font-medium capitalize">{birthProfile.ayanamsha}</dd>
                 </div>
@@ -189,7 +209,7 @@ export default async function ProfilePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Account and chart defaults</CardTitle>
+          <CardTitle className="text-2xl">Account and chart defaults</CardTitle>
         </CardHeader>
         <CardContent>
           <ProfileSettingsForm

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   ArrowRight,
   Brain,
@@ -20,9 +21,10 @@ import {
 
 import { PublicShell } from "@/components/public/PublicShell";
 import { Button } from "@/components/ui/button";
+import { resolveSignedInPath, type SupabaseAccountRoutingClient } from "@/lib/accountRouting";
+import { createClient } from "@/lib/supabase/server";
 
-export const dynamic = "force-static";
-export const revalidate = 86400;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Astri",
@@ -156,7 +158,23 @@ function DashboardPreview() {
   );
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      redirect(
+        await resolveSignedInPath(
+          supabase as unknown as SupabaseAccountRoutingClient,
+          user.id,
+        ),
+      );
+    }
+  }
+
   return (
     <PublicShell>
       <section className="cosmic-surface relative min-h-screen overflow-hidden px-6 pb-20 pt-32 lg:pb-28 lg:pt-36">
