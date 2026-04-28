@@ -1,4 +1,4 @@
-import { DailyPredictionSchema, type DailyPrediction } from "@/lib/schemas/daily";
+import { DailyAspectSchema, DailyPlanetSchema, DailyPredictionSchema, type DailyAspectScore, type DailyPrediction } from "@/lib/schemas/daily";
 import {
   ChartSnapshotSchema,
   DerivedFeaturePayloadSchema,
@@ -21,7 +21,7 @@ import {
 } from "@/lib/daily/cache";
 import { LlmCitationError, LlmContextError, LlmProviderError, LlmSchemaError } from "@/lib/llm/errors";
 import { PROMPT_VERSIONS, systemPromptV1 } from "@/lib/llm/prompts";
-import { routeDailyV1 } from "@/lib/llm/prompts/route/daily_v1";
+import { routeDailyV2 } from "@/lib/llm/prompts/route/daily_v2";
 import { callWithFallback, type LlmProvider } from "@/lib/llm/providers";
 
 type DbError = { message: string } | Error;
@@ -105,6 +105,15 @@ export type DailyContextBundle = {
   triggered_houses: number[];
   transit_rules: TransitRuleHit[];
   relevant_topic_signals: Array<{ topic: string; headline_signals: string[] }>;
+  aspect_scoring_context: Array<{
+    aspect: DailyAspectScore["aspect"];
+    meaning: string;
+    relevant_houses: number[];
+    relevant_planets: Planet[];
+    active_transit_positions: Array<Pick<PlanetPlacement, "planet" | "sign" | "house" | "retrograde" | "dignity">>;
+    active_transit_rules: TransitRuleHit[];
+    derived_signals: Array<{ topic: string; headline_signals: string[] }>;
+  }>;
   allowed_citations: {
     charts: ["Transit", "D1"];
     planets: Planet[];
@@ -149,6 +158,38 @@ const signs = [
 
 const malefics: Planet[] = ["Mars", "Saturn", "Rahu", "Ketu"];
 const luminaries: Planet[] = ["Sun", "Moon"];
+
+const aspectScoringDefinitions = {
+  love: {
+    meaning: "relationship warmth, attraction, partner communication, and emotional openness",
+    relevant_houses: [5, 7],
+    relevant_planets: ["Venus", "Moon", "Jupiter"] as Planet[],
+    topics: ["relationships", "marriage"] as const,
+  },
+  emotional: {
+    meaning: "mood stability, sensitivity, inner pressure, and emotional recovery",
+    relevant_houses: [4, 8, 12],
+    relevant_planets: ["Moon", "Saturn", "Rahu", "Ketu"] as Planet[],
+    topics: ["personality", "health", "spirituality"] as const,
+  },
+  career: {
+    meaning: "work output, responsibility, authority, progress, and practical gains",
+    relevant_houses: [2, 6, 10, 11],
+    relevant_planets: ["Sun", "Mercury", "Jupiter", "Saturn"] as Planet[],
+    topics: ["career", "wealth"] as const,
+  },
+  focus: {
+    meaning: "concentration, decision quality, mental clarity, and distraction risk",
+    relevant_houses: [3, 6, 10],
+    relevant_planets: ["Mercury", "Moon", "Saturn"] as Planet[],
+    topics: ["education", "career", "personality"] as const,
+  },
+} satisfies Record<DailyAspectScore["aspect"], {
+  meaning: string;
+  relevant_houses: number[];
+  relevant_planets: Planet[];
+  topics: readonly (keyof DerivedFeaturePayload["topic_bundles"])[];
+}>;
 
 function errorMessage(error: DbError | null, fallback: string) {
   return error?.message ?? fallback;
@@ -408,6 +449,44 @@ function relevantTopicSignals(derived: DerivedFeaturePayload, triggeredHouses: n
     .filter((entry) => entry.headline_signals.length > 0);
 }
 
+function buildAspectScoringContext(input: {
+  derived: DerivedFeaturePayload;
+  transits: TransitSummary;
+  hits: TransitRuleHit[];
+}) {
+  return DailyAspectSchema.options.map((aspect) => {
+    const definition = aspectScoringDefinitions[aspect];
+    return {
+      aspect,
+      meaning: definition.meaning,
+      relevant_houses: definition.relevant_houses,
+      relevant_planets: definition.relevant_planets,
+      active_transit_positions: input.transits.positions
+        .filter(
+          (position) =>
+            definition.relevant_planets.includes(position.planet) ||
+            definition.relevant_houses.includes(position.house),
+        )
+        .map((position) => ({
+          planet: position.planet,
+          sign: position.sign,
+          house: position.house,
+          retrograde: position.retrograde,
+          dignity: position.dignity,
+        })),
+      active_transit_rules: input.hits.filter(
+        (hit) =>
+          definition.relevant_planets.includes(hit.planet) ||
+          (typeof hit.house === "number" && definition.relevant_houses.includes(hit.house)),
+      ),
+      derived_signals: definition.topics.map((topic) => ({
+        topic,
+        headline_signals: input.derived.topic_bundles[topic].headline_signals.slice(0, 3),
+      })),
+    };
+  });
+}
+
 function buildDailyContext(input: {
   date: string;
   tone: ToneMode;
@@ -444,6 +523,11 @@ function buildDailyContext(input: {
     triggered_houses: input.triggeredHouses,
     transit_rules: input.hits,
     relevant_topic_signals: relevantTopicSignals(input.derived, input.triggeredHouses),
+    aspect_scoring_context: buildAspectScoringContext({
+      derived: input.derived,
+      transits: input.transits,
+      hits: input.hits,
+    }),
     allowed_citations: {
       charts: ["Transit", "D1"],
       planets,
@@ -459,7 +543,7 @@ function buildDailyPrompt(context: DailyContextBundle) {
 Context:
 ${JSON.stringify(context, null, 2)}
 
-Return ONLY JSON matching DailyPrediction schema. Use date "${context.date}", tone "${context.tone}", and answer_schema_version "daily_v1".`;
+Return ONLY JSON matching DailyPrediction schema. Use date "${context.date}", tone "${context.tone}", and answer_schema_version "daily_v2".`;
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -481,6 +565,90 @@ function asTextArray(value: unknown, fallback: string[]) {
   return items.length > 0 ? items : fallback.slice(0, 5);
 }
 
+function labelForAspectScore(score: number): DailyAspectScore["label"] {
+  if (score <= 3) {
+    return "low";
+  }
+  if (score <= 5) {
+    return "mixed";
+  }
+  if (score <= 7) {
+    return "steady";
+  }
+  return "strong";
+}
+
+function asIntegerInRange(value: unknown, fallback: number, min: number, max: number) {
+  const parsed = typeof value === "number" ? value : typeof value === "string" ? Number(value) : Number.NaN;
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+  return Math.min(max, Math.max(min, Math.round(parsed)));
+}
+
+function asHouseArray(value: unknown, fallback: number[]) {
+  const source = Array.isArray(value) ? value : fallback;
+  const houses = source
+    .map((item) => (typeof item === "number" ? item : typeof item === "string" ? Number(item) : Number.NaN))
+    .filter((item): item is number => Number.isInteger(item) && item >= 1 && item <= 12)
+    .slice(0, 6);
+  return houses.length > 0 ? [...new Set(houses)] : fallback.slice(0, 6);
+}
+
+function asPlanetArray(value: unknown, fallback: Planet[]) {
+  const planetOptions = new Set(DailyPlanetSchema.options);
+  const source = Array.isArray(value) ? value : fallback;
+  const planets = source
+    .filter((item): item is Planet => typeof item === "string" && planetOptions.has(item as Planet))
+    .slice(0, 6);
+  return planets.length > 0 ? [...new Set(planets)] : fallback.slice(0, 6);
+}
+
+function asTransitRuleArray(value: unknown, fallback: string[], allowedRules: string[]) {
+  const allowed = new Set(allowedRules);
+  const source = Array.isArray(value) ? value : fallback;
+  const rules = source
+    .filter((item): item is string => typeof item === "string" && allowed.has(item))
+    .slice(0, 6);
+  return rules.length > 0 ? [...new Set(rules)] : fallback.slice(0, 6);
+}
+
+function asAspectScores(value: unknown, fallback: DailyAspectScore[], context: DailyContextBundle): DailyAspectScore[] {
+  const candidates = Array.isArray(value) ? value.map(asRecord) : [];
+  return DailyAspectSchema.options.map((aspect) => {
+    const candidate = candidates.find((entry) => entry.aspect === aspect) ?? {};
+    const definition = aspectScoringDefinitions[aspect];
+    const fallbackScore = fallback.find((entry) => entry.aspect === aspect) ?? {
+      aspect,
+      score: 5,
+      label: "mixed" as const,
+      sentence: fallbackAspectSentence(aspect, "mixed"),
+      basis: {
+        houses: definition.relevant_houses.slice(0, 2),
+        planets: definition.relevant_planets.slice(0, 2),
+        transit_rules: [],
+      },
+    };
+    const score = asIntegerInRange(candidate.score, fallbackScore.score, 1, 10);
+    const basis = asRecord(candidate.basis);
+    return {
+      aspect,
+      score,
+      label: labelForAspectScore(score),
+      sentence: asText(candidate.sentence, fallbackScore.sentence, 160),
+      basis: {
+        houses: asHouseArray(basis.houses, fallbackScore.basis.houses),
+        planets: asPlanetArray(basis.planets, fallbackScore.basis.planets),
+        transit_rules: asTransitRuleArray(
+          basis.transit_rules,
+          fallbackScore.basis.transit_rules,
+          context.allowed_citations.transit_rules,
+        ),
+      },
+    };
+  });
+}
+
 function normalizeDailyPrediction(output: unknown, context: DailyContextBundle): unknown {
   const candidate = asRecord(output);
   const fallback = fallbackPrediction(context);
@@ -488,6 +656,8 @@ function normalizeDailyPrediction(output: unknown, context: DailyContextBundle):
   return {
     date: context.date,
     verdict: asText(candidate.verdict, fallback.verdict, 280),
+    felt_sense: asText(candidate.felt_sense, fallback.felt_sense, 160),
+    aspect_scores: asAspectScores(candidate.aspect_scores, fallback.aspect_scores, context),
     favorable: asTextArray(candidate.favorable, fallback.favorable),
     caution: asTextArray(candidate.caution, fallback.caution),
     technical_basis: {
@@ -496,7 +666,7 @@ function normalizeDailyPrediction(output: unknown, context: DailyContextBundle):
       transit_rules: context.allowed_citations.transit_rules,
     },
     tone: context.tone,
-    answer_schema_version: "daily_v1",
+    answer_schema_version: "daily_v2",
   };
 }
 
@@ -530,6 +700,31 @@ function validateDailyPrediction(output: unknown, context: DailyContextBundle): 
   const missingRules = prediction.technical_basis.transit_rules.filter((rule) => !allowedRules.includes(rule));
   if (missingRules.length > 0) {
     throw new LlmCitationError(`Daily answer cited transit rule(s) not present in overlay: ${missingRules.join(", ")}.`, "chart");
+  }
+
+  for (const aspectScore of prediction.aspect_scores) {
+    const scoringContext = context.aspect_scoring_context.find((entry) => entry.aspect === aspectScore.aspect);
+    const allowedAspectHouses = new Set([
+      ...(scoringContext?.relevant_houses ?? []),
+      ...context.triggered_houses,
+      ...(scoringContext?.active_transit_positions.map((position) => position.house) ?? []),
+      ...(scoringContext?.active_transit_rules.flatMap((hit) => (typeof hit.house === "number" ? [hit.house] : [])) ?? []),
+    ]);
+    const missingAspectHouses = aspectScore.basis.houses.filter((house) => !allowedAspectHouses.has(house));
+    if (missingAspectHouses.length > 0) {
+      throw new LlmCitationError(
+        `Daily ${aspectScore.aspect} score cited house(s) outside its scoring context: ${missingAspectHouses.join(", ")}.`,
+        "house",
+      );
+    }
+
+    const missingAspectRules = aspectScore.basis.transit_rules.filter((rule) => !allowedRules.includes(rule));
+    if (missingAspectRules.length > 0) {
+      throw new LlmCitationError(
+        `Daily ${aspectScore.aspect} score cited transit rule(s) not present in overlay: ${missingAspectRules.join(", ")}.`,
+        "chart",
+      );
+    }
   }
 
   return prediction;
@@ -634,6 +829,114 @@ async function loadTransitSummary(input: {
   return { transits, cache: "miss" as const };
 }
 
+function dignityAdjustment(dignity: PlanetPlacement["dignity"]) {
+  if (dignity === "own" || dignity === "exalted" || dignity === "moolatrikona" || dignity === "friendly") {
+    return 1;
+  }
+  if (dignity === "debilitated" || dignity === "enemy") {
+    return -1;
+  }
+  return 0;
+}
+
+function activeDashaLords(context: DailyContextBundle) {
+  return [
+    context.dasha_timing.active_mahadasha?.lord,
+    context.dasha_timing.active_antardasha?.lord,
+    context.dasha_timing.active_pratyantardasha?.lord,
+  ].filter((planet): planet is Planet => Boolean(planet));
+}
+
+function fallbackAspectSentence(aspect: DailyAspectScore["aspect"], label: DailyAspectScore["label"]) {
+  const copy = {
+    love: {
+      low: "Love needs patience and fewer assumptions today.",
+      mixed: "Love is workable if expectations stay simple.",
+      steady: "Love has enough warmth for honest, low-pressure contact.",
+      strong: "Love carries clear warmth and easier emotional exchange.",
+    },
+    emotional: {
+      low: "Emotionally, the day may feel heavier than usual.",
+      mixed: "Emotionally, the day is sensitive but manageable.",
+      steady: "Emotionally, you can stay steady with a grounded rhythm.",
+      strong: "Emotionally, the day can feel settled and self-contained.",
+    },
+    career: {
+      low: "Career moves need restraint and clean prioritization.",
+      mixed: "Career progress is possible, but avoid forcing speed.",
+      steady: "Career work is supported through steady execution.",
+      strong: "Career action has strong support for visible progress.",
+    },
+    focus: {
+      low: "Focus may scatter unless the task list is cut down.",
+      mixed: "Focus improves when you keep the day narrow.",
+      steady: "Focus is steady enough for one clear priority.",
+      strong: "Focus is strong for decisive, concentrated work.",
+    },
+  } satisfies Record<DailyAspectScore["aspect"], Record<DailyAspectScore["label"], string>>;
+  return copy[aspect][label];
+}
+
+function fallbackAspectScores(context: DailyContextBundle): DailyAspectScore[] {
+  const dashaLords = activeDashaLords(context);
+  return DailyAspectSchema.options.map((aspect) => {
+    const definition = aspectScoringDefinitions[aspect];
+    const positions = context.transit_positions.filter(
+      (position) => definition.relevant_planets.includes(position.planet) || definition.relevant_houses.includes(position.house),
+    );
+    const rules = context.transit_rules.filter(
+      (hit) =>
+        definition.relevant_planets.includes(hit.planet) ||
+        (typeof hit.house === "number" && definition.relevant_houses.includes(hit.house)),
+    );
+    const relevantDashaCount = dashaLords.filter((planet) => definition.relevant_planets.includes(planet)).length;
+    const dignityScore = positions.reduce((score, position) => score + dignityAdjustment(position.dignity), 0);
+    const supportiveRuleScore = rules.filter((hit) => hit.rule.includes("jupiter") || hit.rule.includes("moon_daily")).length;
+    const cautionRuleScore = rules.filter(
+      (hit) => hit.rule.includes("saturn") || hit.rule.includes("rahu") || hit.rule.includes("ketu") || hit.rule.includes("mars"),
+    ).length;
+    const score = Math.min(10, Math.max(1, 5 + relevantDashaCount + dignityScore + supportiveRuleScore - cautionRuleScore));
+    const label = labelForAspectScore(score);
+    const houses = [
+      ...new Set([
+        ...positions.map((position) => position.house),
+        ...rules.flatMap((hit) => (typeof hit.house === "number" ? [hit.house] : [])),
+        ...context.triggered_houses.filter((house) => definition.relevant_houses.includes(house)),
+      ]),
+    ].slice(0, 6);
+    const planets = [
+      ...new Set([
+        ...positions.map((position) => position.planet),
+        ...rules.map((hit) => hit.planet),
+        ...dashaLords.filter((planet) => definition.relevant_planets.includes(planet)),
+      ]),
+    ].slice(0, 6);
+    return {
+      aspect,
+      score,
+      label,
+      sentence: fallbackAspectSentence(aspect, label),
+      basis: {
+        houses: houses.length > 0 ? houses : definition.relevant_houses.slice(0, 2),
+        planets: planets.length > 0 ? planets : definition.relevant_planets.slice(0, 2),
+        transit_rules: rules.map((hit) => hit.rule).slice(0, 6),
+      },
+    };
+  });
+}
+
+function fallbackFeltSense(aspectScores: DailyAspectScore[]) {
+  const emotional = aspectScores.find((score) => score.aspect === "emotional");
+  const focus = aspectScores.find((score) => score.aspect === "focus");
+  if ((emotional?.score ?? 5) <= 4) {
+    return "You may feel more reactive than usual, so a slower pace will help.";
+  }
+  if ((focus?.score ?? 5) >= 8) {
+    return "You may feel mentally clear and ready to handle one important task.";
+  }
+  return "You may feel active but slightly uneven, with better results from keeping things simple.";
+}
+
 function fallbackPrediction(context: DailyContextBundle): DailyPrediction {
   const rules = context.transit_rules.map((hit) => hit.rule);
   const planets = context.allowed_citations.planets;
@@ -649,6 +952,7 @@ function fallbackPrediction(context: DailyContextBundle): DailyPrediction {
       hit.rule.includes("near_natal"),
   );
   const moonFocus = context.transit_rules.find((hit) => hit.rule === "moon_daily_house_focus");
+  const aspectScores = fallbackAspectScores(context);
   return {
     date: context.date,
     verdict:
@@ -657,6 +961,8 @@ function fallbackPrediction(context: DailyContextBundle): DailyPrediction {
         : context.triggered_houses.length > 0
           ? `The day is shaped by transit activity through houses ${context.triggered_houses.join(", ")}.`
         : "The day has no major rule-based transit trigger in the current overlay.",
+    felt_sense: fallbackFeltSense(aspectScores),
+    aspect_scores: aspectScores,
     favorable: supportive
       .map((hit) => hit.note)
       .slice(0, 5),
@@ -672,7 +978,7 @@ function fallbackPrediction(context: DailyContextBundle): DailyPrediction {
       transit_rules: rules,
     },
     tone: context.tone,
-    answer_schema_version: "daily_v1",
+    answer_schema_version: "daily_v2",
   };
 }
 
@@ -685,7 +991,7 @@ async function generateWithLlm(input: { context: DailyContextBundle; providers?:
   try {
     result = await callWithFallback({
       system: systemPromptV1,
-      messages: [{ role: "user", content: `${routeDailyV1}\n\n${buildDailyPrompt(input.context)}` }],
+      messages: [{ role: "user", content: `${routeDailyV2}\n\n${buildDailyPrompt(input.context)}` }],
       schema: DailyPredictionSchema,
       topic: "daily",
       context_bundle_id: input.context.context_id,

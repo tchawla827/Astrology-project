@@ -258,6 +258,37 @@ function provider(): LlmProvider {
         output: {
           date: "2026-04-25",
           verdict: "Jupiter support is active, while Saturn asks for restraint.",
+          felt_sense: "You may feel steady enough to work, with some emotional weight in the background.",
+          aspect_scores: [
+            {
+              aspect: "love",
+              score: 5,
+              label: "mixed",
+              sentence: "Love is workable if expectations stay simple.",
+              basis: { houses: [5], planets: ["Jupiter", "Moon"], transit_rules: ["jupiter_trine_support", "moon_daily_house_focus"] },
+            },
+            {
+              aspect: "emotional",
+              score: 4,
+              label: "mixed",
+              sentence: "Emotionally, the day is sensitive but manageable.",
+              basis: { houses: [4], planets: ["Saturn", "Moon"], transit_rules: ["saturn_kendra_pressure", "moon_daily_house_focus"] },
+            },
+            {
+              aspect: "career",
+              score: 6,
+              label: "steady",
+              sentence: "Career work is supported through steady execution.",
+              basis: { houses: [10], planets: ["Saturn", "Jupiter"], transit_rules: ["saturn_kendra_pressure", "jupiter_trine_support"] },
+            },
+            {
+              aspect: "focus",
+              score: 6,
+              label: "steady",
+              sentence: "Focus is steady enough for one clear priority.",
+              basis: { houses: [10], planets: ["Saturn", "Moon"], transit_rules: ["saturn_kendra_pressure", "moon_daily_house_focus"] },
+            },
+          ],
           favorable: ["Plan through the Jupiter trine."],
           caution: ["Respect the Saturn kendra pressure."],
           technical_basis: {
@@ -266,7 +297,7 @@ function provider(): LlmProvider {
             transit_rules: ["saturn_kendra_pressure", "jupiter_trine_support", "moon_daily_house_focus"],
           },
           tone: "direct",
-          answer_schema_version: "daily_v1",
+          answer_schema_version: "daily_v2",
         },
       };
     },
@@ -356,7 +387,9 @@ describe("generateDailyPrediction", () => {
 
     expect(result.prediction.date).toBe("2026-04-25");
     expect(result.prediction.tone).toBe("direct");
-    expect(result.prediction.answer_schema_version).toBe("daily_v1");
+    expect(result.prediction.answer_schema_version).toBe("daily_v2");
+    expect(result.prediction.felt_sense).toBeTruthy();
+    expect(result.prediction.aspect_scores.map((score) => score.aspect)).toEqual(["love", "emotional", "career", "focus"]);
     expect(result.prediction.favorable).toEqual(["Abhijit supports focused work."]);
     expect(result.prediction.technical_basis.triggered_houses).toEqual([4, 5, 10]);
     expect(result.prediction.technical_basis.planets_used).toEqual(["Saturn", "Jupiter", "Moon"]);
