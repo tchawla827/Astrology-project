@@ -30,15 +30,20 @@ export function RegenerateChartButton({
     setIsRegenerating(true);
     setError(null);
 
-    const response = await fetch(`/api/profile/${profileId}/regenerate`, { method: "POST" });
-    if (!response.ok) {
-      const body = (await response.json().catch(() => null)) as { error?: string } | null;
-      setError(body?.error ?? "Could not start regeneration.");
-      setIsRegenerating(false);
-      return;
-    }
+    try {
+      const response = await fetch(`/api/profile/${profileId}/regenerate`, { method: "POST" });
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as { error?: string } | null;
+        setError(body?.error ?? "Could not start regeneration.");
+        setIsRegenerating(false);
+        return;
+      }
 
-    router.refresh();
+      router.refresh();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not start regeneration.");
+      setIsRegenerating(false);
+    }
   }
 
   return (
@@ -54,6 +59,7 @@ export function RegenerateChartButton({
         <RefreshCcw className={cn("h-4 w-4", isRegenerating && "animate-spin")} aria-hidden="true" />
         {isRegenerating ? workingLabel : label}
       </Button>
+      {isRegenerating ? <p className="text-sm text-muted-foreground">Chart recomputation has started. This view will refresh when the server responds.</p> : null}
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarClock, MapPin, UserRound } from "lucide-react";
+import { CalendarClock, LoaderCircle, MapPin, UserRound } from "lucide-react";
 
 import { BirthDatePicker } from "@/components/onboarding/BirthDatePicker";
 import { PlaceAutocomplete, type PlaceSelection } from "@/components/onboarding/PlaceAutocomplete";
@@ -37,31 +37,41 @@ export function BirthDetailsForm() {
     setErrors({});
     setIsSubmitting(true);
 
-    const response = await fetch("/api/profile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        birth_date: birthDate,
-        birth_time: confidence === "unknown" ? undefined : birthTime,
-        birth_time_confidence: confidence,
-        birth_place_text: place?.label ?? "",
-        latitude: place?.latitude,
-        longitude: place?.longitude,
-        timezone: place?.timezone,
-        ayanamsha,
-        onboarding_intent: window.localStorage.getItem("astri:onboarding_intent") ?? "full-chart",
-      }),
-    });
+    try {
+      const response = await fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          birth_date: birthDate,
+          birth_time: confidence === "unknown" ? undefined : birthTime,
+          birth_time_confidence: confidence,
+          birth_place_text: place?.label ?? "",
+          latitude: place?.latitude,
+          longitude: place?.longitude,
+          timezone: place?.timezone,
+          ayanamsha,
+          onboarding_intent: window.localStorage.getItem("astri:onboarding_intent") ?? "full-chart",
+        }),
+      });
 
-    setIsSubmitting(false);
-    const body = (await response.json()) as { birth_profile_id?: string; errors?: FieldErrors; error?: string };
-    if (!response.ok) {
-      setErrors(body.errors ?? { form: [body.error ?? "Could not create profile."] });
-      return;
+      const body = (await response.json()) as { birth_profile_id?: string; errors?: FieldErrors; error?: string };
+      if (!response.ok) {
+        setErrors(body.errors ?? { form: [body.error ?? "Could not create profile."] });
+        setIsSubmitting(false);
+        return;
+      }
+      if (!body.birth_profile_id) {
+        setErrors({ form: ["Profile creation did not return an id."] });
+        setIsSubmitting(false);
+        return;
+      }
+
+      router.push(`/generating?id=${body.birth_profile_id}`);
+    } catch (caught) {
+      setErrors({ form: [caught instanceof Error ? caught.message : "Could not create profile."] });
+      setIsSubmitting(false);
     }
-
-    router.push(`/generating?id=${body.birth_profile_id}`);
   }
 
   return (
@@ -134,9 +144,15 @@ export function BirthDetailsForm() {
               </Select>
             </div>
             {errors.form?.map((error) => <p className="text-sm text-destructive" key={error}>{error}</p>)}
-            <Button disabled={isSubmitting} type="submit">
-              Generate profile
+            <Button className="gap-2" disabled={isSubmitting} type="submit">
+              {isSubmitting ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
+              {isSubmitting ? "Starting calculation..." : "Generate profile"}
             </Button>
+            {isSubmitting ? (
+              <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
+                Creating the profile and handing chart calculation to the generator...
+              </p>
+            ) : null}
           </form>
         </div>
       </Card>

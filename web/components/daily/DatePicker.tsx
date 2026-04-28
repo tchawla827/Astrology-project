@@ -2,9 +2,10 @@
 
 import { CalendarDays } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
 import { ToneSelector } from "@/components/ask/ToneSelector";
+import { InlineLoading } from "@/components/common/LoadingState";
 import { Button } from "@/components/ui/button";
 import type { ToneMode } from "@/lib/schemas";
 
@@ -29,9 +30,12 @@ export function DatePicker({
 }) {
   const router = useRouter();
   const [draftDate, setDraftDate] = useState(date);
+  const [isPending, startTransition] = useTransition();
+  const [pendingLabel, setPendingLabel] = useState<string | null>(null);
   useEffect(() => {
     setDraftDate(date);
-  }, [date]);
+    setPendingLabel(null);
+  }, [date, tone]);
   const shortcuts = useMemo(
     () => [
       { label: "Today", value: todayDate },
@@ -44,9 +48,17 @@ export function DatePicker({
   );
 
   function routeTo(nextDate: string, nextTone = tone) {
+    if (!nextDate || (nextDate === date && nextTone === tone)) {
+      return;
+    }
     setDraftDate(nextDate);
-    router.push(`/daily/${nextDate}?tone=${nextTone}`);
+    setPendingLabel(`Calculating ${nextDate} prediction...`);
+    startTransition(() => {
+      router.push(`/daily/${nextDate}?tone=${nextTone}`);
+    });
   }
+
+  const isRouting = isPending || pendingLabel !== null;
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-primary/20 bg-background/70 p-4">
@@ -59,16 +71,17 @@ export function DatePicker({
             min={min}
             onChange={(event) => setDraftDate(event.target.value)}
             onBlur={() => routeTo(draftDate)}
+            disabled={isRouting}
             type="date"
             value={draftDate}
           />
         </label>
-        <ToneSelector value={tone} onChange={(nextTone) => routeTo(draftDate, nextTone)} />
+        <ToneSelector disabled={isRouting} value={tone} onChange={(nextTone) => routeTo(draftDate, nextTone)} />
       </div>
       <div className="flex flex-wrap gap-2">
         {shortcuts.map((shortcut) => (
           <Button
-            disabled={shortcut.value < min || shortcut.value > max}
+            disabled={isRouting || shortcut.value < min || shortcut.value > max}
             key={shortcut.label}
             onClick={() => routeTo(shortcut.value)}
             size="sm"
@@ -82,6 +95,7 @@ export function DatePicker({
           Year ahead
         </Button>
       </div>
+      {isRouting ? <InlineLoading label={pendingLabel ?? "Calculating daily prediction..."} /> : null}
     </div>
   );
 }

@@ -3,8 +3,9 @@
 import { MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
-import { useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 
+import { InlineLoading } from "@/components/common/LoadingState";
 import { PlaceAutocomplete, type PlaceSelection } from "@/components/onboarding/PlaceAutocomplete";
 import { Button } from "@/components/ui/button";
 
@@ -29,11 +30,22 @@ export function LocationPicker({
 }) {
   const router = useRouter();
   const [isChanging, setIsChanging] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [pendingLabel, setPendingLabel] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPendingLabel(null);
+  }, [date, label, source]);
 
   function choose(place: PlaceSelection) {
-    router.push(buildPath(date, place));
+    setPendingLabel(`Calculating timing for ${place.label}...`);
+    startTransition(() => {
+      router.push(buildPath(date, place));
+    });
     setIsChanging(false);
   }
+
+  const isRouting = isPending || pendingLabel !== null;
 
   return (
     <div className="rounded-lg border bg-background p-4">
@@ -45,10 +57,11 @@ export function LocationPicker({
             <p className="text-xs text-muted-foreground">{source === "birth" ? "Using birth location" : "Using location override"}</p>
           </div>
         </div>
-        <Button onClick={() => setIsChanging((value) => !value)} size="sm" type="button" variant="outline">
-          Change
+        <Button disabled={isRouting} onClick={() => setIsChanging((value) => !value)} size="sm" type="button" variant="outline">
+          {isRouting ? "Calculating..." : "Change"}
         </Button>
       </div>
+      {isRouting ? <InlineLoading className="mt-4" label={pendingLabel ?? "Calculating panchang..."} /> : null}
       {isChanging ? (
         <div className="mt-4">
           <PlaceAutocomplete onSelect={choose} />

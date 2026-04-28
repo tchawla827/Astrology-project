@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Save, Trash2 } from "lucide-react";
+import { Download, LoaderCircle, Save, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -31,64 +31,79 @@ export function ProfileSettingsForm({
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isWorking, setIsWorking] = useState(false);
+  const [workingAction, setWorkingAction] = useState<"save" | "export" | "delete" | null>(null);
+  const isWorking = workingAction !== null;
 
   async function parseJson(response: Response) {
     return (await response.json().catch(() => ({}))) as { error?: string; url?: string; regeneration_started?: boolean };
   }
 
   async function saveSettings() {
-    setIsWorking(true);
+    setWorkingAction("save");
     setError(null);
     setStatus(null);
-    const response = await fetch("/api/profile/settings", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: draftName, default_tone_mode: tone, ayanamsha: draftAyanamsha }),
-    });
-    const body = await parseJson(response);
-    setIsWorking(false);
-    if (!response.ok) {
-      setError(body.error ?? "Could not save profile settings.");
-      return;
+    try {
+      const response = await fetch("/api/profile/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: draftName, default_tone_mode: tone, ayanamsha: draftAyanamsha }),
+      });
+      const body = await parseJson(response);
+      if (!response.ok) {
+        setError(body.error ?? "Could not save profile settings.");
+        return;
+      }
+      setStatus(body.regeneration_started ? "Settings saved. Chart recomputation has started." : "Settings saved.");
+      router.refresh();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not save profile settings.");
+    } finally {
+      setWorkingAction(null);
     }
-    setStatus(body.regeneration_started ? "Settings saved. Chart recomputation has started." : "Settings saved.");
-    router.refresh();
   }
 
   async function exportPdf() {
-    setIsWorking(true);
+    setWorkingAction("export");
     setError(null);
     setStatus(null);
-    const response = await fetch("/api/export", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kind: "basic_report_pdf" }),
-    });
-    const body = await parseJson(response);
-    setIsWorking(false);
-    if (!response.ok || !body.url) {
-      setError(body.error ?? "Could not export PDF.");
-      return;
+    try {
+      const response = await fetch("/api/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "basic_report_pdf" }),
+      });
+      const body = await parseJson(response);
+      if (!response.ok || !body.url) {
+        setError(body.error ?? "Could not export PDF.");
+        return;
+      }
+      window.location.assign(body.url);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not export PDF.");
+      setWorkingAction(null);
     }
-    window.location.assign(body.url);
   }
 
   async function deleteAccount() {
-    setIsWorking(true);
+    setWorkingAction("delete");
     setError(null);
-    const response = await fetch("/api/account/delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ confirmation: deleteConfirmation }),
-    });
-    const body = await parseJson(response);
-    setIsWorking(false);
-    if (!response.ok) {
-      setError(body.error ?? "Could not delete account.");
-      return;
+    try {
+      const response = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmation: deleteConfirmation }),
+      });
+      const body = await parseJson(response);
+      if (!response.ok) {
+        setError(body.error ?? "Could not delete account.");
+        setWorkingAction(null);
+        return;
+      }
+      window.location.assign("/signup");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not delete account.");
+      setWorkingAction(null);
     }
-    window.location.assign("/signup");
   }
 
   return (
@@ -128,12 +143,12 @@ export function ProfileSettingsForm({
 
       <div className="flex flex-wrap gap-3">
         <Button className="gap-2" disabled={isWorking} onClick={saveSettings} type="button">
-          <Save className="h-4 w-4" aria-hidden="true" />
-          Save settings
+          {workingAction === "save" ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Save className="h-4 w-4" aria-hidden="true" />}
+          {workingAction === "save" ? "Saving..." : "Save settings"}
         </Button>
         <Button className="gap-2" disabled={isWorking} onClick={exportPdf} type="button" variant="outline">
-          <Download className="h-4 w-4" aria-hidden="true" />
-          Export PDF
+          {workingAction === "export" ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Download className="h-4 w-4" aria-hidden="true" />}
+          {workingAction === "export" ? "Preparing PDF..." : "Export PDF"}
         </Button>
       </div>
 
@@ -166,12 +181,21 @@ export function ProfileSettingsForm({
             type="button"
             variant="destructive"
           >
-            <Trash2 className="h-4 w-4" aria-hidden="true" />
-            Delete account
+            {workingAction === "delete" ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Trash2 className="h-4 w-4" aria-hidden="true" />}
+            {workingAction === "delete" ? "Deleting..." : "Delete account"}
           </Button>
         </div>
       </section>
 
+      {workingAction ? (
+        <p className="rounded-md border border-primary/20 bg-primary/10 px-3 py-2 text-sm text-primary" role="status" aria-live="polite">
+          {workingAction === "save"
+            ? "Saving settings and checking whether the chart needs recomputation..."
+            : workingAction === "export"
+              ? "Preparing the report export..."
+              : "Deleting account data..."}
+        </p>
+      ) : null}
       {status ? <p className="rounded-md border border-primary/20 bg-primary/10 px-3 py-2 text-sm text-primary">{status}</p> : null}
       {error ? <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p> : null}
     </div>

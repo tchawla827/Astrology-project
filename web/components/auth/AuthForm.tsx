@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { LoaderCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeProvider, setActiveProvider] = useState<"email" | "google" | null>(null);
   const googleAuthEnabled = process.env.NEXT_PUBLIC_ENABLE_GOOGLE_AUTH === "true";
 
   useEffect(() => {
@@ -41,6 +43,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     event.preventDefault();
     setMessage(null);
     setIsSubmitting(true);
+    setActiveProvider("email");
     const supabase = createClient();
 
     const redirectTo = callbackUrl();
@@ -50,6 +53,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         : await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo } });
 
     setIsSubmitting(false);
+    setActiveProvider(null);
 
     if (result.error) {
       setMessage(result.error.message);
@@ -67,6 +71,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   async function handleGoogle() {
     setMessage(null);
     setIsSubmitting(true);
+    setActiveProvider("google");
     const supabase = createClient();
     const result = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -75,6 +80,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 
     if (result.error) {
       setIsSubmitting(false);
+      setActiveProvider(null);
       setMessage(result.error.message);
     }
   }
@@ -102,12 +108,14 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         type="password"
         value={password}
       />
-      <Button className="w-full" disabled={isSubmitting} type="submit">
-        {mode === "login" ? "Log in" : "Sign up"}
+      <Button className="w-full gap-2" disabled={isSubmitting} type="submit">
+        {activeProvider === "email" ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
+        {activeProvider === "email" ? (mode === "login" ? "Logging in..." : "Creating account...") : mode === "login" ? "Log in" : "Sign up"}
       </Button>
       {googleAuthEnabled ? (
-        <Button className="w-full" disabled={isSubmitting} onClick={handleGoogle} type="button" variant="outline">
-          Continue with Google
+        <Button className="w-full gap-2" disabled={isSubmitting} onClick={handleGoogle} type="button" variant="outline">
+          {activeProvider === "google" ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
+          {activeProvider === "google" ? "Opening Google..." : "Continue with Google"}
         </Button>
       ) : null}
       {message ? <p className="rounded-md border border-primary/20 bg-primary/10 px-3 py-2 text-sm text-muted-foreground">{message}</p> : null}
