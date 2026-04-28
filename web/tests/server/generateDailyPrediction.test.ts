@@ -6,7 +6,30 @@ import type { LlmProvider } from "@/lib/llm/providers";
 import type { DailyPrediction, TransitSummary } from "@/lib/schemas";
 import { goldenSnapshot } from "@/tests/derived/goldenSnapshot";
 
-const { transitSummary } = vi.hoisted(() => ({
+const { dashaTimeline, panchang, transitSummary } = vi.hoisted(() => ({
+  dashaTimeline: {
+    system: "vimshottari",
+    periods: [
+      { level: "mahadasha", lord: "Jupiter", start: "2020-01-01", end: "2036-01-01" },
+      { level: "antardasha", lord: "Saturn", start: "2025-01-01", end: "2027-01-01" },
+      { level: "pratyantardasha", lord: "Moon", start: "2026-04-01", end: "2026-05-01" },
+    ],
+  },
+  panchang: {
+    date: "2026-04-25",
+    latitude: 29.39,
+    longitude: 76.97,
+    tithi: { name: "Navami", end_time: "2026-04-25T12:00:00+05:30" },
+    nakshatra: { name: "Rohini", end_time: "2026-04-25T18:00:00+05:30" },
+    yoga: { name: "Siddhi", end_time: "2026-04-25T20:00:00+05:30" },
+    karana: { name: "Balava", end_time: "2026-04-25T12:00:00+05:30" },
+    vaara: "Saturday",
+    sunrise: "2026-04-25T05:49:00+05:30",
+    sunset: "2026-04-25T18:55:00+05:30",
+    muhurta_windows: [
+      { name: "Abhijit", start: "2026-04-25T12:00:00+05:30", end: "2026-04-25T12:48:00+05:30", kind: "auspicious" },
+    ],
+  },
   transitSummary: {
   as_of: "2026-04-25T00:00:00Z",
   positions: [
@@ -115,6 +138,8 @@ const { transitSummary } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/astro/client", () => ({
+  getDasha: vi.fn(async () => dashaTimeline),
+  getPanchang: vi.fn(async () => panchang),
   getTransits: vi.fn(async () => transitSummary),
 }));
 
@@ -236,9 +261,9 @@ function provider(): LlmProvider {
           favorable: ["Plan through the Jupiter trine."],
           caution: ["Respect the Saturn kendra pressure."],
           technical_basis: {
-            triggered_houses: [5, 10],
-            planets_used: ["Saturn", "Jupiter"],
-            transit_rules: ["saturn_kendra_pressure", "jupiter_trine_support"],
+            triggered_houses: [4, 5, 10],
+            planets_used: ["Saturn", "Jupiter", "Moon"],
+            transit_rules: ["saturn_kendra_pressure", "jupiter_trine_support", "moon_daily_house_focus"],
           },
           tone: "direct",
           answer_schema_version: "daily_v1",
@@ -256,9 +281,13 @@ describe("generateDailyPrediction", () => {
       lagnaSign: "Aquarius",
     });
 
-    expect(overlay.triggeredHouses).toEqual([5, 10]);
-    expect(overlay.hits.map((hit) => hit.rule)).toEqual(["saturn_kendra_pressure", "jupiter_trine_support"]);
-    expect(overlay.transits.overlay?.triggered_houses).toEqual([5, 10]);
+    expect(overlay.triggeredHouses).toEqual([4, 5, 10]);
+    expect(overlay.hits.map((hit) => hit.rule)).toEqual([
+      "saturn_kendra_pressure",
+      "jupiter_trine_support",
+      "moon_daily_house_focus",
+    ]);
+    expect(overlay.transits.overlay?.triggered_houses).toEqual([4, 5, 10]);
   });
 
   it("writes and reuses the per-profile daily prediction cache by tone", async () => {
@@ -286,7 +315,55 @@ describe("generateDailyPrediction", () => {
     });
 
     expect(first.cache.prediction).toBe("miss");
+    expect(first.context.panchang.tithi).toBe("Navami");
+    expect(first.context.dasha_timing.active_pratyantardasha?.lord).toBe("Moon");
     expect(second.cache.prediction).toBe("hit");
     expect(second.prediction.verdict).toBe(first.prediction.verdict);
+  });
+
+  it("normalizes provider output that misses strict schema fields", async () => {
+    const supabase = new DailySupabaseMock();
+    const result = await generateDailyPrediction({
+      supabase,
+      profile_id: profileId,
+      date: "2026-04-25",
+      tone: "direct",
+      providers: [
+        {
+          name: "gemini",
+          defaultModel: "daily-mock",
+          async generate() {
+            return {
+              latency_ms: 1,
+              output: {
+                date: "wrong-date",
+                verdict: "Use the Abhijit window for clean execution while Saturn asks for restraint.",
+                favorable: "Abhijit supports focused work.",
+                caution: ["Avoid overstating the Moon signal."],
+                technical_basis: {
+                  triggered_houses: [99],
+                  planets_used: ["Pluto"],
+                  transit_rules: ["invented_rule"],
+                },
+                tone: "balanced",
+                answer_schema_version: "daily_v1_timing_context",
+              },
+            };
+          },
+        },
+      ],
+    });
+
+    expect(result.prediction.date).toBe("2026-04-25");
+    expect(result.prediction.tone).toBe("direct");
+    expect(result.prediction.answer_schema_version).toBe("daily_v1");
+    expect(result.prediction.favorable).toEqual(["Abhijit supports focused work."]);
+    expect(result.prediction.technical_basis.triggered_houses).toEqual([4, 5, 10]);
+    expect(result.prediction.technical_basis.planets_used).toEqual(["Saturn", "Jupiter", "Moon"]);
+    expect(result.prediction.technical_basis.transit_rules).toEqual([
+      "saturn_kendra_pressure",
+      "jupiter_trine_support",
+      "moon_daily_house_focus",
+    ]);
   });
 });
