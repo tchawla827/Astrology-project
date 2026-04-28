@@ -40,18 +40,21 @@ const steps = [
 export default function HowItWorksPage() {
   return (
     <PublicShell>
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <p className="text-sm font-medium uppercase tracking-[0.16em] text-primary">How it works</p>
-        <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-tight">A chart-first workflow for astrology answers that can be inspected.</h1>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-          Astri separates calculation, context building, and answer generation so every user-facing insight starts from structured chart data.
-        </p>
+      <section className="mx-auto max-w-6xl px-6 pt-32">
+        <div className="cinematic-hero p-6 sm:p-8">
+          <div className="star-noise absolute inset-0 opacity-70" aria-hidden="true" />
+          <p className="text-sm font-medium uppercase tracking-[0.22em] text-primary">How it works</p>
+          <h1 className="mt-4 max-w-4xl font-display text-5xl font-semibold leading-tight text-glow sm:text-6xl">A chart-first workflow for astrology answers that can be inspected.</h1>
+          <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground">
+            Astri separates calculation, context building, and answer generation so every user-facing insight starts from structured chart data.
+          </p>
+        </div>
       </section>
-      <section className="mx-auto grid max-w-6xl gap-4 px-6 pb-16 md:grid-cols-2">
+      <section className="mx-auto grid max-w-6xl gap-4 px-6 py-12 md:grid-cols-2">
         {steps.map((step, index) => (
-          <article className="rounded-lg border bg-card p-6" key={step.title}>
+          <article className="luxury-panel rounded-lg p-6" key={step.title}>
             <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-md border bg-muted text-sm font-semibold">{index + 1}</span>
+              <span className="flex h-10 w-10 items-center justify-center rounded-md border border-primary/25 bg-primary/10 text-sm font-semibold text-primary">{index + 1}</span>
               <step.icon className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <h2 className="mt-5 text-xl font-semibold">{step.title}</h2>
@@ -59,7 +62,7 @@ export default function HowItWorksPage() {
           </article>
         ))}
       </section>
-      <section className="border-t bg-muted/30">
+      <section className="border-y border-primary/15 bg-card/35">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-10 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-2xl font-semibold">Start with the free workspace.</h2>

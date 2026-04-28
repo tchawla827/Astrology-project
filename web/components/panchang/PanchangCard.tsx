@@ -18,7 +18,7 @@ function endLabel(value: ElementValue) {
 
 function PanchangRow({ label, value }: { label: string; value: ElementValue }) {
   return (
-    <div className="grid grid-cols-[6.5rem_1fr] gap-3 border-b py-3 last:border-b-0">
+    <div className="grid grid-cols-[6.5rem_1fr] gap-3 border-b border-primary/10 py-3 last:border-b-0">
       <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
       <dd className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
         <span className="font-medium">{value.name}</span>
@@ -32,11 +32,11 @@ export function PanchangCard({ panchang }: { panchang: Panchang }) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center gap-2 text-sm uppercase text-primary">
+        <div className="flex items-center gap-2 text-sm uppercase tracking-[0.18em] text-primary">
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
           {panchang.date}
         </div>
-        <CardTitle>Daily panchang</CardTitle>
+        <CardTitle className="font-display text-4xl">Daily panchang</CardTitle>
       </CardHeader>
       <CardContent>
         <dl>

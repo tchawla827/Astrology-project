@@ -3,21 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --background: 235 30% 5%;
-  --foreground: 42 45% 93%;
-  --card: 238 24% 9%;
+  --background: 235 34% 4%;
+  --foreground: 42 48% 94%;
+  --card: 238 26% 8%;
   --card-foreground: 42 45% 93%;
   --primary: 39 72% 63%;
   --primary-foreground: 236 36% 7%;
-  --secondary: 254 30% 28%;
+  --secondary: 254 31% 25%;
   --secondary-foreground: 42 45% 93%;
-  --muted: 236 20% 15%;
-  --muted-foreground: 38 19% 72%;
+  --muted: 236 22% 13%;
+  --muted-foreground: 38 22% 76%;
   --accent: 15 64% 57%;
   --accent-foreground: 45 38% 94%;
   --destructive: 0 72% 51%;
   --destructive-foreground: 45 38% 94%;
-  --border: 36 28% 23%;
+  --border: 36 32% 24%;
   --input: 236 18% 18%;
   --ring: 39 72% 63%;
   --font-display: "Cormorant Garamond", "Bodoni 72", "Georgia", serif;
@@ -30,8 +30,9 @@
 body {
   min-height: 100vh;
   background:
-    linear-gradient(180deg, rgba(6, 7, 18, 0.78), rgba(6, 7, 18, 0.96)),
-    radial-gradient(circle at 50% 0%, rgba(196, 134, 77, 0.13), transparent 34rem),
+    linear-gradient(180deg, rgba(5, 6, 16, 0.68), rgba(5, 6, 16, 0.96)),
+    radial-gradient(circle at 50% -10%, rgba(228, 174, 92, 0.16), transparent 34rem),
+    radial-gradient(circle at 0% 35%, rgba(130, 85, 180, 0.12), transparent 28rem),
     hsl(var(--background));
   color: hsl(var(--foreground));
   text-rendering: optimizeLegibility;
@@ -53,7 +54,9 @@ html {
 
   .cosmic-surface {
     background:
-      linear-gradient(180deg, rgba(13, 15, 32, 0.82), rgba(8, 9, 20, 0.96)),
+      linear-gradient(180deg, rgba(13, 15, 32, 0.72), rgba(8, 9, 20, 0.96)),
+      radial-gradient(circle at 70% 16%, rgba(228, 174, 92, 0.16), transparent 22rem),
+      radial-gradient(circle at 15% 82%, rgba(205, 95, 62, 0.12), transparent 20rem),
       url("/bg.png");
     background-position: center;
     background-size: cover;
@@ -65,6 +68,44 @@ html {
       linear-gradient(90deg, rgba(4, 5, 13, 0.92), rgba(4, 5, 13, 0.42), rgba(4, 5, 13, 0.9));
   }
 
+  .cinematic-scene {
+    background:
+      linear-gradient(180deg, rgba(5, 6, 16, 0.6), rgba(5, 6, 16, 0.98)),
+      radial-gradient(circle at 50% -12%, rgba(228, 174, 92, 0.18), transparent 32rem),
+      url("/bg.png");
+    background-position: center;
+    background-size: cover;
+  }
+
+  .cinematic-hero {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid hsl(var(--primary) / 0.22);
+    border-radius: 0.5rem;
+    background:
+      linear-gradient(135deg, rgba(9, 10, 26, 0.58), rgba(10, 8, 20, 0.94)),
+      radial-gradient(circle at 78% 8%, rgba(228, 174, 92, 0.16), transparent 22rem),
+      url("/bg.png");
+    background-position: center;
+    background-size: cover;
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  }
+
+  .cinematic-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(4, 5, 13, 0.16), rgba(4, 5, 13, 0.9)),
+      linear-gradient(90deg, rgba(4, 5, 13, 0.88), rgba(4, 5, 13, 0.34), rgba(4, 5, 13, 0.88));
+    pointer-events: none;
+  }
+
+  .cinematic-hero > * {
+    position: relative;
+    z-index: 1;
+  }
+
   .star-noise {
     background-image:
       radial-gradient(circle at 18% 22%, rgba(247, 229, 190, 0.72) 0 1px, transparent 1.5px),
@@ -74,16 +115,30 @@ html {
   }
 
   .luxury-panel {
-    border: 1px solid hsl(var(--border) / 0.78);
+    border: 1px solid hsl(var(--primary) / 0.18);
     background:
-      linear-gradient(145deg, hsl(var(--card) / 0.92), hsl(248 26% 10% / 0.72)),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent);
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      linear-gradient(145deg, hsl(var(--card) / 0.94), hsl(248 28% 9% / 0.76)),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent),
+      radial-gradient(circle at 100% 0%, rgba(228, 174, 92, 0.08), transparent 18rem);
+    box-shadow: 0 24px 86px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(18px);
+  }
+
+  .ritual-panel {
+    border: 1px solid hsl(var(--primary) / 0.16);
+    background:
+      linear-gradient(180deg, hsl(var(--background) / 0.72), hsl(var(--card) / 0.84)),
+      radial-gradient(circle at 0% 0%, rgba(228, 174, 92, 0.07), transparent 16rem);
+    box-shadow: 0 18px 70px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(14px);
   }
 
   .bronze-edge {
     box-shadow: inset 0 1px 0 rgba(244, 211, 152, 0.18), 0 0 0 1px rgba(176, 119, 61, 0.18);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 28px rgba(228, 174, 92, 0.2);
   }
 
   .premium-rule {

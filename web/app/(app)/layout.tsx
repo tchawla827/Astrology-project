@@ -22,11 +22,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
-      <div className="cosmic-surface pointer-events-none fixed inset-0 opacity-30" aria-hidden="true" />
+      <div className="cinematic-scene pointer-events-none fixed inset-0 opacity-45" aria-hidden="true" />
       <div className="cosmic-veil pointer-events-none fixed inset-0" aria-hidden="true" />
+      <div className="star-noise pointer-events-none fixed inset-0 opacity-35" aria-hidden="true" />
 
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-primary/15 bg-background/78 p-5 shadow-bronze backdrop-blur-xl lg:flex">
-        <Link className="font-display text-3xl font-semibold text-primary" href="/dashboard">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-primary/20 bg-background/75 p-5 shadow-bronze backdrop-blur-xl lg:flex">
+        <Link className="font-display text-4xl font-semibold text-primary text-glow" href="/dashboard">
           Astri
         </Link>
         <p className="mt-2 text-xs uppercase tracking-[0.22em] text-muted-foreground">Private observatory</p>
@@ -36,7 +37,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             const Icon = item.icon;
             return (
               <Link
-                className="group flex min-h-11 items-center gap-3 rounded-md border border-transparent px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/20 hover:bg-primary/10 hover:text-foreground"
+                className="group flex min-h-11 items-center gap-3 rounded-md border border-transparent px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/25 hover:bg-primary/10 hover:text-foreground"
                 href={item.href}
                 key={item.href}
               >
@@ -48,7 +49,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </nav>
 
         <div className="mt-auto space-y-4">
-          <div className="rounded-lg border border-primary/20 bg-primary/10 p-4">
+          <div className="ritual-panel rounded-lg p-4">
             <div className="flex items-center gap-2 text-primary">
               <Sparkles className="h-4 w-4" aria-hidden="true" />
               <p className="text-xs uppercase tracking-[0.18em]">Current access</p>
@@ -61,9 +62,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </aside>
 
       <div className="relative z-10 lg:pl-72">
-        <header className="sticky top-0 z-20 border-b border-primary/15 bg-background/80 backdrop-blur-xl lg:hidden">
+        <header className="sticky top-0 z-20 border-b border-primary/20 bg-background/80 backdrop-blur-xl lg:hidden">
           <div className="flex items-center justify-between gap-4 px-4 py-4">
-            <Link className="font-display text-2xl font-semibold text-primary" href="/dashboard">
+            <Link className="font-display text-3xl font-semibold text-primary text-glow" href="/dashboard">
               Astri
             </Link>
             {user ? <LogoutButton /> : null}
@@ -73,7 +74,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               const Icon = item.icon;
               return (
                 <Link
-                  className="flex min-h-10 shrink-0 items-center gap-2 rounded-md border border-primary/15 bg-background/55 px-3 transition-colors hover:bg-primary/10 hover:text-foreground"
+                  className="flex min-h-10 shrink-0 items-center gap-2 rounded-md border border-primary/20 bg-background/60 px-3 transition-colors hover:bg-primary/10 hover:text-foreground"
                   href={item.href}
                   key={item.href}
                 >

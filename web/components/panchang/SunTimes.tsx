@@ -29,14 +29,14 @@ export function SunTimes({ sunrise, sunset }: { sunrise: string; sunset: string 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Sun times</CardTitle>
+        <CardTitle className="font-display text-4xl">Sun times</CardTitle>
       </CardHeader>
       <CardContent>
         <dl className="grid gap-3 sm:grid-cols-3">
           {items.map((item) => (
-            <div className="rounded-md border bg-background p-3" key={item.label}>
+            <div className="rounded-md border border-primary/15 bg-background/45 p-3" key={item.label}>
               <dt className="flex items-center gap-2 text-sm text-muted-foreground">
-                <item.icon className="h-4 w-4" aria-hidden="true" />
+                <item.icon className="h-4 w-4 text-primary" aria-hidden="true" />
                 {item.label}
               </dt>
               <dd className="mt-2 text-lg font-semibold">{item.value}</dd>

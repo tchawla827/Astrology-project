@@ -137,7 +137,7 @@ export function ProfileSettingsForm({
         </Button>
       </div>
 
-      <section className="rounded-md border p-4">
+      <section className="rounded-lg border border-primary/15 bg-background/45 p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="font-semibold">Plan</h2>
@@ -147,7 +147,7 @@ export function ProfileSettingsForm({
         </div>
       </section>
 
-      <section className="space-y-3 rounded-md border border-destructive/40 p-4">
+      <section className="space-y-3 rounded-lg border border-destructive/40 bg-destructive/5 p-4">
         <div>
           <h2 className="font-semibold text-destructive">Danger zone</h2>
           <p className="text-sm text-muted-foreground">Hard-deletes account data, storage exports, share cards, and the auth user.</p>
@@ -172,8 +172,8 @@ export function ProfileSettingsForm({
         </div>
       </section>
 
-      {status ? <p className="text-sm text-primary">{status}</p> : null}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {status ? <p className="rounded-md border border-primary/20 bg-primary/10 px-3 py-2 text-sm text-primary">{status}</p> : null}
+      {error ? <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p> : null}
     </div>
   );
 }

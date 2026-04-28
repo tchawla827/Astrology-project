@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Cormorant_Garamond, Inter } from "next/font/google";
 
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/toast";
@@ -8,6 +8,13 @@ import "./globals.css";
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-display",
+  weight: ["400", "500", "600", "700"],
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://astri.app";
@@ -42,7 +49,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} ${cormorant.variable}`}>
         <Providers>{children}</Providers>
         <Toaster />
       </body>

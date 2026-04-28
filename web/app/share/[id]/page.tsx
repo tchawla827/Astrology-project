@@ -68,11 +68,13 @@ export default async function SharePage({ params }: SharePageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-background px-4 py-10 text-foreground sm:px-6">
-      <article className="mx-auto max-w-3xl space-y-8">
-        <header className="space-y-5 border-b pb-6">
+    <main className="cinematic-scene relative min-h-screen overflow-hidden px-4 py-10 text-foreground sm:px-6">
+      <div className="cosmic-veil absolute inset-0" aria-hidden="true" />
+      <div className="star-noise absolute inset-0 opacity-70" aria-hidden="true" />
+      <article className="luxury-panel relative mx-auto max-w-3xl space-y-8 rounded-lg p-6 sm:p-8">
+        <header className="space-y-5 border-b border-primary/15 pb-6">
           <div className="flex items-center justify-between gap-4">
-            <p className="text-sm font-black uppercase tracking-[0.28em] text-primary">Astri</p>
+            <p className="font-display text-3xl font-semibold text-primary text-glow">Astri</p>
             <div className="flex flex-wrap justify-end gap-2">
               <Badge className="capitalize text-muted-foreground">{payload.topic}</Badge>
               <Badge className="capitalize text-muted-foreground">{payload.tone_mode}</Badge>
@@ -80,7 +82,7 @@ export default async function SharePage({ params }: SharePageProps) {
           </div>
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Verdict</p>
-            <h1 className="font-serif text-3xl leading-tight sm:text-5xl">{payload.answer.verdict}</h1>
+            <h1 className="font-display text-4xl font-semibold leading-tight sm:text-5xl">{payload.answer.verdict}</h1>
           </div>
         </header>
 
@@ -118,7 +120,7 @@ export default async function SharePage({ params }: SharePageProps) {
           </div>
         </section>
 
-        <footer className="border-t pt-5 text-sm text-muted-foreground">
+        <footer className="border-t border-primary/15 pt-5 text-sm text-muted-foreground">
           {payload.charts_used.length > 0 ? `Based on ${payload.charts_used.join(" / ")}` : "Based on the chart"}.
         </footer>
       </article>
