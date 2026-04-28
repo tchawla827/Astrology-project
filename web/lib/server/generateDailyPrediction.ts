@@ -4,12 +4,14 @@ import {
   DerivedFeaturePayloadSchema,
   type ChartSnapshot,
   type DerivedFeaturePayload,
+  type DashaTimeline,
+  type Panchang,
   type Planet,
   type PlanetPlacement,
   type ToneMode,
   type TransitSummary,
 } from "@/lib/schemas";
-import { getTransits } from "@/lib/astro/client";
+import { getDasha, getPanchang, getTransits } from "@/lib/astro/client";
 import {
   readDailyPredictionCache,
   readTransitCache,
@@ -17,7 +19,7 @@ import {
   writeTransitCache,
   type SupabaseDailyCacheClient,
 } from "@/lib/daily/cache";
-import { LlmCitationError, LlmContextError, LlmSchemaError } from "@/lib/llm/errors";
+import { LlmCitationError, LlmContextError, LlmProviderError, LlmSchemaError } from "@/lib/llm/errors";
 import { PROMPT_VERSIONS, systemPromptV1 } from "@/lib/llm/prompts";
 import { routeDailyV1 } from "@/lib/llm/prompts/route/daily_v1";
 import { callWithFallback, type LlmProvider } from "@/lib/llm/providers";
@@ -83,6 +85,22 @@ export type DailyContextBundle = {
   tone: ToneMode;
   profile_summary: ChartSnapshot["summary"];
   birth_time_confidence: BirthProfileRow["birth_time_confidence"];
+  dasha_timing: {
+    system: "vimshottari";
+    active_mahadasha?: DashaTimeline["periods"][number];
+    active_antardasha?: DashaTimeline["periods"][number];
+    active_pratyantardasha?: DashaTimeline["periods"][number];
+  };
+  panchang: {
+    vaara: string;
+    tithi: string;
+    nakshatra: string;
+    yoga: string;
+    karana: string;
+    sunrise: string;
+    sunset: string;
+    muhurta_windows: NonNullable<Panchang["muhurta_windows"]>;
+  };
   transit_positions: Array<Pick<PlanetPlacement, "planet" | "sign" | "house" | "retrograde" | "dignity">>;
   triggered_houses: number[];
   transit_rules: TransitRuleHit[];
@@ -174,6 +192,12 @@ function plusYears(date: string, years: number) {
   return `${String((year ?? 0) + years).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
+function plusDays(date: string, days: number) {
+  const next = new Date(`${date}T00:00:00Z`);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next.toISOString().slice(0, 10);
+}
+
 function compareDate(a: string, b: string) {
   return a.localeCompare(b);
 }
@@ -219,6 +243,56 @@ export function startOfDayInTimezoneIso(date: string, timezone: string) {
   const firstGuess = new Date(initial.getTime() - timezoneOffsetMs(initial, timezone));
   const secondGuess = new Date(initial.getTime() - timezoneOffsetMs(firstGuess, timezone));
   return secondGuess.toISOString();
+}
+
+function panchangValueName(value: Panchang["tithi"]) {
+  return value.name;
+}
+
+function activePeriod(timeline: DashaTimeline, level: DashaTimeline["periods"][number]["level"], date: string) {
+  return timeline.periods.find((period) => period.level === level && period.start <= date && period.end > date);
+}
+
+async function loadDateWiseAstroContext(input: { profile: BirthProfileRow; date: string }) {
+  const [panchang, dasha] = await Promise.all([
+    getPanchang({
+      date: input.date,
+      latitude: input.profile.latitude,
+      longitude: input.profile.longitude,
+      timezone: input.profile.timezone,
+      ayanamsha: input.profile.ayanamsha,
+    }),
+    getDasha({
+      birth_date: input.profile.birth_date,
+      birth_time: input.profile.birth_time,
+      latitude: input.profile.latitude,
+      longitude: input.profile.longitude,
+      timezone: input.profile.timezone,
+      ayanamsha: input.profile.ayanamsha,
+      depth: "pratyantardasha",
+      from: input.date,
+      to: plusDays(input.date, 1),
+    }),
+  ]);
+
+  return {
+    panchang: {
+      vaara: panchang.vaara,
+      tithi: panchangValueName(panchang.tithi),
+      nakshatra: panchangValueName(panchang.nakshatra),
+      yoga: panchangValueName(panchang.yoga),
+      karana: panchangValueName(panchang.karana),
+      sunrise: panchang.sunrise,
+      sunset: panchang.sunset,
+      muhurta_windows: panchang.muhurta_windows ?? [],
+    },
+    dasha_timing: {
+      system: dasha.system,
+      active_mahadasha: activePeriod(dasha, "mahadasha", input.date),
+      active_antardasha: activePeriod(dasha, "antardasha", input.date),
+      active_pratyantardasha: activePeriod(dasha, "pratyantardasha", input.date),
+    },
+  };
 }
 
 export function resolveDailyDate(dateParam: string, timezone: string) {
@@ -295,6 +369,16 @@ export function buildTransitOverlay(input: {
     }
   }
 
+  const moon = transitByPlanet.get("Moon");
+  if (moon) {
+    hits.push({
+      rule: "moon_daily_house_focus",
+      planet: "Moon",
+      house: moon.house,
+      note: `Moon daily focus through house ${moon.house}`,
+    });
+  }
+
   const triggeredHouses = [...new Set(hits.flatMap((hit) => (hit.house ? [hit.house] : [])))].sort((a, b) => a - b);
   const planetToHouse = Object.fromEntries(positions.map((position) => [position.planet, position.house])) as Record<Planet, number>;
 
@@ -329,19 +413,27 @@ function buildDailyContext(input: {
   tone: ToneMode;
   snapshot: ChartSnapshot;
   derived: DerivedFeaturePayload;
+  dateWiseAstro: Awaited<ReturnType<typeof loadDateWiseAstroContext>>;
   birth_time_confidence: BirthProfileRow["birth_time_confidence"];
   chart_snapshot_id: string;
   transits: TransitSummary;
   hits: TransitRuleHit[];
   triggeredHouses: number[];
 }): DailyContextBundle {
-  const planets = [...new Set(input.hits.map((hit) => hit.planet))];
+  const dashaPlanets = [
+    input.dateWiseAstro.dasha_timing.active_mahadasha?.lord,
+    input.dateWiseAstro.dasha_timing.active_antardasha?.lord,
+    input.dateWiseAstro.dasha_timing.active_pratyantardasha?.lord,
+  ].filter((planet): planet is Planet => Boolean(planet));
+  const planets = [...new Set([...input.hits.map((hit) => hit.planet), ...dashaPlanets])];
   return {
     context_id: input.chart_snapshot_id,
     date: input.date,
     tone: input.tone,
     profile_summary: input.snapshot.summary,
     birth_time_confidence: input.birth_time_confidence,
+    dasha_timing: input.dateWiseAstro.dasha_timing,
+    panchang: input.dateWiseAstro.panchang,
     transit_positions: input.transits.positions.map((position) => ({
       planet: position.planet,
       sign: position.sign,
@@ -367,7 +459,45 @@ function buildDailyPrompt(context: DailyContextBundle) {
 Context:
 ${JSON.stringify(context, null, 2)}
 
-Return ONLY JSON matching DailyPrediction schema.`;
+Return ONLY JSON matching DailyPrediction schema. Use date "${context.date}", tone "${context.tone}", and answer_schema_version "daily_v1".`;
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+function asText(value: unknown, fallback: string, maxLength?: number) {
+  const text = typeof value === "string" && value.trim().length > 0 ? value.trim() : fallback;
+  return maxLength ? text.slice(0, maxLength) : text;
+}
+
+function asTextArray(value: unknown, fallback: string[]) {
+  const source = Array.isArray(value) ? value : typeof value === "string" ? [value] : fallback;
+  const items = source
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 5);
+  return items.length > 0 ? items : fallback.slice(0, 5);
+}
+
+function normalizeDailyPrediction(output: unknown, context: DailyContextBundle): unknown {
+  const candidate = asRecord(output);
+  const fallback = fallbackPrediction(context);
+
+  return {
+    date: context.date,
+    verdict: asText(candidate.verdict, fallback.verdict, 280),
+    favorable: asTextArray(candidate.favorable, fallback.favorable),
+    caution: asTextArray(candidate.caution, fallback.caution),
+    technical_basis: {
+      triggered_houses: context.allowed_citations.triggered_houses,
+      planets_used: context.allowed_citations.planets,
+      transit_rules: context.allowed_citations.transit_rules,
+    },
+    tone: context.tone,
+    answer_schema_version: "daily_v1",
+  };
 }
 
 function validateDailyPrediction(output: unknown, context: DailyContextBundle): DailyPrediction {
@@ -507,20 +637,35 @@ async function loadTransitSummary(input: {
 function fallbackPrediction(context: DailyContextBundle): DailyPrediction {
   const rules = context.transit_rules.map((hit) => hit.rule);
   const planets = context.allowed_citations.planets;
+  const supportive = context.transit_rules.filter(
+    (hit) => hit.rule.includes("jupiter") || hit.rule.includes("moon_daily"),
+  );
+  const cautionary = context.transit_rules.filter(
+    (hit) =>
+      hit.rule.includes("saturn") ||
+      hit.rule.includes("rahu") ||
+      hit.rule.includes("ketu") ||
+      hit.rule.includes("mars") ||
+      hit.rule.includes("near_natal"),
+  );
+  const moonFocus = context.transit_rules.find((hit) => hit.rule === "moon_daily_house_focus");
   return {
     date: context.date,
     verdict:
-      context.triggered_houses.length > 0
-        ? `The day is shaped by transit activity through houses ${context.triggered_houses.join(", ")}.`
+      moonFocus && context.transit_rules.length === 1
+        ? `Moon activates house ${moonFocus.house} for the selected date; no heavier Saturn, Jupiter, Rahu, or luminary-stress trigger dominates the overlay.`
+        : context.triggered_houses.length > 0
+          ? `The day is shaped by transit activity through houses ${context.triggered_houses.join(", ")}.`
         : "The day has no major rule-based transit trigger in the current overlay.",
-    favorable: context.transit_rules
-      .filter((hit) => hit.rule.includes("jupiter"))
+    favorable: supportive
       .map((hit) => hit.note)
       .slice(0, 5),
-    caution: context.transit_rules
-      .filter((hit) => !hit.rule.includes("jupiter"))
-      .map((hit) => hit.note)
-      .slice(0, 5),
+    caution: [
+      ...cautionary.map((hit) => hit.note),
+      ...(moonFocus && cautionary.length === 0
+        ? ["Treat this as a fast daily Moon signal, not a heavy long-term transit."]
+        : []),
+    ].slice(0, 5),
     technical_basis: {
       triggered_houses: context.triggered_houses,
       planets_used: planets,
@@ -536,22 +681,30 @@ async function generateWithLlm(input: { context: DailyContextBundle; providers?:
     return fallbackPrediction(input.context);
   }
 
-  const result = await callWithFallback({
-    system: systemPromptV1,
-    messages: [{ role: "user", content: `${routeDailyV1}\n\n${buildDailyPrompt(input.context)}` }],
-    schema: DailyPredictionSchema,
-    topic: "daily",
-    context_bundle_id: input.context.context_id,
-    prompt_versions: {
-      system: PROMPT_VERSIONS.system,
-      route: PROMPT_VERSIONS.daily_route,
-      user: PROMPT_VERSIONS.user,
-    },
-    answer_schema_version: PROMPT_VERSIONS.daily_answer_schema,
-    providers: input.providers,
-  });
+  let result: Awaited<ReturnType<typeof callWithFallback>>;
+  try {
+    result = await callWithFallback({
+      system: systemPromptV1,
+      messages: [{ role: "user", content: `${routeDailyV1}\n\n${buildDailyPrompt(input.context)}` }],
+      schema: DailyPredictionSchema,
+      topic: "daily",
+      context_bundle_id: input.context.context_id,
+      prompt_versions: {
+        system: PROMPT_VERSIONS.system,
+        route: PROMPT_VERSIONS.daily_route,
+        user: PROMPT_VERSIONS.user,
+      },
+      answer_schema_version: PROMPT_VERSIONS.daily_answer_schema,
+      providers: input.providers,
+    });
+  } catch (error) {
+    if (error instanceof LlmProviderError) {
+      return fallbackPrediction(input.context);
+    }
+    throw error;
+  }
 
-  return validateDailyPrediction(result.output, input.context);
+  return validateDailyPrediction(normalizeDailyPrediction(result.output, input.context), input.context);
 }
 
 export async function generateDailyPrediction(input: GenerateDailyPredictionInput): Promise<GenerateDailyPredictionResult> {
@@ -567,7 +720,10 @@ export async function generateDailyPrediction(input: GenerateDailyPredictionInpu
   });
 
   const { chartRow, snapshot, derived } = await loadContextRows(input.supabase, profile.id);
-  const transitResult = await loadTransitSummary({ supabase: input.supabase, profile, date });
+  const [transitResult, dateWiseAstro] = await Promise.all([
+    loadTransitSummary({ supabase: input.supabase, profile, date }),
+    loadDateWiseAstroContext({ profile, date }),
+  ]);
   const overlay = buildTransitOverlay({
     transits: transitResult.transits,
     natalPositions: snapshot.planetary_positions,
@@ -578,6 +734,7 @@ export async function generateDailyPrediction(input: GenerateDailyPredictionInpu
     tone: input.tone,
     snapshot,
     derived,
+    dateWiseAstro,
     birth_time_confidence: snapshot.birth_time_confidence ?? profile.birth_time_confidence,
     chart_snapshot_id: chartRow.id,
     transits: overlay.transits,
