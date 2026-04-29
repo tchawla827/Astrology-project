@@ -4,6 +4,23 @@ export const DailyPlanetSchema = z.enum(["Sun", "Moon", "Mars", "Mercury", "Jupi
 export const DailyToneModeSchema = z.enum(["balanced", "direct", "brutal"]);
 export const DailyAspectSchema = z.enum(["love", "emotional", "career", "focus"]);
 export const DailyAspectScoreLabelSchema = z.enum(["low", "mixed", "steady", "strong"]);
+export const DailyScoreComponentSchema = z.object({
+  natal_promise: z.number().min(-12).max(12),
+  dasha_activation: z.number().min(-18).max(18),
+  varga_support: z.number().min(-12).max(12),
+  transit_trigger: z.number().min(-16).max(16),
+  daily_moon: z.number().min(-8).max(8),
+  yoga_modifier: z.number().min(-8).max(8),
+  volatility_penalty: z.number().min(0).max(12),
+});
+
+export const DailyScoreBreakdownSchema = z.object({
+  aspect: DailyAspectSchema,
+  raw_score: z.number().min(0).max(100),
+  components: DailyScoreComponentSchema,
+  source_charts: z.array(z.string().min(1)).max(8),
+  notes: z.array(z.string().min(1)).max(12),
+});
 
 export const DailyAspectScoreSchema = z.object({
   aspect: DailyAspectSchema,
@@ -41,9 +58,11 @@ export const DailyPredictionSchema = z.object({
     planets_used: z.array(DailyPlanetSchema),
     transit_rules: z.array(z.string().min(1)),
   }),
+  score_breakdown: z.array(DailyScoreBreakdownSchema).length(requiredDailyAspects.length).optional(),
   tone: DailyToneModeSchema,
   answer_schema_version: z.literal("daily_v2"),
 });
 
 export type DailyPrediction = z.infer<typeof DailyPredictionSchema>;
 export type DailyAspectScore = z.infer<typeof DailyAspectScoreSchema>;
+export type DailyScoreBreakdown = z.infer<typeof DailyScoreBreakdownSchema>;
