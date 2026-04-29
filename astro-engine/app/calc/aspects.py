@@ -1,9 +1,14 @@
 from __future__ import annotations
 
-from typing import Any
+from collections.abc import Mapping
+from typing import Any, Protocol
 
 from .constants import PLANETS, Planet
-from .planets import PlanetPosition
+
+
+class AspectPosition(Protocol):
+    planet: Planet
+    longitude_deg: float
 
 _MAJOR_ASPECTS: tuple[tuple[str, float, float], ...] = (
     ("conjunction", 0.0, 8.0),
@@ -43,7 +48,7 @@ def _target_house(source_house: int, offset: int) -> int:
     return ((source_house + offset - 2) % 12) + 1
 
 
-def _planetary_aspects(positions: dict[Planet, PlanetPosition]) -> list[dict[str, Any]]:
+def _planetary_aspects(positions: Mapping[Planet, AspectPosition]) -> list[dict[str, Any]]:
     aspects: list[dict[str, Any]] = []
     ordered = [positions[planet] for planet in PLANETS if planet in positions]
 
@@ -108,7 +113,7 @@ def _sort_key(aspect: dict[str, Any]) -> tuple[int, int, int, int, float]:
 
 
 def build_aspects(
-    positions: dict[Planet, PlanetPosition],
+    positions: Mapping[Planet, AspectPosition],
     planet_house: dict[Planet, int],
 ) -> list[dict[str, Any]]:
     seen: set[tuple[Planet, Planet | int, str]] = set()

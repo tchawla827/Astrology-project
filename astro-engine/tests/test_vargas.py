@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.calc.vargas import SUPPORTED_CHART_KEYS, VARGA_REGISTRY, varga_sign
+from app.calc.vargas import SUPPORTED_CHART_KEYS, VARGA_REGISTRY, varga_longitude, varga_sign
 
 
 def test_d1_is_sign_directly() -> None:
@@ -47,3 +47,16 @@ def test_d30_odd_sign_mars_segment() -> None:
     assert varga_sign("D30", 2.0) == "Aries"
     # Aries 5–10° → Saturn's sign = Aquarius
     assert varga_sign("D30", 7.0) == "Aquarius"
+
+
+def test_varga_longitude_preserves_fraction_inside_segment() -> None:
+    assert varga_longitude("D9", 0.0) == 0.0
+    assert varga_longitude("D9", 30.0 / 18.0) == pytest.approx(15.0)
+    assert varga_longitude("D10", 1.5) == pytest.approx(15.0)
+    assert varga_longitude("D10", 3.0) == pytest.approx(30.0)
+
+
+def test_d30_varga_longitude_handles_uneven_segments() -> None:
+    assert varga_longitude("D30", 0.0) == 0.0
+    assert varga_longitude("D30", 2.5) == pytest.approx(15.0)
+    assert varga_longitude("D30", 6.0) == pytest.approx(306.0)

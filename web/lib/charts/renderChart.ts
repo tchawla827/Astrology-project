@@ -80,11 +80,15 @@ function offsetPoint(point: ChartPoint, index: number, total: number): ChartPoin
 
 function planetLabel(planet: PlanetInChart, natal?: PlanetPlacement) {
   const abbreviation = PLANET_ABBREVIATIONS[planet.planet] ?? planet.planet.slice(0, 2);
-  return `${abbreviation}${natal?.retrograde ? "(R)" : ""}`;
+  return `${abbreviation}${planet.retrograde ?? natal?.retrograde ? "(R)" : ""}`;
 }
 
 export function chartSupportsNatalTechnicalDetails(key: string) {
   return key === "D1" || key === "Bhava" || key === "Moon";
+}
+
+export function chartHasPlanetTechnicalDetails(chart: Chart) {
+  return chart.planets.some((planet) => typeof planet.longitude_deg === "number" || typeof planet.dignity === "string");
 }
 
 export function yogaInvolvesPlanet(yoga: { planets_involved?: Planet[] }, planet: Planet) {

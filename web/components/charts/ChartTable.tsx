@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 
-import { chartSupportsNatalTechnicalDetails } from "@/lib/charts/renderChart";
+import { chartHasPlanetTechnicalDetails, chartSupportsNatalTechnicalDetails } from "@/lib/charts/renderChart";
 import type { RenderedChart } from "@/lib/charts/renderChart";
 import type { DepthMode } from "@/lib/schemas";
 
 export function ChartTable({ rendered, depth }: { rendered: RenderedChart; depth: DepthMode }) {
   const [isOpen, setIsOpen] = useState(false);
   const supportsTechnicalDetails = chartSupportsNatalTechnicalDetails(rendered.chart.chart_key);
+  const hasChartDetails = chartHasPlanetTechnicalDetails(rendered.chart);
 
   return (
     <div className="mt-4">
@@ -39,12 +40,21 @@ export function ChartTable({ rendered, depth }: { rendered: RenderedChart; depth
                   {depth === "technical" ? (
                     <td className="p-2 text-muted-foreground">
                       {planets
-                        .map((planet) =>
-                          planet.technicalDetails
-                            ? `${planet.planet}: ${planet.technicalDetails.longitude_deg.toFixed(2)} deg, ${planet.technicalDetails.nakshatra} pada ${planet.technicalDetails.pada}, ${planet.technicalDetails.dignity}`
-                            : planet.planet,
-                        )
-                        .join("; ") || (supportsTechnicalDetails ? "No planet detail" : "Technical detail is not stored for this chart")}
+                        .map((planet) => {
+                          const longitude = planet.longitude_deg ?? planet.technicalDetails?.longitude_deg;
+                          const dignity = planet.dignity ?? planet.technicalDetails?.dignity;
+                          const physicalCombust = planet.combust ?? planet.technicalDetails?.combust;
+                          const parts = [
+                            typeof longitude === "number" ? `${longitude.toFixed(2)} deg` : null,
+                            planet.technicalDetails ? `${planet.technicalDetails.nakshatra} pada ${planet.technicalDetails.pada}` : null,
+                            dignity,
+                            planet.retrograde ?? planet.technicalDetails?.retrograde ? "retrograde" : null,
+                            physicalCombust ? "physically combust" : null,
+                            planet.varga_symbolic_combust ? "symbolic Sun proximity" : null,
+                          ].filter(Boolean);
+                          return `${planet.planet}${parts.length > 0 ? `: ${parts.join(", ")}` : ""}`;
+                        })
+                        .join("; ") || (supportsTechnicalDetails || hasChartDetails ? "No planet detail" : "Technical detail is not stored for this chart")}
                     </td>
                   ) : null}
                 </tr>

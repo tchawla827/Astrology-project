@@ -65,13 +65,28 @@ class PlanetInChartOut(BaseModel):
     planet: Planet
     sign: str
     house: int
+    longitude_deg: float | None = None
+    retrograde: bool | None = None
+    combust: bool | None = None
+    varga_symbolic_combust: bool | None = None
+    dignity: Literal[
+        "exalted",
+        "moolatrikona",
+        "own",
+        "friendly",
+        "neutral",
+        "enemy",
+        "debilitated",
+    ] | None = None
 
 
 class ChartOut(BaseModel):
     chart_key: ChartKey
     ascendant_sign: str
+    ascendant_longitude_deg: float | None = None
     houses: list[HouseOut]
     planets: list[PlanetInChartOut]
+    aspects: list[dict[str, object]] | None = None
 
 
 class YogaOut(BaseModel):

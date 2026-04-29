@@ -471,8 +471,9 @@ function houseContextAdjustment(aspect: DailyAspect, house: number) {
   return score;
 }
 
-function natalAspectScore(snapshot: ChartSnapshot, planet: Planet, house: number) {
-  return snapshot.aspects.reduce((score, aspect) => {
+function chartAspectScore(snapshot: ChartSnapshot, chartKey: string, planet: Planet, house: number) {
+  const aspects = chart(snapshot, chartKey)?.aspects ?? (chartKey === "D1" || chartKey === "Bhava" || chartKey === "Moon" ? snapshot.aspects : []);
+  return aspects.reduce((score, aspect) => {
     const targetMatches = aspect.to === planet || aspect.to === house;
     if (!targetMatches) {
       return score;
@@ -496,20 +497,29 @@ function planetStrength(snapshot: ChartSnapshot, chartKey: string, planet: Plane
   }
 
   const natal = natalPlacement(snapshot, planet);
+  const chartLongitude = inChart.longitude_deg ?? natal?.longitude_deg;
   const dignity =
-    chartKey === "D1" || chartKey === "Bhava" || chartKey === "Moon"
-      ? natal?.dignity ?? estimateDignity(planet, inChart.sign, natal?.longitude_deg)
-      : estimateDignity(planet, inChart.sign);
+    inChart.dignity ??
+    (chartKey === "D1" || chartKey === "Bhava" || chartKey === "Moon"
+      ? natal?.dignity ?? estimateDignity(planet, inChart.sign, chartLongitude)
+      : estimateDignity(planet, inChart.sign, chartLongitude));
   let score = dignityScore(dignity) + houseContextAdjustment(aspect, inChart.house);
 
+  if (inChart.combust && planet !== "Sun") {
+    score -= planet === "Mercury" ? 1 : 1.8;
+  }
+  if (inChart.varga_symbolic_combust && chartKey !== "D1" && chartKey !== "Bhava" && chartKey !== "Moon" && planet !== "Sun") {
+    score -= 0.6;
+  }
+  if (inChart.retrograde) {
+    score += aspect === "career" || aspect === "focus" ? 0.8 : -0.4;
+  }
+  score += chartAspectScore(snapshot, chartKey, planet, inChart.house);
+
   if ((chartKey === "D1" || chartKey === "Bhava" || chartKey === "Moon") && natal) {
-    if (natal.combust && planet !== "Sun") {
-      score -= planet === "Mercury" ? 1 : 1.8;
-    }
-    if (natal.retrograde) {
+    if (natal.retrograde && inChart.retrograde === undefined) {
       score += aspect === "career" || aspect === "focus" ? 0.8 : -0.4;
     }
-    score += natalAspectScore(snapshot, planet, natal.house);
     for (const node of ["Rahu", "Ketu"] as const) {
       const nodePlacement = natalPlacement(snapshot, node);
       if (nodePlacement) {

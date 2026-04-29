@@ -58,12 +58,25 @@ describe("schemas", () => {
           D1: {
             chart_key: "D1",
             ascendant_sign: "Aquarius",
+            ascendant_longitude_deg: 306.21,
             houses: Array.from({ length: 12 }, (_, idx) => ({
               house: idx + 1,
               sign: "Aries",
               lord: "Mars",
             })),
-            planets: [{ planet: "Sun", sign: "Taurus", house: 4 }],
+            planets: [
+              {
+                planet: "Sun",
+                sign: "Taurus",
+                house: 4,
+                longitude_deg: 22.1,
+                retrograde: false,
+                combust: false,
+                varga_symbolic_combust: false,
+                dignity: "friendly",
+              },
+            ],
+            aspects: [{ from: "Sun", to: 7, kind: "graha_drishti" }],
           },
         },
         planetary_positions: [
