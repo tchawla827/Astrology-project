@@ -108,6 +108,21 @@ def test_navamsa_key_placements(snapshot: dict, golden: dict) -> None:
         assert by_planet[planet] == exp_sign, f"D9 {planet}: {by_planet[planet]} != {exp_sign}"
 
 
+def test_divisional_charts_include_symbolic_metadata_and_aspects(snapshot: dict) -> None:
+    d9 = snapshot["charts"]["D9"]
+    sun = next(p for p in d9["planets"] if p["planet"] == "Sun")
+    mercury = next(p for p in d9["planets"] if p["planet"] == "Mercury")
+
+    assert "ascendant_longitude_deg" in d9
+    assert isinstance(d9["aspects"], list)
+    assert isinstance(sun["longitude_deg"], float)
+    assert sun["dignity"] in {"exalted", "moolatrikona", "own", "friendly", "neutral", "enemy", "debilitated"}
+    assert sun["retrograde"] is False
+    assert sun["combust"] is False
+    assert mercury["combust"] is True
+    assert isinstance(mercury["varga_symbolic_combust"], bool)
+
+
 def test_bhava_houses(snapshot: dict, golden: dict) -> None:
     expected = golden["expected"]["vargas"]["Bhava"]
     bhava = snapshot["charts"]["Bhava"]
@@ -175,6 +190,9 @@ def test_supported_chart_endpoint(monkeypatch: MonkeyPatch, golden: dict) -> Non
     by_planet = {p["planet"]: p["sign"] for p in body["planets"]}
     assert by_planet["Sun"] == "Cancer"
     assert by_planet["Moon"] == "Pisces"
+    assert "ascendant_longitude_deg" in body
+    assert isinstance(body["aspects"], list)
+    assert isinstance(body["planets"][0]["longitude_deg"], float)
 
 
 def test_yogas_include_structured_planets(snapshot: dict) -> None:

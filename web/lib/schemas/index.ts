@@ -71,6 +71,11 @@ export const PlanetInChartSchema = z.object({
   planet: PlanetSchema,
   sign: z.string(),
   house: z.number().int().min(1).max(12),
+  longitude_deg: z.number().optional(),
+  retrograde: z.boolean().optional(),
+  combust: z.boolean().optional(),
+  varga_symbolic_combust: z.boolean().optional(),
+  dignity: z.enum(["exalted", "moolatrikona", "own", "friendly", "neutral", "enemy", "debilitated"]).optional(),
 });
 
 export const HousePlacementSchema = z.object({
@@ -79,11 +84,20 @@ export const HousePlacementSchema = z.object({
   lord: PlanetSchema,
 });
 
+export const AspectSchema = z.object({
+  from: PlanetSchema,
+  to: z.union([PlanetSchema, z.number().int().min(1).max(12)]),
+  kind: z.enum(["conjunction", "opposition", "trine", "square", "graha_drishti"]),
+  orb_deg: z.number().optional(),
+});
+
 export const ChartSchema = z.object({
   chart_key: ChartKeySchema,
   ascendant_sign: z.string(),
+  ascendant_longitude_deg: z.number().optional(),
   houses: z.array(HousePlacementSchema).length(12),
   planets: z.array(PlanetInChartSchema),
+  aspects: z.array(AspectSchema).optional(),
 });
 
 export const PlanetPlacementSchema = z.object({
@@ -96,13 +110,6 @@ export const PlanetPlacementSchema = z.object({
   retrograde: z.boolean(),
   combust: z.boolean(),
   dignity: z.enum(["exalted", "moolatrikona", "own", "friendly", "neutral", "enemy", "debilitated"]),
-});
-
-export const AspectSchema = z.object({
-  from: PlanetSchema,
-  to: z.union([PlanetSchema, z.number().int().min(1).max(12)]),
-  kind: z.enum(["conjunction", "opposition", "trine", "square", "graha_drishti"]),
-  orb_deg: z.number().optional(),
 });
 
 export const YogaSchema = z.object({

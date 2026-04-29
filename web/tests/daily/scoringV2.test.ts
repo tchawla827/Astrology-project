@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { scoreDailyAspectsV2 } from "@/lib/daily/scoring/v2";
-import type { DashaTimeline, PlanetPlacement, TransitSummary } from "@/lib/schemas";
+import type { ChartSnapshot, DashaTimeline, PlanetPlacement, TransitSummary } from "@/lib/schemas";
 import { goldenSnapshot } from "@/tests/derived/goldenSnapshot";
 
 const dashaTiming = {
@@ -77,5 +77,38 @@ describe("daily Jyotish scoring V2", () => {
     expect(exactEmotional?.components.transit_trigger).toBeLessThan(looseEmotional?.components.transit_trigger ?? 0);
     expect(exactEmotional?.raw_score).toBeLessThan(looseEmotional?.raw_score ?? 100);
     expect(exactEmotional?.notes.join(" ")).toContain("Saturn");
+  });
+
+  it("uses varga-specific aspects when scoring varga support", () => {
+    const base = scoreDailyAspectsV2({
+      snapshot: goldenSnapshot,
+      transits: transitWithSaturnDistanceFromMoon(8),
+      dashaTiming,
+      birthTimeConfidence: "exact",
+    });
+    const d24 = goldenSnapshot.charts.D24;
+    if (!d24) {
+      throw new Error("Golden snapshot is missing D24.");
+    }
+    const pressuredSnapshot: ChartSnapshot = {
+      ...goldenSnapshot,
+      charts: {
+        ...goldenSnapshot.charts,
+        D24: {
+          ...d24,
+          aspects: [...(d24.aspects ?? []), { from: "Saturn", to: "Mercury", kind: "conjunction", orb_deg: 0.5 }],
+        },
+      },
+    };
+    const pressured = scoreDailyAspectsV2({
+      snapshot: pressuredSnapshot,
+      transits: transitWithSaturnDistanceFromMoon(8),
+      dashaTiming,
+      birthTimeConfidence: "exact",
+    });
+
+    const baseFocus = base.score_breakdown.find((score) => score.aspect === "focus");
+    const pressuredFocus = pressured.score_breakdown.find((score) => score.aspect === "focus");
+    expect(pressuredFocus?.components.varga_support).toBeLessThan(baseFocus?.components.varga_support ?? 99);
   });
 });

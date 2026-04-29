@@ -253,3 +253,43 @@ def varga_sign(chart_key: ChartKey, longitude_deg: float) -> str:
 def varga_sign_index(chart_key: ChartKey, longitude_deg: float) -> int:
     fn = VARGA_REGISTRY[chart_key]
     return fn(longitude_deg)
+
+
+def varga_longitude(chart_key: ChartKey, longitude_deg: float) -> float:
+    """Return a derived 0-360 longitude inside the requested varga chart.
+
+    The sign comes from the chart's varga formula. The degree within that
+    derived sign preserves the planet's proportional position inside its
+    natal division segment. This is symbolic divisional longitude, not a
+    second astronomical longitude.
+    """
+    lon = longitude_deg % 360.0
+    if chart_key == "D1":
+        return lon
+
+    if chart_key == "D30":
+        sign = int(lon // 30) % 12
+        deg_in_sign = lon - sign * 30.0
+        table = _D30_ODD if sign % 2 == 0 else _D30_EVEN
+        acc = 0.0
+        for span, target in table:
+            start = acc
+            acc += span
+            if deg_in_sign < acc:
+                fraction = (deg_in_sign - start) / span
+                return (target * 30.0 + fraction * 30.0) % 360.0
+        span, target = table[-1]
+        fraction = (deg_in_sign - (30.0 - span)) / span
+        return (target * 30.0 + fraction * 30.0) % 360.0
+
+    if chart_key not in VARGA_REGISTRY:
+        raise KeyError(chart_key)
+
+    n = int(chart_key[1:])
+    source_sign, segment = _segment(lon, n)
+    deg_in_sign = lon - source_sign * 30.0
+    segment_length = 30.0 / n
+    segment_start = segment * segment_length
+    fraction = (deg_in_sign - segment_start) / segment_length
+    sign_index = varga_sign_index(chart_key, lon)
+    return (sign_index * 30.0 + fraction * 30.0) % 360.0

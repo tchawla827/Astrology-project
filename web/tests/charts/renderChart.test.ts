@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { renderChart } from "@/lib/charts/renderChart";
+import { chartHasPlanetTechnicalDetails, renderChart } from "@/lib/charts/renderChart";
 import type { ChartSnapshot } from "@/lib/schemas";
 
 const houses = [
@@ -35,11 +35,31 @@ const snapshot: ChartSnapshot = {
     D9: {
       chart_key: "D9",
       ascendant_sign: "Sagittarius",
+      ascendant_longitude_deg: 254.2,
       houses: [...houses],
       planets: [
-        { planet: "Sun", sign: "Cancer", house: 8 },
-        { planet: "Mercury", sign: "Leo", house: 9 },
+        {
+          planet: "Sun",
+          sign: "Cancer",
+          house: 8,
+          longitude_deg: 95.2,
+          retrograde: false,
+          combust: false,
+          varga_symbolic_combust: false,
+          dignity: "friendly",
+        },
+        {
+          planet: "Mercury",
+          sign: "Leo",
+          house: 9,
+          longitude_deg: 130.4,
+          retrograde: true,
+          combust: true,
+          varga_symbolic_combust: true,
+          dignity: "friendly",
+        },
       ],
+      aspects: [{ from: "Sun", to: "Mercury", kind: "conjunction", orb_deg: 4.2 }],
     },
   },
   planetary_positions: [
@@ -121,6 +141,17 @@ describe("renderChart", () => {
     const rendered = renderChart(snapshot, "D9", "north");
 
     expect(rendered?.planets.find((planet) => planet.planet === "Sun")?.technicalDetails).toBeUndefined();
-    expect(rendered?.planets.find((planet) => planet.planet === "Mercury")?.label).toBe("Me");
+    expect(rendered?.planets.find((planet) => planet.planet === "Mercury")?.label).toBe("Me(R)");
+  });
+
+  it("preserves varga-specific technical metadata separately from natal placements", () => {
+    const rendered = renderChart(snapshot, "D9", "north");
+    const mercury = rendered?.planets.find((planet) => planet.planet === "Mercury");
+
+    expect(rendered?.chart.aspects?.[0]).toMatchObject({ from: "Sun", to: "Mercury", orb_deg: 4.2 });
+    expect(chartHasPlanetTechnicalDetails(rendered!.chart)).toBe(true);
+    expect(mercury?.longitude_deg).toBe(130.4);
+    expect(mercury?.combust).toBe(true);
+    expect(mercury?.varga_symbolic_combust).toBe(true);
   });
 });
