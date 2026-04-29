@@ -1,4 +1,4 @@
-import { DailyAspectSchema, DailyPlanetSchema, DailyPredictionSchema, type DailyAspectScore, type DailyPrediction } from "@/lib/schemas/daily";
+import { DailyAspectSchema, DailyPredictionSchema, type DailyAspectScore, type DailyPrediction } from "@/lib/schemas/daily";
 import {
   ChartSnapshotSchema,
   DerivedFeaturePayloadSchema,
@@ -538,12 +538,16 @@ function buildDailyContext(input: {
 }
 
 function buildDailyPrompt(context: DailyContextBundle) {
+  const deterministicAspectScores = computeDeterministicAspectScores(context);
   return `Tone: ${context.tone}
+
+Deterministic aspect scores:
+${JSON.stringify(deterministicAspectScores, null, 2)}
 
 Context:
 ${JSON.stringify(context, null, 2)}
 
-Return ONLY JSON matching DailyPrediction schema. Use date "${context.date}", tone "${context.tone}", and answer_schema_version "daily_v2".`;
+Return ONLY JSON matching DailyPrediction schema. Use date "${context.date}", tone "${context.tone}", answer_schema_version "daily_v2", and the deterministic aspect score numbers, labels, and basis exactly.`;
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -578,73 +582,31 @@ function labelForAspectScore(score: number): DailyAspectScore["label"] {
   return "strong";
 }
 
-function asIntegerInRange(value: unknown, fallback: number, min: number, max: number) {
-  const parsed = typeof value === "number" ? value : typeof value === "string" ? Number(value) : Number.NaN;
-  if (!Number.isFinite(parsed)) {
-    return fallback;
-  }
-  return Math.min(max, Math.max(min, Math.round(parsed)));
-}
-
-function asHouseArray(value: unknown, fallback: number[]) {
-  const source = Array.isArray(value) ? value : fallback;
-  const houses = source
-    .map((item) => (typeof item === "number" ? item : typeof item === "string" ? Number(item) : Number.NaN))
-    .filter((item): item is number => Number.isInteger(item) && item >= 1 && item <= 12)
-    .slice(0, 6);
-  return houses.length > 0 ? [...new Set(houses)] : fallback.slice(0, 6);
-}
-
-function asPlanetArray(value: unknown, fallback: Planet[]) {
-  const planetOptions = new Set(DailyPlanetSchema.options);
-  const source = Array.isArray(value) ? value : fallback;
-  const planets = source
-    .filter((item): item is Planet => typeof item === "string" && planetOptions.has(item as Planet))
-    .slice(0, 6);
-  return planets.length > 0 ? [...new Set(planets)] : fallback.slice(0, 6);
-}
-
-function asTransitRuleArray(value: unknown, fallback: string[], allowedRules: string[]) {
-  const allowed = new Set(allowedRules);
-  const source = Array.isArray(value) ? value : fallback;
-  const rules = source
-    .filter((item): item is string => typeof item === "string" && allowed.has(item))
-    .slice(0, 6);
-  return rules.length > 0 ? [...new Set(rules)] : fallback.slice(0, 6);
-}
-
 function asAspectScores(value: unknown, fallback: DailyAspectScore[], context: DailyContextBundle): DailyAspectScore[] {
   const candidates = Array.isArray(value) ? value.map(asRecord) : [];
+  const deterministicScores = computeDeterministicAspectScores(context);
   return DailyAspectSchema.options.map((aspect) => {
     const candidate = candidates.find((entry) => entry.aspect === aspect) ?? {};
-    const definition = aspectScoringDefinitions[aspect];
-    const fallbackScore = fallback.find((entry) => entry.aspect === aspect) ?? {
+    const deterministicScore = deterministicScores.find((entry) => entry.aspect === aspect);
+    const fallbackScore = fallback.find((entry) => entry.aspect === aspect);
+    const score = deterministicScore ?? fallbackScore ?? {
       aspect,
       score: 5,
       label: "mixed" as const,
       sentence: fallbackAspectSentence(aspect, "mixed"),
       basis: {
-        houses: definition.relevant_houses.slice(0, 2),
-        planets: definition.relevant_planets.slice(0, 2),
+        houses: aspectScoringDefinitions[aspect].relevant_houses.slice(0, 2),
+        planets: aspectScoringDefinitions[aspect].relevant_planets.slice(0, 2),
         transit_rules: [],
       },
     };
-    const score = asIntegerInRange(candidate.score, fallbackScore.score, 1, 10);
-    const basis = asRecord(candidate.basis);
+    const candidateUsesDeterministicScore = candidate.score === score.score && candidate.label === score.label;
     return {
       aspect,
-      score,
-      label: labelForAspectScore(score),
-      sentence: asText(candidate.sentence, fallbackScore.sentence, 160),
-      basis: {
-        houses: asHouseArray(basis.houses, fallbackScore.basis.houses),
-        planets: asPlanetArray(basis.planets, fallbackScore.basis.planets),
-        transit_rules: asTransitRuleArray(
-          basis.transit_rules,
-          fallbackScore.basis.transit_rules,
-          context.allowed_citations.transit_rules,
-        ),
-      },
+      score: score.score,
+      label: score.label,
+      sentence: asText(candidateUsesDeterministicScore ? candidate.sentence : undefined, score.sentence, 160),
+      basis: score.basis,
     };
   });
 }
@@ -877,7 +839,7 @@ function fallbackAspectSentence(aspect: DailyAspectScore["aspect"], label: Daily
   return copy[aspect][label];
 }
 
-function fallbackAspectScores(context: DailyContextBundle): DailyAspectScore[] {
+function computeDeterministicAspectScores(context: DailyContextBundle): DailyAspectScore[] {
   const dashaLords = activeDashaLords(context);
   return DailyAspectSchema.options.map((aspect) => {
     const definition = aspectScoringDefinitions[aspect];
@@ -923,6 +885,10 @@ function fallbackAspectScores(context: DailyContextBundle): DailyAspectScore[] {
       },
     };
   });
+}
+
+function fallbackAspectScores(context: DailyContextBundle): DailyAspectScore[] {
+  return computeDeterministicAspectScores(context);
 }
 
 function fallbackFeltSense(aspectScores: DailyAspectScore[]) {
