@@ -1,4 +1,4 @@
-import { DailyAspectSchema, DailyPredictionSchema, type DailyAspectScore, type DailyPrediction } from "@/lib/schemas/daily";
+import { DailyAspectSchema, DailyPredictionSchema, type DailyAspectScore, type DailyPrediction, type DailyScoreBreakdown } from "@/lib/schemas/daily";
 import {
   ChartSnapshotSchema,
   DerivedFeaturePayloadSchema,
@@ -19,6 +19,7 @@ import {
   writeTransitCache,
   type SupabaseDailyCacheClient,
 } from "@/lib/daily/cache";
+import { DAILY_ASPECT_V2_CONFIG, dailyAspectSentence, scoreDailyAspectsV2 } from "@/lib/daily/scoring/v2";
 import { LlmCitationError, LlmContextError, LlmProviderError, LlmSchemaError } from "@/lib/llm/errors";
 import { PROMPT_VERSIONS, systemPromptV1 } from "@/lib/llm/prompts";
 import { routeDailyV2 } from "@/lib/llm/prompts/route/daily_v2";
@@ -104,6 +105,8 @@ export type DailyContextBundle = {
   transit_positions: Array<Pick<PlanetPlacement, "planet" | "sign" | "house" | "retrograde" | "dignity">>;
   triggered_houses: number[];
   transit_rules: TransitRuleHit[];
+  deterministic_aspect_scores: DailyAspectScore[];
+  score_breakdown: DailyScoreBreakdown[];
   relevant_topic_signals: Array<{ topic: string; headline_signals: string[] }>;
   aspect_scoring_context: Array<{
     aspect: DailyAspectScore["aspect"];
@@ -115,7 +118,7 @@ export type DailyContextBundle = {
     derived_signals: Array<{ topic: string; headline_signals: string[] }>;
   }>;
   allowed_citations: {
-    charts: ["Transit", "D1"];
+    charts: string[];
     planets: Planet[];
     triggered_houses: number[];
     transit_rules: string[];
@@ -159,37 +162,12 @@ const signs = [
 const malefics: Planet[] = ["Mars", "Saturn", "Rahu", "Ketu"];
 const luminaries: Planet[] = ["Sun", "Moon"];
 
-const aspectScoringDefinitions = {
-  love: {
-    meaning: "relationship warmth, attraction, partner communication, and emotional openness",
-    relevant_houses: [5, 7],
-    relevant_planets: ["Venus", "Moon", "Jupiter"] as Planet[],
-    topics: ["relationships", "marriage"] as const,
-  },
-  emotional: {
-    meaning: "mood stability, sensitivity, inner pressure, and emotional recovery",
-    relevant_houses: [4, 8, 12],
-    relevant_planets: ["Moon", "Saturn", "Rahu", "Ketu"] as Planet[],
-    topics: ["personality", "health", "spirituality"] as const,
-  },
-  career: {
-    meaning: "work output, responsibility, authority, progress, and practical gains",
-    relevant_houses: [2, 6, 10, 11],
-    relevant_planets: ["Sun", "Mercury", "Jupiter", "Saturn"] as Planet[],
-    topics: ["career", "wealth"] as const,
-  },
-  focus: {
-    meaning: "concentration, decision quality, mental clarity, and distraction risk",
-    relevant_houses: [3, 6, 10],
-    relevant_planets: ["Mercury", "Moon", "Saturn"] as Planet[],
-    topics: ["education", "career", "personality"] as const,
-  },
-} satisfies Record<DailyAspectScore["aspect"], {
-  meaning: string;
-  relevant_houses: number[];
-  relevant_planets: Planet[];
-  topics: readonly (keyof DerivedFeaturePayload["topic_bundles"])[];
-}>;
+const aspectTopicSignals = {
+  love: ["relationships", "marriage"],
+  emotional: ["personality", "health", "spirituality"],
+  career: ["career", "wealth"],
+  focus: ["education", "career", "personality"],
+} satisfies Record<DailyAspectScore["aspect"], readonly (keyof DerivedFeaturePayload["topic_bundles"])[]>;
 
 function errorMessage(error: DbError | null, fallback: string) {
   return error?.message ?? fallback;
@@ -449,23 +427,33 @@ function relevantTopicSignals(derived: DerivedFeaturePayload, triggeredHouses: n
     .filter((entry) => entry.headline_signals.length > 0);
 }
 
+function unique<T>(values: T[]) {
+  return [...new Set(values)];
+}
+
+function aspectRelevantHouses(aspect: DailyAspectScore["aspect"]) {
+  return unique(Object.values(DAILY_ASPECT_V2_CONFIG[aspect].houses).flatMap((houses) => [...houses]));
+}
+
 function buildAspectScoringContext(input: {
   derived: DerivedFeaturePayload;
   transits: TransitSummary;
   hits: TransitRuleHit[];
 }) {
   return DailyAspectSchema.options.map((aspect) => {
-    const definition = aspectScoringDefinitions[aspect];
+    const definition = DAILY_ASPECT_V2_CONFIG[aspect];
+    const relevantHouses = aspectRelevantHouses(aspect);
+    const relevantPlanets = definition.planets as readonly Planet[];
     return {
       aspect,
       meaning: definition.meaning,
-      relevant_houses: definition.relevant_houses,
-      relevant_planets: definition.relevant_planets,
+      relevant_houses: relevantHouses,
+      relevant_planets: [...relevantPlanets],
       active_transit_positions: input.transits.positions
         .filter(
           (position) =>
-            definition.relevant_planets.includes(position.planet) ||
-            definition.relevant_houses.includes(position.house),
+            relevantPlanets.includes(position.planet) ||
+            relevantHouses.includes(position.house),
         )
         .map((position) => ({
           planet: position.planet,
@@ -476,10 +464,10 @@ function buildAspectScoringContext(input: {
         })),
       active_transit_rules: input.hits.filter(
         (hit) =>
-          definition.relevant_planets.includes(hit.planet) ||
-          (typeof hit.house === "number" && definition.relevant_houses.includes(hit.house)),
+          relevantPlanets.includes(hit.planet) ||
+          (typeof hit.house === "number" && relevantHouses.includes(hit.house)),
       ),
-      derived_signals: definition.topics.map((topic) => ({
+      derived_signals: aspectTopicSignals[aspect].map((topic) => ({
         topic,
         headline_signals: input.derived.topic_bundles[topic].headline_signals.slice(0, 3),
       })),
@@ -504,7 +492,15 @@ function buildDailyContext(input: {
     input.dateWiseAstro.dasha_timing.active_antardasha?.lord,
     input.dateWiseAstro.dasha_timing.active_pratyantardasha?.lord,
   ].filter((planet): planet is Planet => Boolean(planet));
-  const planets = [...new Set([...input.hits.map((hit) => hit.planet), ...dashaPlanets])];
+  const scoring = scoreDailyAspectsV2({
+    snapshot: input.snapshot,
+    transits: input.transits,
+    dashaTiming: input.dateWiseAstro.dasha_timing,
+    birthTimeConfidence: input.birth_time_confidence,
+  });
+  const planets = unique([...scoring.basis.planets, ...input.hits.map((hit) => hit.planet), ...dashaPlanets]);
+  const transitRules = unique([...input.hits.map((hit) => hit.rule), ...scoring.basis.transit_rules]);
+  const charts = unique(["Transit", "D1", ...scoring.score_breakdown.flatMap((entry) => entry.source_charts)]);
   return {
     context_id: input.chart_snapshot_id,
     date: input.date,
@@ -522,6 +518,8 @@ function buildDailyContext(input: {
     })),
     triggered_houses: input.triggeredHouses,
     transit_rules: input.hits,
+    deterministic_aspect_scores: scoring.aspect_scores,
+    score_breakdown: scoring.score_breakdown,
     relevant_topic_signals: relevantTopicSignals(input.derived, input.triggeredHouses),
     aspect_scoring_context: buildAspectScoringContext({
       derived: input.derived,
@@ -529,20 +527,22 @@ function buildDailyContext(input: {
       hits: input.hits,
     }),
     allowed_citations: {
-      charts: ["Transit", "D1"],
+      charts,
       planets,
       triggered_houses: input.triggeredHouses,
-      transit_rules: input.hits.map((hit) => hit.rule),
+      transit_rules: transitRules,
     },
   };
 }
 
 function buildDailyPrompt(context: DailyContextBundle) {
-  const deterministicAspectScores = computeDeterministicAspectScores(context);
   return `Tone: ${context.tone}
 
 Deterministic aspect scores:
-${JSON.stringify(deterministicAspectScores, null, 2)}
+${JSON.stringify(context.deterministic_aspect_scores, null, 2)}
+
+Score breakdown:
+${JSON.stringify(context.score_breakdown, null, 2)}
 
 Context:
 ${JSON.stringify(context, null, 2)}
@@ -569,34 +569,20 @@ function asTextArray(value: unknown, fallback: string[]) {
   return items.length > 0 ? items : fallback.slice(0, 5);
 }
 
-function labelForAspectScore(score: number): DailyAspectScore["label"] {
-  if (score <= 3) {
-    return "low";
-  }
-  if (score <= 5) {
-    return "mixed";
-  }
-  if (score <= 7) {
-    return "steady";
-  }
-  return "strong";
-}
-
 function asAspectScores(value: unknown, fallback: DailyAspectScore[], context: DailyContextBundle): DailyAspectScore[] {
   const candidates = Array.isArray(value) ? value.map(asRecord) : [];
-  const deterministicScores = computeDeterministicAspectScores(context);
   return DailyAspectSchema.options.map((aspect) => {
     const candidate = candidates.find((entry) => entry.aspect === aspect) ?? {};
-    const deterministicScore = deterministicScores.find((entry) => entry.aspect === aspect);
+    const deterministicScore = context.deterministic_aspect_scores.find((entry) => entry.aspect === aspect);
     const fallbackScore = fallback.find((entry) => entry.aspect === aspect);
     const score = deterministicScore ?? fallbackScore ?? {
       aspect,
       score: 5,
       label: "mixed" as const,
-      sentence: fallbackAspectSentence(aspect, "mixed"),
+      sentence: dailyAspectSentence(aspect, "mixed"),
       basis: {
-        houses: aspectScoringDefinitions[aspect].relevant_houses.slice(0, 2),
-        planets: aspectScoringDefinitions[aspect].relevant_planets.slice(0, 2),
+        houses: aspectRelevantHouses(aspect).slice(0, 2),
+        planets: [...DAILY_ASPECT_V2_CONFIG[aspect].planets].slice(0, 2),
         transit_rules: [],
       },
     };
@@ -627,6 +613,7 @@ function normalizeDailyPrediction(output: unknown, context: DailyContextBundle):
       planets_used: context.allowed_citations.planets,
       transit_rules: context.allowed_citations.transit_rules,
     },
+    score_breakdown: context.score_breakdown,
     tone: context.tone,
     answer_schema_version: "daily_v2",
   };
@@ -666,7 +653,9 @@ function validateDailyPrediction(output: unknown, context: DailyContextBundle): 
 
   for (const aspectScore of prediction.aspect_scores) {
     const scoringContext = context.aspect_scoring_context.find((entry) => entry.aspect === aspectScore.aspect);
+    const deterministicScore = context.deterministic_aspect_scores.find((entry) => entry.aspect === aspectScore.aspect);
     const allowedAspectHouses = new Set([
+      ...(deterministicScore?.basis.houses ?? []),
       ...(scoringContext?.relevant_houses ?? []),
       ...context.triggered_houses,
       ...(scoringContext?.active_transit_positions.map((position) => position.house) ?? []),
@@ -791,106 +780,6 @@ async function loadTransitSummary(input: {
   return { transits, cache: "miss" as const };
 }
 
-function dignityAdjustment(dignity: PlanetPlacement["dignity"]) {
-  if (dignity === "own" || dignity === "exalted" || dignity === "moolatrikona" || dignity === "friendly") {
-    return 1;
-  }
-  if (dignity === "debilitated" || dignity === "enemy") {
-    return -1;
-  }
-  return 0;
-}
-
-function activeDashaLords(context: DailyContextBundle) {
-  return [
-    context.dasha_timing.active_mahadasha?.lord,
-    context.dasha_timing.active_antardasha?.lord,
-    context.dasha_timing.active_pratyantardasha?.lord,
-  ].filter((planet): planet is Planet => Boolean(planet));
-}
-
-function fallbackAspectSentence(aspect: DailyAspectScore["aspect"], label: DailyAspectScore["label"]) {
-  const copy = {
-    love: {
-      low: "Love needs patience and fewer assumptions today.",
-      mixed: "Love is workable if expectations stay simple.",
-      steady: "Love has enough warmth for honest, low-pressure contact.",
-      strong: "Love carries clear warmth and easier emotional exchange.",
-    },
-    emotional: {
-      low: "Emotionally, the day may feel heavier than usual.",
-      mixed: "Emotionally, the day is sensitive but manageable.",
-      steady: "Emotionally, you can stay steady with a grounded rhythm.",
-      strong: "Emotionally, the day can feel settled and self-contained.",
-    },
-    career: {
-      low: "Career moves need restraint and clean prioritization.",
-      mixed: "Career progress is possible, but avoid forcing speed.",
-      steady: "Career work is supported through steady execution.",
-      strong: "Career action has strong support for visible progress.",
-    },
-    focus: {
-      low: "Focus may scatter unless the task list is cut down.",
-      mixed: "Focus improves when you keep the day narrow.",
-      steady: "Focus is steady enough for one clear priority.",
-      strong: "Focus is strong for decisive, concentrated work.",
-    },
-  } satisfies Record<DailyAspectScore["aspect"], Record<DailyAspectScore["label"], string>>;
-  return copy[aspect][label];
-}
-
-function computeDeterministicAspectScores(context: DailyContextBundle): DailyAspectScore[] {
-  const dashaLords = activeDashaLords(context);
-  return DailyAspectSchema.options.map((aspect) => {
-    const definition = aspectScoringDefinitions[aspect];
-    const positions = context.transit_positions.filter(
-      (position) => definition.relevant_planets.includes(position.planet) || definition.relevant_houses.includes(position.house),
-    );
-    const rules = context.transit_rules.filter(
-      (hit) =>
-        definition.relevant_planets.includes(hit.planet) ||
-        (typeof hit.house === "number" && definition.relevant_houses.includes(hit.house)),
-    );
-    const relevantDashaCount = dashaLords.filter((planet) => definition.relevant_planets.includes(planet)).length;
-    const dignityScore = positions.reduce((score, position) => score + dignityAdjustment(position.dignity), 0);
-    const supportiveRuleScore = rules.filter((hit) => hit.rule.includes("jupiter") || hit.rule.includes("moon_daily")).length;
-    const cautionRuleScore = rules.filter(
-      (hit) => hit.rule.includes("saturn") || hit.rule.includes("rahu") || hit.rule.includes("ketu") || hit.rule.includes("mars"),
-    ).length;
-    const score = Math.min(10, Math.max(1, 5 + relevantDashaCount + dignityScore + supportiveRuleScore - cautionRuleScore));
-    const label = labelForAspectScore(score);
-    const houses = [
-      ...new Set([
-        ...positions.map((position) => position.house),
-        ...rules.flatMap((hit) => (typeof hit.house === "number" ? [hit.house] : [])),
-        ...context.triggered_houses.filter((house) => definition.relevant_houses.includes(house)),
-      ]),
-    ].slice(0, 6);
-    const planets = [
-      ...new Set([
-        ...positions.map((position) => position.planet),
-        ...rules.map((hit) => hit.planet),
-        ...dashaLords.filter((planet) => definition.relevant_planets.includes(planet)),
-      ]),
-    ].slice(0, 6);
-    return {
-      aspect,
-      score,
-      label,
-      sentence: fallbackAspectSentence(aspect, label),
-      basis: {
-        houses: houses.length > 0 ? houses : definition.relevant_houses.slice(0, 2),
-        planets: planets.length > 0 ? planets : definition.relevant_planets.slice(0, 2),
-        transit_rules: rules.map((hit) => hit.rule).slice(0, 6),
-      },
-    };
-  });
-}
-
-function fallbackAspectScores(context: DailyContextBundle): DailyAspectScore[] {
-  return computeDeterministicAspectScores(context);
-}
-
 function fallbackFeltSense(aspectScores: DailyAspectScore[]) {
   const emotional = aspectScores.find((score) => score.aspect === "emotional");
   const focus = aspectScores.find((score) => score.aspect === "focus");
@@ -904,7 +793,6 @@ function fallbackFeltSense(aspectScores: DailyAspectScore[]) {
 }
 
 function fallbackPrediction(context: DailyContextBundle): DailyPrediction {
-  const rules = context.transit_rules.map((hit) => hit.rule);
   const planets = context.allowed_citations.planets;
   const supportive = context.transit_rules.filter(
     (hit) => hit.rule.includes("jupiter") || hit.rule.includes("moon_daily"),
@@ -918,7 +806,7 @@ function fallbackPrediction(context: DailyContextBundle): DailyPrediction {
       hit.rule.includes("near_natal"),
   );
   const moonFocus = context.transit_rules.find((hit) => hit.rule === "moon_daily_house_focus");
-  const aspectScores = fallbackAspectScores(context);
+  const aspectScores = context.deterministic_aspect_scores;
   return {
     date: context.date,
     verdict:
@@ -941,8 +829,9 @@ function fallbackPrediction(context: DailyContextBundle): DailyPrediction {
     technical_basis: {
       triggered_houses: context.triggered_houses,
       planets_used: planets,
-      transit_rules: rules,
+      transit_rules: context.allowed_citations.transit_rules,
     },
+    score_breakdown: context.score_breakdown,
     tone: context.tone,
     answer_schema_version: "daily_v2",
   };

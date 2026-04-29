@@ -1,6 +1,7 @@
 export const routeDailyV2 = `Daily prediction route.
 
 Use only the supplied daily context: natal D1 summary, active dasha timing, panchang, transit positions, natal overlay, relevant topic signals, and aspect_scoring_context. Do not calculate or add planets, houses, aspects, dashas, panchang values, or dates.
+The numeric score has already been computed by the deterministic Jyotish scoring engine. Do not reinterpret or rescore it.
 
 Output requirements:
 - verdict: one plain-language sentence for this date.
@@ -12,6 +13,7 @@ Output requirements:
 - aspect_scores[].basis.houses: use the supplied deterministic basis houses exactly.
 - aspect_scores[].basis.planets: use the supplied deterministic basis planets exactly.
 - aspect_scores[].basis.transit_rules: use the supplied deterministic transit rules exactly.
+- score_breakdown: use the supplied score_breakdown exactly if present.
 - favorable: practical openings supported by the supplied transit rules, active dasha timing, panchang, or muhurta windows.
 - caution: friction points supported by the supplied transit rules, active dasha timing, panchang, or muhurta windows.
 - technical_basis.triggered_houses: exactly the triggered_houses from context.

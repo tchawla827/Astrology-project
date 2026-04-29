@@ -420,12 +420,17 @@ describe("generateDailyPrediction", () => {
     expect(result.prediction.aspect_scores.map((score) => score.aspect)).toEqual(["love", "emotional", "career", "focus"]);
     expect(result.prediction.favorable).toEqual(["Abhijit supports focused work."]);
     expect(result.prediction.technical_basis.triggered_houses).toEqual([4, 5, 10]);
-    expect(result.prediction.technical_basis.planets_used).toEqual(["Saturn", "Jupiter", "Moon"]);
-    expect(result.prediction.technical_basis.transit_rules).toEqual([
+    expect(result.prediction.technical_basis.planets_used).toEqual(expect.arrayContaining(["Saturn", "Jupiter", "Moon", "Mercury"]));
+    expect(result.prediction.technical_basis.transit_rules).toEqual(expect.arrayContaining([
       "saturn_kendra_pressure",
       "jupiter_trine_support",
       "moon_daily_house_focus",
-    ]);
+    ]));
+    expect(result.prediction.score_breakdown?.map((score) => score.aspect)).toEqual(["love", "emotional", "career", "focus"]);
+    expect(result.prediction.score_breakdown?.find((score) => score.aspect === "career")?.source_charts).toContain("D10");
+    expect(result.prediction.score_breakdown?.find((score) => score.aspect === "love")?.source_charts).toContain("D9");
+    expect(result.prediction.score_breakdown?.find((score) => score.aspect === "emotional")?.source_charts).toContain("Moon");
+    expect(result.prediction.score_breakdown?.find((score) => score.aspect === "focus")?.source_charts).toContain("D24");
   });
 
   it("keeps chart-derived scores stable when only tone changes", async () => {
@@ -452,5 +457,6 @@ describe("generateDailyPrediction", () => {
     expect(balanced.prediction.aspect_scores.find((score) => score.aspect === "focus")?.score).not.toBe(3);
     expect(brutal.prediction.aspect_scores.find((score) => score.aspect === "focus")?.score).not.toBe(8);
     expect(brutal.prediction.aspect_scores.find((score) => score.aspect === "focus")?.sentence).not.toContain("8");
+    expect(balanced.prediction.score_breakdown).toEqual(brutal.prediction.score_breakdown);
   });
 });
