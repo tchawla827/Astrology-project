@@ -304,6 +304,34 @@ function provider(): LlmProvider {
   };
 }
 
+function driftingScoreProvider(input: { tone: DailyPrediction["tone"]; focusScore: number }): LlmProvider {
+  const base = provider();
+  return {
+    ...base,
+    async generate(args) {
+      const result = await base.generate(args);
+      const output = result.output as DailyPrediction;
+      return {
+        ...result,
+        output: {
+          ...output,
+          tone: input.tone,
+          aspect_scores: output.aspect_scores.map((score) =>
+            score.aspect === "focus"
+              ? {
+                  ...score,
+                  score: input.focusScore,
+                  label: input.focusScore <= 3 ? "low" : input.focusScore <= 5 ? "mixed" : input.focusScore <= 7 ? "steady" : "strong",
+                  sentence: `Provider tried to make focus ${input.focusScore}.`,
+                }
+              : score,
+          ),
+        },
+      };
+    },
+  };
+}
+
 describe("generateDailyPrediction", () => {
   it("computes overlay houses from cached transit positions", () => {
     const overlay = buildTransitOverlay({
@@ -398,5 +426,31 @@ describe("generateDailyPrediction", () => {
       "jupiter_trine_support",
       "moon_daily_house_focus",
     ]);
+  });
+
+  it("keeps chart-derived scores stable when only tone changes", async () => {
+    const balanced = await generateDailyPrediction({
+      supabase: new DailySupabaseMock(),
+      profile_id: profileId,
+      date: "2026-04-25",
+      tone: "balanced",
+      providers: [driftingScoreProvider({ tone: "balanced", focusScore: 3 })],
+    });
+    const brutal = await generateDailyPrediction({
+      supabase: new DailySupabaseMock(),
+      profile_id: profileId,
+      date: "2026-04-25",
+      tone: "brutal",
+      providers: [driftingScoreProvider({ tone: "brutal", focusScore: 8 })],
+    });
+
+    expect(balanced.prediction.tone).toBe("balanced");
+    expect(brutal.prediction.tone).toBe("brutal");
+    expect(balanced.prediction.aspect_scores.map(({ aspect, score, label, basis }) => ({ aspect, score, label, basis }))).toEqual(
+      brutal.prediction.aspect_scores.map(({ aspect, score, label, basis }) => ({ aspect, score, label, basis })),
+    );
+    expect(balanced.prediction.aspect_scores.find((score) => score.aspect === "focus")?.score).not.toBe(3);
+    expect(brutal.prediction.aspect_scores.find((score) => score.aspect === "focus")?.score).not.toBe(8);
+    expect(brutal.prediction.aspect_scores.find((score) => score.aspect === "focus")?.sentence).not.toContain("8");
   });
 });
