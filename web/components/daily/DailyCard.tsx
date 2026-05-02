@@ -3,6 +3,7 @@ import { AlertTriangle, Brain, BriefcaseBusiness, CalendarDays, CheckCircle2, He
 import { DatePicker } from "@/components/daily/DatePicker";
 import { NatalOverlay } from "@/components/daily/NatalOverlay";
 import { TransitHighlights } from "@/components/daily/TransitHighlights";
+import { TransitFactsExportButton } from "@/components/daily/TransitFactsExportButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DailyPrediction, ToneMode, TransitSummary } from "@/lib/schemas";
 import type { TransitRuleHit } from "@/lib/server/generateDailyPrediction";
@@ -89,7 +90,10 @@ export function DailyCard({
 }) {
   return (
     <div className="space-y-5">
-      <DatePicker date={prediction.date} max={maxDate} min={minDate} todayDate={todayDate} tone={tone} />
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+        <DatePicker date={prediction.date} max={maxDate} min={minDate} todayDate={todayDate} tone={tone} />
+        <TransitFactsExportButton date={prediction.date} />
+      </div>
 
       {showBirthTimeSensitivity ? (
         <div className="flex gap-3 rounded-lg border border-primary/35 bg-primary/10 p-4 text-sm text-primary">
