@@ -25,12 +25,17 @@ export function TransitFactsExportButton({ date }: { date: string }) {
       const body = await parseJson(response);
       if (!response.ok || !body.url) {
         setError(body.error ?? "Could not export data.");
-        setIsExporting(false);
         return;
       }
-      window.location.assign(body.url);
+      const link = document.createElement("a");
+      link.href = body.url;
+      link.rel = "noopener";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not export data.");
+    } finally {
       setIsExporting(false);
     }
   }
