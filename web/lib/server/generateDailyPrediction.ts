@@ -19,7 +19,7 @@ import {
   writeTransitCache,
   type SupabaseDailyCacheClient,
 } from "@/lib/daily/cache";
-import { DAILY_ASPECT_V2_CONFIG, dailyAspectSentence, scoreDailyAspectsV2 } from "@/lib/daily/scoring/v2";
+import { DAILY_ASPECT_V3_CONFIG, dailyAspectSentence, scoreDailyAspectsV3 } from "@/lib/daily/scoring/v3";
 import { LlmCitationError, LlmContextError, LlmProviderError, LlmSchemaError } from "@/lib/llm/errors";
 import { PROMPT_VERSIONS, systemPromptV1 } from "@/lib/llm/prompts";
 import { routeDailyV2 } from "@/lib/llm/prompts/route/daily_v2";
@@ -432,7 +432,7 @@ function unique<T>(values: T[]) {
 }
 
 function aspectRelevantHouses(aspect: DailyAspectScore["aspect"]) {
-  return unique(Object.values(DAILY_ASPECT_V2_CONFIG[aspect].houses).flatMap((houses) => [...houses]));
+  return unique(Object.values(DAILY_ASPECT_V3_CONFIG[aspect].houses).flatMap((houses) => [...houses]));
 }
 
 function buildAspectScoringContext(input: {
@@ -441,7 +441,7 @@ function buildAspectScoringContext(input: {
   hits: TransitRuleHit[];
 }) {
   return DailyAspectSchema.options.map((aspect) => {
-    const definition = DAILY_ASPECT_V2_CONFIG[aspect];
+    const definition = DAILY_ASPECT_V3_CONFIG[aspect];
     const relevantHouses = aspectRelevantHouses(aspect);
     const relevantPlanets = definition.planets as readonly Planet[];
     return {
@@ -492,7 +492,7 @@ function buildDailyContext(input: {
     input.dateWiseAstro.dasha_timing.active_antardasha?.lord,
     input.dateWiseAstro.dasha_timing.active_pratyantardasha?.lord,
   ].filter((planet): planet is Planet => Boolean(planet));
-  const scoring = scoreDailyAspectsV2({
+  const scoring = scoreDailyAspectsV3({
     snapshot: input.snapshot,
     transits: input.transits,
     dashaTiming: input.dateWiseAstro.dasha_timing,
@@ -577,12 +577,12 @@ function asAspectScores(value: unknown, fallback: DailyAspectScore[], context: D
     const fallbackScore = fallback.find((entry) => entry.aspect === aspect);
     const score = deterministicScore ?? fallbackScore ?? {
       aspect,
-      score: 5,
+      score: 50,
       label: "mixed" as const,
       sentence: dailyAspectSentence(aspect, "mixed"),
       basis: {
         houses: aspectRelevantHouses(aspect).slice(0, 2),
-        planets: [...DAILY_ASPECT_V2_CONFIG[aspect].planets].slice(0, 2),
+        planets: [...DAILY_ASPECT_V3_CONFIG[aspect].planets].slice(0, 2),
         transit_rules: [],
       },
     };
@@ -783,10 +783,10 @@ async function loadTransitSummary(input: {
 function fallbackFeltSense(aspectScores: DailyAspectScore[]) {
   const emotional = aspectScores.find((score) => score.aspect === "emotional");
   const focus = aspectScores.find((score) => score.aspect === "focus");
-  if ((emotional?.score ?? 5) <= 4) {
+  if ((emotional?.score ?? 50) <= 40) {
     return "You may feel more reactive than usual, so a slower pace will help.";
   }
-  if ((focus?.score ?? 5) >= 8) {
+  if ((focus?.score ?? 50) >= 75) {
     return "You may feel mentally clear and ready to handle one important task.";
   }
   return "You may feel active but slightly uneven, with better results from keeping things simple.";

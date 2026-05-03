@@ -52,11 +52,11 @@ function AspectScoreGrid({ scores }: { scores: DailyPrediction["aspect_scores"] 
                 <h2 className="text-sm font-semibold">{label}</h2>
               </div>
               <div className="rounded-md border border-primary/20 bg-card/70 px-2 py-1 text-sm font-semibold">
-                {score.score}/10
+                {score.score}/100
               </div>
             </div>
             <div className="mt-3 h-2 rounded-full bg-muted">
-              <div className={`h-2 rounded-full ${bar}`} style={{ width: `${score.score * 10}%` }} />
+              <div className={`h-2 rounded-full ${bar}`} style={{ width: `${score.score}%` }} />
             </div>
             <p className="mt-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">{score.label}</p>
             <p className="mt-2 text-sm leading-6">{score.sentence}</p>

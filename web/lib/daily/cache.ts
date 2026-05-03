@@ -1,6 +1,6 @@
 import { DailyPredictionSchema, TransitSummarySchema, type DailyPrediction, type TransitSummary } from "@/lib/schemas";
 
-const DAILY_SCHEMA_VERSION = "daily_v2_jyotish_scoring" as const;
+const DAILY_SCHEMA_VERSION = "daily_v3_jyotish_scoring_100" as const;
 
 type DbError = { message: string } | Error;
 type QueryResult = PromiseLike<{ data: unknown; error: DbError | null }>;

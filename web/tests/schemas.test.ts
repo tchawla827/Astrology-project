@@ -177,28 +177,28 @@ describe("schemas", () => {
         aspect_scores: [
           {
             aspect: "love",
-            score: 5,
+            score: 50,
             label: "mixed",
             sentence: "Love is workable if expectations stay simple.",
             basis: { houses: [5], planets: ["Jupiter", "Moon"], transit_rules: ["jupiter_trine_support"] },
           },
           {
             aspect: "emotional",
-            score: 4,
+            score: 42,
             label: "mixed",
             sentence: "Emotionally, the day is sensitive but manageable.",
             basis: { houses: [1], planets: ["Saturn", "Moon"], transit_rules: ["saturn_kendra_pressure"] },
           },
           {
             aspect: "career",
-            score: 6,
+            score: 65,
             label: "steady",
             sentence: "Career work is supported through steady execution.",
             basis: { houses: [10], planets: ["Saturn", "Jupiter"], transit_rules: ["saturn_kendra_pressure", "jupiter_trine_support"] },
           },
           {
             aspect: "focus",
-            score: 7,
+            score: 72,
             label: "steady",
             sentence: "Focus is steady enough for one clear priority.",
             basis: { houses: [10], planets: ["Saturn"], transit_rules: ["saturn_kendra_pressure"] },
