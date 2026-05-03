@@ -250,6 +250,8 @@ export const AskSessionSchema = z.object({
   birth_profile_id: z.string().uuid(),
   topic: z.union([TopicSchema, z.literal("mixed")]),
   tone_mode: ToneModeSchema,
+  context_kind: z.enum(["natal", "daily"]).default("natal"),
+  context_date: z.string().nullable().optional(),
   created_at: z.string(),
 });
 

@@ -22,6 +22,8 @@ type StoredSession = {
   birth_profile_id: string;
   topic: Topic;
   tone_mode: string;
+  context_kind: "natal" | "daily";
+  context_date: string | null;
 };
 
 type StoredMessage = {
@@ -349,6 +351,10 @@ describe("phase 07 LLM orchestration", () => {
     expect(result.meta.context_bundle_type).toBe("daily");
     expect(result.meta.prompt_versions?.route).toBe(PROMPT_VERSIONS.day_question_route);
     expect(result.answer.technical_basis.charts_used).toEqual(["Transit"]);
+    expect(supabase.sessions[0]).toMatchObject({
+      context_kind: "daily",
+      context_date: "2026-04-25",
+    });
     expect(supabase.messages[1]?.llm_metadata).toMatchObject({
       context_bundle_type: "daily",
       prompt_versions: { route: PROMPT_VERSIONS.day_question_route },
