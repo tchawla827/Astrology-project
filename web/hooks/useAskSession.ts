@@ -40,6 +40,8 @@ export function useAskSession(input: {
   initialTone: ToneMode;
   initialDepth?: DepthMode;
   profileId?: string;
+  dayContextDate?: string;
+  navigateOnNewSession?: boolean;
 }) {
   const router = useRouter();
   const [sessionId, setSessionId] = useState(input.initialSessionId);
@@ -84,6 +86,7 @@ export function useAskSession(input: {
             depth,
             session_id: sessionId,
             profile_id: input.profileId,
+            day_context: input.dayContextDate ? { date: input.dayContextDate } : undefined,
           }),
         });
         const body = await parseAskResponse(response);
@@ -108,7 +111,10 @@ export function useAskSession(input: {
 
         if (!sessionId) {
           setSessionId(nextSessionId);
-          router.replace(`/ask/${nextSessionId}`);
+          if (input.navigateOnNewSession !== false) {
+            const suffix = input.dayContextDate ? `?day=${encodeURIComponent(input.dayContextDate)}` : "";
+            router.replace(`/ask/${nextSessionId}${suffix}`);
+          }
         }
       } catch (error) {
         const errorMessage: AskUiMessage = {
@@ -122,7 +128,7 @@ export function useAskSession(input: {
         setIsSubmitting(false);
       }
     },
-    [depth, input.profileId, isSubmitting, router, sessionId, tone],
+    [depth, input.dayContextDate, input.navigateOnNewSession, input.profileId, isSubmitting, router, sessionId, tone],
   );
 
   const retryQuestion = useCallback(

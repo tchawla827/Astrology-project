@@ -1,5 +1,12 @@
 import { getTransits } from "@/lib/astro/client";
-import { ChartSnapshotSchema, type BirthProfile, type ChartSnapshot, type Planet, type TransitSummary } from "@/lib/schemas";
+import {
+  ChartSnapshotSchema,
+  type BirthProfile,
+  type ChartSnapshot,
+  type Planet,
+  type PlanetPlacement,
+  type TransitSummary,
+} from "@/lib/schemas";
 
 type DbError = { message: string } | Error;
 type QueryResult = PromiseLike<{ data: unknown; error: DbError | null }>;
@@ -68,6 +75,31 @@ export type AstrologyFactsExportData = {
     natal_overlay: {
       planet_to_house: Partial<Record<Planet, number>>;
     };
+  };
+};
+
+type PromptPlanetPlacement = Pick<
+  PlanetPlacement,
+  "planet" | "longitude_deg" | "sign" | "house" | "nakshatra" | "pada" | "retrograde" | "combust" | "dignity"
+>;
+
+export type AstrologyFactsAskContext = {
+  source_export_kind: AstrologyFactsExportData["export_kind"];
+  requested_date: string;
+  transit_at: string;
+  profile: Pick<AstrologyFactsExportData["profile"], "timezone" | "ayanamsha" | "birth_time_confidence">;
+  natal_summary: ChartSnapshot["summary"];
+  chart_keys: string[];
+  natal_planets: PromptPlanetPlacement[];
+  transits: {
+    as_of: string;
+    positions: PromptPlanetPlacement[];
+    natal_overlay: AstrologyFactsExportData["transits"]["natal_overlay"];
+  };
+  allowed_citations: {
+    charts: string[];
+    houses: number[];
+    planets: Planet[];
   };
 };
 
@@ -169,6 +201,66 @@ function profileForExport(profile: BirthProfileRow): AstrologyFactsExportData["p
 
 function planetToHouseFromPositions(transits: TransitSummary) {
   return Object.fromEntries(transits.positions.map((position) => [position.planet, position.house])) as Partial<Record<Planet, number>>;
+}
+
+function promptPlacement(position: PlanetPlacement): PromptPlanetPlacement {
+  return {
+    planet: position.planet,
+    longitude_deg: position.longitude_deg,
+    sign: position.sign,
+    house: position.house,
+    nakshatra: position.nakshatra,
+    pada: position.pada,
+    retrograde: position.retrograde,
+    combust: position.combust,
+    dignity: position.dignity,
+  };
+}
+
+function uniqueNumbers(values: Array<number | undefined>) {
+  return [...new Set(values.filter((value): value is number => typeof value === "number"))].sort((left, right) => left - right);
+}
+
+function uniquePlanets(values: Array<Planet | undefined>) {
+  return [...new Set(values.filter((value): value is Planet => Boolean(value)))].sort();
+}
+
+export function buildAstrologyFactsAskContext(data: AstrologyFactsExportData): AstrologyFactsAskContext {
+  const natalPlanets = data.chart_snapshot.planetary_positions.map(promptPlacement);
+  const transitPositions = data.transits.positions.map(promptPlacement);
+  const overlayHouses = Object.values(data.transits.natal_overlay.planet_to_house);
+
+  return {
+    source_export_kind: data.export_kind,
+    requested_date: data.requested_date,
+    transit_at: data.transit_at,
+    profile: {
+      timezone: data.profile.timezone,
+      ayanamsha: data.profile.ayanamsha,
+      birth_time_confidence: data.profile.birth_time_confidence,
+    },
+    natal_summary: data.chart_snapshot.summary,
+    chart_keys: data.chart_snapshot.chart_keys,
+    natal_planets: natalPlanets,
+    transits: {
+      as_of: data.transits.as_of,
+      positions: transitPositions,
+      natal_overlay: data.transits.natal_overlay,
+    },
+    allowed_citations: {
+      charts: [...new Set([...(data.chart_snapshot.chart_keys.includes("D1") ? ["D1"] : []), "Transit"])].sort(),
+      houses: uniqueNumbers([
+        ...natalPlanets.map((position) => position.house),
+        ...transitPositions.map((position) => position.house),
+        ...overlayHouses,
+      ]),
+      planets: uniquePlanets([
+        ...natalPlanets.map((position) => position.planet),
+        ...transitPositions.map((position) => position.planet),
+        ...(Object.keys(data.transits.natal_overlay.planet_to_house) as Planet[]),
+      ]),
+    },
+  };
 }
 
 export function renderAstrologyFactsJson(data: AstrologyFactsExportData) {

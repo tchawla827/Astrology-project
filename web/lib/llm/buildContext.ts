@@ -8,6 +8,7 @@ import {
   type TopicBundle,
 } from "@/lib/schemas";
 import { LlmContextError } from "@/lib/llm/errors";
+import type { AstrologyFactsAskContext } from "@/lib/server/exportAstrologyFacts";
 
 type QueryResult = PromiseLike<{ data: unknown; error: { message: string } | Error | null }>;
 
@@ -54,6 +55,7 @@ export type AskContextBundle = TopicBundle & {
   birth_time_confidence: "exact" | "approximate" | "unknown";
   profile_summary: ChartSnapshot["summary"];
   time_sensitivity: DerivedFeaturePayload["time_sensitivity"];
+  day_context?: AstrologyFactsAskContext;
   allowed_citations: {
     charts: string[];
     houses: number[];
@@ -107,18 +109,29 @@ function asChartRow(value: unknown): ChartSnapshotRow | null {
   return null;
 }
 
-function allowedCharts(bundle: TopicBundle) {
-  const charts = new Set(bundle.charts_used);
+function allowedCharts(bundle: TopicBundle, dayContext?: AstrologyFactsAskContext) {
+  const charts = new Set([...bundle.charts_used, ...(dayContext?.allowed_citations.charts ?? [])]);
   if (bundle.timing.current_trigger_notes.length > 0) {
     charts.add("Transit");
   }
   return [...charts];
 }
 
+function allowedHouses(bundle: TopicBundle, dayContext?: AstrologyFactsAskContext) {
+  return [...new Set([...Object.keys(bundle.houses).map(Number), ...(dayContext?.allowed_citations.houses ?? [])])].sort(
+    (left, right) => left - right,
+  );
+}
+
+function allowedPlanets(bundle: TopicBundle, dayContext?: AstrologyFactsAskContext) {
+  return [...new Set([...(Object.keys(bundle.planets) as Planet[]), ...(dayContext?.allowed_citations.planets ?? [])])];
+}
+
 export async function buildContextBundle(input: {
   supabase: SupabaseAskContextClient;
   profile_id: string;
   topic: Topic;
+  day_context?: AstrologyFactsAskContext;
 }): Promise<AskContextBundle> {
   const { data: profileData, error: profileError } = await input.supabase
     .from("birth_profiles")
@@ -184,8 +197,8 @@ export async function buildContextBundle(input: {
   }
 
   const bundle = parsedDerived.data.topic_bundles[input.topic];
-  const houses = Object.keys(bundle.houses).map(Number);
-  const planets = Object.keys(bundle.planets) as Planet[];
+  const houses = allowedHouses(bundle, input.day_context);
+  const planets = allowedPlanets(bundle, input.day_context);
 
   return {
     ...bundle,
@@ -198,8 +211,9 @@ export async function buildContextBundle(input: {
     birth_time_confidence: parsedChart.data.birth_time_confidence ?? profile.birth_time_confidence,
     profile_summary: parsedChart.data.summary,
     time_sensitivity: parsedDerived.data.time_sensitivity,
+    day_context: input.day_context,
     allowed_citations: {
-      charts: allowedCharts(bundle),
+      charts: allowedCharts(bundle, input.day_context),
       houses,
       planets,
     },

@@ -5,6 +5,12 @@ import { generateAnswer, type SupabaseAskPersistenceClient } from "@/lib/llm/gen
 import { LlmContextError, LlmProviderError } from "@/lib/llm/errors";
 import { track } from "@/lib/analytics/events";
 import { recordAskUsage } from "@/lib/quotas/askQuota";
+import {
+  AstrologyFactsExportInputError,
+  buildAstrologyFactsAskContext,
+  loadAstrologyFactsExportData,
+  type SupabaseAstrologyFactsExportClient,
+} from "@/lib/server/exportAstrologyFacts";
 import { DepthModeSchema, ToneModeSchema } from "@/lib/schemas";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,6 +20,11 @@ const AskRequestSchema = z.object({
   depth: DepthModeSchema.default("simple"),
   session_id: z.string().uuid().optional(),
   profile_id: z.string().uuid().optional(),
+  day_context: z
+    .object({
+      date: z.string().trim().min(10).max(10),
+    })
+    .optional(),
 });
 
 type ProfileRow = {
@@ -90,6 +101,17 @@ export async function POST(request: Request) {
   }
 
   try {
+    const dayContext = parsed.data.day_context
+      ? buildAstrologyFactsAskContext(
+          await loadAstrologyFactsExportData({
+            supabase: supabase as unknown as SupabaseAstrologyFactsExportClient,
+            userId: user.id,
+            profileId: profile.profileId,
+            date: parsed.data.day_context.date,
+          }),
+        )
+      : undefined;
+
     const result = await generateAnswer({
       supabase: supabase as unknown as SupabaseAskPersistenceClient,
       profile_id: profile.profileId,
@@ -97,13 +119,19 @@ export async function POST(request: Request) {
       tone: parsed.data.tone,
       depth: parsed.data.depth,
       session_id: parsed.data.session_id,
+      day_context: dayContext,
     });
 
     await recordAskUsage({ supabase, userId: user.id, askMessageId: result.assistant_message_id });
     await track(
       supabase,
       "ask_submitted",
-      { topic: result.classification.topic, tone: parsed.data.tone, depth: parsed.data.depth },
+      {
+        topic: result.classification.topic,
+        tone: parsed.data.tone,
+        depth: parsed.data.depth,
+        day_context_date: dayContext?.requested_date ?? null,
+      },
       user.id,
     );
 
@@ -113,8 +141,13 @@ export async function POST(request: Request) {
       session_id: result.session_id,
       assistant_message_id: result.assistant_message_id,
       classification: result.classification,
+      day_context: dayContext ? { requested_date: dayContext.requested_date } : undefined,
     });
   } catch (error) {
+    if (error instanceof AstrologyFactsExportInputError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
     if (error instanceof LlmProviderError) {
       return NextResponse.json(
         { error: "Ask Astrology is temporarily unavailable because all LLM providers failed." },

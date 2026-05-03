@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { getTransits } from "@/lib/astro/client";
 import {
   AstrologyFactsExportInputError,
+  buildAstrologyFactsAskContext,
   loadAstrologyFactsExportData,
   renderAstrologyFactsJson,
   type SupabaseAstrologyFactsExportClient,
@@ -149,6 +150,15 @@ describe("astrology facts export", () => {
     expect(json).not.toContain("aspect_scores");
     expect(json).not.toContain("score_breakdown");
     expect(json).not.toContain("Jupiter support on trine 5");
+
+    const askContext = buildAstrologyFactsAskContext(data);
+    expect(askContext.requested_date).toBe("2026-04-25");
+    expect(askContext.chart_keys).toContain("D1");
+    expect(askContext.transits.positions).toEqual(transitSummary.positions);
+    expect(askContext.allowed_citations.charts).toContain("Transit");
+    expect(askContext.allowed_citations.houses).toEqual(expect.arrayContaining([3, 4, 5]));
+    expect(askContext.allowed_citations.planets).toEqual(expect.arrayContaining(["Sun", "Moon"]));
+
     expect(getTransits).toHaveBeenCalledWith(
       expect.objectContaining({
         at: "2026-04-24T18:30:00.000Z",

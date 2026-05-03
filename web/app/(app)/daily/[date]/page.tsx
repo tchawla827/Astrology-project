@@ -140,6 +140,7 @@ export default async function DailyDatePage({
           maxDate={plusYears(result.profile.birth_date, 120)}
           minDate={result.profile.birth_date}
           prediction={result.prediction}
+          profileId={profile.id}
           showBirthTimeSensitivity={showBirthTimeSensitivity}
           todayDate={todayDate}
           tone={parsedTone.data}
