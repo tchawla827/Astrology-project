@@ -17,6 +17,7 @@ function promptContext(context: AskContextBundle) {
   return {
     topic: context.topic,
     profile_summary: context.profile_summary,
+    selected_day_facts: context.day_context,
     birth_time_confidence: context.birth_time_confidence,
     charts_used: context.charts_used,
     headline_signals: context.headline_signals,
@@ -35,10 +36,15 @@ export function userPromptV1(input: {
   tone: ToneMode;
   depth: DepthMode;
 }) {
+  const dayInstruction = input.context_bundle.day_context
+    ? `Selected day instruction: The user is asking about ${input.context_bundle.day_context.requested_date}. Treat selected_day_facts as the primary transit/date context. Do not substitute today's transits, do not infer missing facts, and cite only factors listed in allowed_citations.`
+    : "Selected day instruction: No selected-day facts are attached.";
+
   return `Tone: ${input.tone}
 Tone guidance: ${toneGuidance[input.tone]}
 Depth: ${input.depth}
 Depth guidance: ${depthGuidance[input.depth]}
+${dayInstruction}
 
 Context:
 ${JSON.stringify(promptContext(input.context_bundle), null, 2)}

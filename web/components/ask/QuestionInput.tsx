@@ -13,6 +13,7 @@ export function QuestionInput({
   disabled,
   isSubmitting,
   className,
+  placeholder = "Ask about career, timing, relationships, money, health, or the pattern you keep repeating.",
 }: {
   value: string;
   onChange(value: string): void;
@@ -20,6 +21,7 @@ export function QuestionInput({
   disabled?: boolean;
   isSubmitting?: boolean;
   className?: string;
+  placeholder?: string;
 }) {
   return (
     <form
@@ -39,7 +41,7 @@ export function QuestionInput({
           id="ask-question"
           maxLength={1000}
           onChange={(event) => onChange(event.target.value)}
-          placeholder="Ask about career, timing, relationships, money, health, or the pattern you keep repeating."
+          placeholder={placeholder}
           value={value}
         />
         <Button

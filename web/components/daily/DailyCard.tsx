@@ -1,6 +1,7 @@
 import { AlertTriangle, Brain, BriefcaseBusiness, CalendarDays, CheckCircle2, Heart, ShieldAlert, Sparkles, Target } from "lucide-react";
 
 import { DatePicker } from "@/components/daily/DatePicker";
+import { DayQuestionPanel } from "@/components/daily/DayQuestionPanel";
 import { NatalOverlay } from "@/components/daily/NatalOverlay";
 import { TransitHighlights } from "@/components/daily/TransitHighlights";
 import { TransitFactsExportButton } from "@/components/daily/TransitFactsExportButton";
@@ -77,6 +78,7 @@ export function DailyCard({
   maxDate,
   showBirthTimeSensitivity,
   cacheLabel,
+  profileId,
 }: {
   prediction: DailyPrediction;
   transits: TransitSummary;
@@ -87,6 +89,7 @@ export function DailyCard({
   maxDate: string;
   showBirthTimeSensitivity: boolean;
   cacheLabel: string;
+  profileId: string;
 }) {
   return (
     <div className="space-y-5">
@@ -94,6 +97,8 @@ export function DailyCard({
         <DatePicker date={prediction.date} max={maxDate} min={minDate} todayDate={todayDate} tone={tone} />
         <TransitFactsExportButton date={prediction.date} />
       </div>
+
+      <DayQuestionPanel date={prediction.date} profileId={profileId} tone={tone} />
 
       {showBirthTimeSensitivity ? (
         <div className="flex gap-3 rounded-lg border border-primary/35 bg-primary/10 p-4 text-sm text-primary">

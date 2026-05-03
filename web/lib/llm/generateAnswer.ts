@@ -2,9 +2,10 @@ import { AskAnswerSchema, type AskAnswer, type DepthMode, type LlmMetadata, type
 import { buildContextBundle, type AskContextBundle } from "@/lib/llm/buildContext";
 import { classifyQuestion, type AskClassification } from "@/lib/llm/classify";
 import { LlmCitationError, LlmSchemaError } from "@/lib/llm/errors";
-import { PROMPT_VERSIONS, routePromptFor, systemPromptV1, userPromptV1 } from "@/lib/llm/prompts";
+import { PROMPT_VERSIONS, routeDayQuestionV1, routePromptFor, systemPromptV1, userPromptV1 } from "@/lib/llm/prompts";
 import { callWithFallback, type LlmProvider } from "@/lib/llm/providers";
 import { applyBirthTimeConsistency, validateAnswer } from "@/lib/llm/validate";
+import type { AstrologyFactsAskContext } from "@/lib/server/exportAstrologyFacts";
 
 type QueryResult = PromiseLike<{ data: unknown; error: { message: string } | Error | null }>;
 
@@ -41,6 +42,7 @@ export type GenerateAnswerInput = {
   tone: ToneMode;
   depth: DepthMode;
   session_id?: string;
+  day_context?: AstrologyFactsAskContext;
   providers?: LlmProvider[];
 };
 
@@ -198,7 +200,8 @@ function buildPrompt(input: {
   tone: ToneMode;
   depth: DepthMode;
 }) {
-  const route = routePromptFor(input.context.topic);
+  const topicRoute = routePromptFor(input.context.topic);
+  const route = input.context.day_context ? `${routeDayQuestionV1}\n\n${topicRoute}` : topicRoute;
   const user = userPromptV1({
     context_bundle: input.context,
     question: input.question,
@@ -211,7 +214,7 @@ function buildPrompt(input: {
     messages: [{ role: "user" as const, content: `${route}\n\n${user}` }],
     prompt_versions: {
       system: PROMPT_VERSIONS.system,
-      route: PROMPT_VERSIONS.route[input.context.topic],
+      route: input.context.day_context ? PROMPT_VERSIONS.day_question_route : PROMPT_VERSIONS.route[input.context.topic],
       user: PROMPT_VERSIONS.user,
     },
   };
@@ -248,6 +251,7 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<{
     supabase: input.supabase,
     profile_id: input.profile_id,
     topic: classification.topic,
+    day_context: input.day_context,
   });
 
   const prompt = buildPrompt({
@@ -261,7 +265,7 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<{
     system: prompt.system,
     messages: prompt.messages,
     schema: AskAnswerSchema,
-    topic: classification.topic,
+    topic: context.day_context ? "daily" : classification.topic,
     classification,
     context_bundle_id: context.context_id,
     prompt_versions: prompt.prompt_versions,
@@ -282,7 +286,7 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<{
       system: systemPromptV1,
       messages: [{ role: "user", content: buildRepairPrompt({ originalOutput: firstCall.output, validationError: error, context }) }],
       schema: AskAnswerSchema,
-      topic: classification.topic,
+      topic: context.day_context ? "daily" : classification.topic,
       classification,
       context_bundle_id: context.context_id,
       prompt_versions: prompt.prompt_versions,

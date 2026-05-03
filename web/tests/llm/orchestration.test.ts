@@ -12,6 +12,7 @@ import type { AskContextBundle } from "@/lib/llm/buildContext";
 import type { LlmProvider } from "@/lib/llm/providers";
 import { PROMPT_VERSIONS } from "@/lib/llm/prompts";
 import type { AskAnswer, Planet, Topic } from "@/lib/schemas";
+import type { AstrologyFactsAskContext } from "@/lib/server/exportAstrologyFacts";
 import { goldenSnapshot } from "@/tests/derived/goldenSnapshot";
 
 const profileId = "00000000-0000-4000-8000-000000000001";
@@ -285,5 +286,72 @@ describe("phase 07 LLM orchestration", () => {
     expect(result.classification.birth_time_sensitive).toBe(true);
     expect(result.answer.confidence.level).toBe("medium");
     expect(result.answer.confidence.note).toContain("birth time is approximate");
+  });
+
+  it("uses selected-day facts as daily context for day-wise questions", async () => {
+    const supabase = new AskSupabaseMock("exact");
+    const dayContext: AstrologyFactsAskContext = {
+      source_export_kind: "charts_transits_json",
+      requested_date: "2026-04-25",
+      transit_at: "2026-04-24T18:30:00.000Z",
+      profile: { timezone: "Asia/Kolkata", ayanamsha: "lahiri", birth_time_confidence: "exact" },
+      natal_summary: goldenSnapshot.summary,
+      chart_keys: ["D1"],
+      natal_planets: goldenSnapshot.planetary_positions.map((position) => ({
+        planet: position.planet,
+        longitude_deg: position.longitude_deg,
+        sign: position.sign,
+        house: position.house,
+        nakshatra: position.nakshatra,
+        pada: position.pada,
+        retrograde: position.retrograde,
+        combust: position.combust,
+        dignity: position.dignity,
+      })),
+      transits: {
+        as_of: "2026-04-24T18:30:00.000Z",
+        positions: [
+          {
+            planet: "Sun",
+            longitude_deg: 10,
+            sign: "Aries",
+            house: 3,
+            nakshatra: "Ashwini",
+            pada: 1,
+            retrograde: false,
+            combust: false,
+            dignity: "exalted",
+          },
+        ],
+        natal_overlay: { planet_to_house: { Sun: 3 } },
+      },
+      allowed_citations: { charts: ["D1", "Transit"], houses: [3, 10], planets: ["Sun", "Saturn"] },
+    };
+    const answer: AskAnswer = {
+      verdict: "This date favors focused work, with a transit-led push rather than a permanent promise.",
+      why: ["The selected-day transit context puts Sun emphasis into an action house."],
+      timing: { summary: "This is about the selected date's transit context.", type: ["transit"] },
+      confidence: { level: "medium", note: "Grounded in the attached selected-day facts." },
+      advice: ["Use the day for visible work rather than emotional cleanup."],
+      technical_basis: { charts_used: ["Transit"], houses_used: [3], planets_used: ["Sun"] },
+    };
+
+    const result = await generateAnswer({
+      supabase,
+      profile_id: profileId,
+      question: "How is work on this date?",
+      tone: "direct",
+      depth: "technical",
+      day_context: dayContext,
+      providers: [providerReturning("gemini", answer)],
+    });
+
+    expect(result.meta.context_bundle_type).toBe("daily");
+    expect(result.meta.prompt_versions?.route).toBe(PROMPT_VERSIONS.day_question_route);
+    expect(result.answer.technical_basis.charts_used).toEqual(["Transit"]);
+    expect(supabase.messages[1]?.llm_metadata).toMatchObject({
+      context_bundle_type: "daily",
+      prompt_versions: { route: PROMPT_VERSIONS.day_question_route },
+    });
   });
 });
