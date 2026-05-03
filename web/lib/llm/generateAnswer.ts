@@ -49,6 +49,8 @@ export type GenerateAnswerInput = {
 type AskSessionRow = {
   id: string;
   birth_profile_id: string;
+  context_kind?: "natal" | "daily" | null;
+  context_date?: string | null;
 };
 
 type InsertedSessionRow = {
@@ -60,7 +62,16 @@ function asSessionRow(value: unknown): AskSessionRow | null {
     return null;
   }
   const row = value as Partial<AskSessionRow>;
-  return typeof row.id === "string" && typeof row.birth_profile_id === "string" ? (row as AskSessionRow) : null;
+  if (typeof row.id !== "string" || typeof row.birth_profile_id !== "string") {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    birth_profile_id: row.birth_profile_id,
+    context_kind: row.context_kind === "daily" ? "daily" : "natal",
+    context_date: typeof row.context_date === "string" ? row.context_date : null,
+  };
 }
 
 function asInsertedSessionRow(value: unknown): InsertedSessionRow | null {
@@ -95,11 +106,12 @@ async function ensureSession(input: {
   profile_id: string;
   classification: AskClassification;
   tone: ToneMode;
+  day_context?: AstrologyFactsAskContext;
 }) {
   if (input.session_id) {
     const { data, error } = await input.supabase
       .from("ask_sessions")
-      .select("id,birth_profile_id")
+      .select("id,birth_profile_id,context_kind,context_date")
       .eq("id", input.session_id)
       .maybeSingle();
 
@@ -114,6 +126,14 @@ async function ensureSession(input: {
     if (row.birth_profile_id !== input.profile_id) {
       throw new Error("Ask session belongs to a different birth profile.");
     }
+    if (row.context_kind === "daily") {
+      if (!input.day_context) {
+        throw new Error("Ask session requires the selected day context.");
+      }
+      if (row.context_date && row.context_date !== input.day_context.requested_date) {
+        throw new Error("Ask session belongs to a different selected day.");
+      }
+    }
     return row.id;
   }
 
@@ -121,6 +141,8 @@ async function ensureSession(input: {
     birth_profile_id: input.profile_id,
     topic: input.classification.topic,
     tone_mode: input.tone,
+    context_kind: input.day_context ? "daily" : "natal",
+    context_date: input.day_context?.requested_date ?? null,
   });
 
   if (!isInsertQuery(insert)) {
@@ -307,6 +329,7 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<{
     profile_id: input.profile_id,
     classification,
     tone: input.tone,
+    day_context: input.day_context,
   });
 
   const assistant_message_id = await insertAskMessages({

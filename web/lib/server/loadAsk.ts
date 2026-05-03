@@ -32,6 +32,8 @@ export type AskSessionSummary = {
   birth_profile_id: string;
   topic: Topic | "mixed";
   tone_mode: ToneMode;
+  context_kind: "natal" | "daily";
+  context_date?: string;
   created_at: string;
   first_question_preview: string;
   last_updated: string;
@@ -84,6 +86,8 @@ type SessionRow = {
   birth_profile_id: string;
   topic: string;
   tone_mode: string;
+  context_kind?: string | null;
+  context_date?: string | null;
   created_at: string;
   ask_messages?: unknown[];
 };
@@ -219,6 +223,8 @@ function normalizeSession(value: unknown): AskSessionSummary | null {
     birth_profile_id: row.birth_profile_id,
     topic,
     tone_mode: tone.data,
+    context_kind: row.context_kind === "daily" && typeof row.context_date === "string" ? "daily" : "natal",
+    context_date: row.context_kind === "daily" && typeof row.context_date === "string" ? row.context_date : undefined,
     created_at: row.created_at,
     first_question_preview: firstUserMessage?.role === "user" ? firstUserMessage.content : "New Ask session",
     last_updated: latestMessage?.created_at ?? row.created_at,
@@ -255,7 +261,7 @@ export async function resolveLatestAskProfile(supabase: SupabaseAskUiClient, use
 export async function loadAskSessionSummaries(supabase: SupabaseAskUiClient, profileId: string) {
   const { data, error } = await supabase
     .from("ask_sessions")
-    .select("id,birth_profile_id,topic,tone_mode,created_at,ask_messages(id,ask_session_id,role,content,content_structured,llm_metadata,created_at)")
+    .select("id,birth_profile_id,topic,tone_mode,context_kind,context_date,created_at,ask_messages(id,ask_session_id,role,content,content_structured,llm_metadata,created_at)")
     .eq("birth_profile_id", profileId)
     .order("created_at", { ascending: false })
     .limit(20);
@@ -272,7 +278,7 @@ export async function loadAskSessionSummaries(supabase: SupabaseAskUiClient, pro
 export async function loadAskThread(supabase: SupabaseAskUiClient, userId: string, sessionId: string): Promise<AskThread | null> {
   const { data: sessionData, error: sessionError } = await supabase
     .from("ask_sessions")
-    .select("id,birth_profile_id,topic,tone_mode,created_at")
+    .select("id,birth_profile_id,topic,tone_mode,context_kind,context_date,created_at")
     .eq("id", sessionId)
     .maybeSingle();
 

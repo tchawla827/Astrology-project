@@ -48,6 +48,7 @@ export default async function AskSessionPage({ params }: { params: { session_id:
       initialMessages={thread.messages}
       initialSessionId={thread.session.id}
       initialTone={thread.session.tone_mode}
+      dayContextDate={thread.session.context_date}
       profileId={thread.session.birth_profile_id}
       quota={quota}
       sessions={sessions}

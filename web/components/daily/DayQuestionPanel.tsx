@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { CalendarDays, MessageSquareText } from "lucide-react";
+import Link from "next/link";
 
 import { DepthToggle } from "@/components/ask/DepthToggle";
 import { QuestionInput } from "@/components/ask/QuestionInput";
 import { ThreadView } from "@/components/ask/ThreadView";
 import { ToneSelector } from "@/components/ask/ToneSelector";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAskSession } from "@/hooks/useAskSession";
 import type { DepthMode, ToneMode } from "@/lib/schemas";
@@ -39,7 +41,14 @@ export function DayQuestionPanel({ date, profileId, tone }: { date: string; prof
               <CalendarDays className="h-4 w-4" aria-hidden="true" />
               <span>{date}</span>
             </div>
-            <span className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Facts attached</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge className="border-primary/25 bg-primary/10 text-primary">Day facts</Badge>
+              {ask.sessionId ? (
+                <Button asChild size="sm" type="button" variant="ghost">
+                  <Link href={`/ask/${ask.sessionId}`}>Open thread</Link>
+                </Button>
+              ) : null}
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-2">

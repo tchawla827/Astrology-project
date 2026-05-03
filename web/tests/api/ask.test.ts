@@ -215,4 +215,110 @@ describe("/api/ask", () => {
       }),
     );
   });
+
+  it("restores selected-day facts from a resumed Ask session", async () => {
+    createClient.mockReturnValueOnce({
+      auth: { getUser: async () => ({ data: { user: { id: "user-1" } } }) },
+      from(table: string) {
+        if (table === "birth_profiles") {
+          return {
+            select() {
+              const query = {
+                eq() {
+                  return query;
+                },
+                order() {
+                  return query;
+                },
+                limit() {
+                  return query;
+                },
+                maybeSingle: async () => ({
+                  data: { id: "00000000-0000-4000-8000-000000000001", status: "ready" },
+                  error: null,
+                }),
+              };
+              return query;
+            },
+          };
+        }
+        if (table === "ask_sessions") {
+          return {
+            select() {
+              const query = {
+                eq() {
+                  return query;
+                },
+                maybeSingle: async () => ({
+                  data: {
+                    birth_profile_id: "00000000-0000-4000-8000-000000000001",
+                    context_kind: "daily",
+                    context_date: "2026-04-25",
+                  },
+                  error: null,
+                }),
+              };
+              return query;
+            },
+          };
+        }
+        if (table === "ask_usage" || table === "analytics_events") {
+          return {
+            insert: async () => ({ error: null }),
+          };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      },
+    });
+
+    vi.mocked(generateAnswer).mockResolvedValueOnce({
+      session_id: "00000000-0000-4000-8000-000000000002",
+      classification: {
+        topic: "career",
+        needs_timing: true,
+        needs_technical_depth: false,
+        birth_time_sensitive: true,
+        is_mixed: false,
+        matched_terms: ["work"],
+        confidence: "medium",
+      },
+      meta: {
+        provider: "gemini",
+        model: "gemini-mock",
+        prompt_version: "ask_v1",
+        answer_schema_version: "answer_v1",
+        context_bundle_type: "daily",
+        latency_ms: 1,
+      },
+      answer: {
+        verdict: "The saved day context still applies.",
+        why: ["The session stores the selected date."],
+        timing: { summary: "Selected-day transit context", type: ["transit"] },
+        confidence: { level: "medium", note: "Grounded in supplied selected-day facts." },
+        advice: ["Keep the follow-up about the same date."],
+        technical_basis: { charts_used: ["Transit"], houses_used: [1], planets_used: ["Sun"] },
+      },
+    });
+
+    const response = await POST(
+      new Request("http://localhost/api/ask", {
+        method: "POST",
+        body: JSON.stringify({
+          question: "What about the follow-up?",
+          tone: "direct",
+          depth: "simple",
+          session_id: "00000000-0000-4000-8000-000000000002",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(loadAstrologyFactsExportData).toHaveBeenCalledWith(expect.objectContaining({ date: "2026-04-25" }));
+    expect(generateAnswer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        session_id: "00000000-0000-4000-8000-000000000002",
+        day_context: expect.objectContaining({ requested_date: "2026-04-25" }),
+      }),
+    );
+  });
 });

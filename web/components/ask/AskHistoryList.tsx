@@ -32,6 +32,9 @@ export function AskHistoryList({ sessions }: { sessions: AskSessionSummary[] }) 
           <div className="mb-2 flex flex-wrap gap-2">
             <Badge className="capitalize text-muted-foreground">{session.topic}</Badge>
             <Badge className="capitalize text-muted-foreground">{session.tone_mode}</Badge>
+            {session.context_kind === "daily" && session.context_date ? (
+              <Badge className="text-muted-foreground">Day {session.context_date}</Badge>
+            ) : null}
           </div>
           <p className="line-clamp-2 text-sm font-medium">{session.first_question_preview}</p>
           <p className="mt-2 text-xs text-muted-foreground">{formatDate(session.last_updated)}</p>

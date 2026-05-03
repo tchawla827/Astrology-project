@@ -32,6 +32,12 @@ type ProfileRow = {
   status: "processing" | "ready" | "error";
 };
 
+type AskSessionContextRow = {
+  birth_profile_id: string;
+  context_kind?: "natal" | "daily" | null;
+  context_date?: string | null;
+};
+
 function asProfileRow(value: unknown): ProfileRow | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -41,6 +47,21 @@ function asProfileRow(value: unknown): ProfileRow | null {
     return row as ProfileRow;
   }
   return null;
+}
+
+function asAskSessionContextRow(value: unknown): AskSessionContextRow | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+  const row = value as Partial<AskSessionContextRow>;
+  if (typeof row.birth_profile_id !== "string") {
+    return null;
+  }
+  return {
+    birth_profile_id: row.birth_profile_id,
+    context_kind: row.context_kind === "daily" ? "daily" : "natal",
+    context_date: typeof row.context_date === "string" ? row.context_date : null,
+  };
 }
 
 async function resolveProfileId(input: {
@@ -76,6 +97,42 @@ async function resolveProfileId(input: {
   return { profileId: profile.id };
 }
 
+async function resolveDayContextDate(input: {
+  supabase: ReturnType<typeof createClient>;
+  sessionId?: string;
+  requestedDate?: string;
+  profileId: string;
+}) {
+  if (input.requestedDate) {
+    return input.requestedDate;
+  }
+  if (!input.sessionId) {
+    return undefined;
+  }
+
+  const { data, error } = await input.supabase
+    .from("ask_sessions")
+    .select("birth_profile_id,context_kind,context_date")
+    .eq("id", input.sessionId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const row = asAskSessionContextRow(data);
+  if (!row) {
+    return undefined;
+  }
+  if (row.birth_profile_id !== input.profileId) {
+    throw new Error("Ask session belongs to a different birth profile.");
+  }
+  if (row.context_kind === "daily" && row.context_date) {
+    return row.context_date;
+  }
+  return undefined;
+}
+
 export async function POST(request: Request) {
   const supabase = createClient();
   const {
@@ -101,13 +158,19 @@ export async function POST(request: Request) {
   }
 
   try {
-    const dayContext = parsed.data.day_context
+    const dayContextDate = await resolveDayContextDate({
+      supabase,
+      sessionId: parsed.data.session_id,
+      requestedDate: parsed.data.day_context?.date,
+      profileId: profile.profileId,
+    });
+    const dayContext = dayContextDate
       ? buildAstrologyFactsAskContext(
           await loadAstrologyFactsExportData({
             supabase: supabase as unknown as SupabaseAstrologyFactsExportClient,
             userId: user.id,
             profileId: profile.profileId,
-            date: parsed.data.day_context.date,
+            date: dayContextDate,
           }),
         )
       : undefined;

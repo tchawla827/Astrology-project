@@ -50,6 +50,7 @@ export function AskWorkspace({
   initialMessages,
   initialTone,
   initialQuestion,
+  dayContextDate,
   starterQuestions,
   sessions,
   quota,
@@ -59,6 +60,7 @@ export function AskWorkspace({
   initialMessages?: AskThreadMessage[];
   initialTone: ToneMode;
   initialQuestion?: string;
+  dayContextDate?: string;
   starterQuestions: string[];
   sessions: AskSessionSummary[];
   quota?: AskQuotaView;
@@ -69,6 +71,7 @@ export function AskWorkspace({
     initialSessionId,
     initialMessages,
     initialTone,
+    dayContextDate,
   });
 
   const hasMessages = ask.messages.length > 0;
@@ -78,7 +81,9 @@ export function AskWorkspace({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.18em] text-primary">Advisory mode</p>
-          <p className="mt-1 text-sm text-muted-foreground">Choose tone and depth before sending.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {dayContextDate ? `Follow-ups stay scoped to ${dayContextDate}.` : "Choose tone and depth before sending."}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <ToneSelector disabled={ask.isSubmitting} onChange={ask.setTone} value={ask.tone} />

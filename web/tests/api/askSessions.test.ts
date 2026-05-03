@@ -66,6 +66,8 @@ describe("/api/ask/sessions", () => {
                     birth_profile_id: "profile-1",
                     topic: "career",
                     tone_mode: "direct",
+                    context_kind: "daily",
+                    context_date: "2026-04-25",
                     created_at: "2026-04-25T01:00:00Z",
                     ask_messages: [
                       {
@@ -94,11 +96,15 @@ describe("/api/ask/sessions", () => {
     });
 
     const response = await listSessions();
-    const body = (await response.json()) as { sessions?: Array<{ first_question_preview?: string; last_updated?: string }> };
+    const body = (await response.json()) as {
+      sessions?: Array<{ first_question_preview?: string; last_updated?: string; context_kind?: string; context_date?: string }>;
+    };
 
     expect(response.status).toBe(200);
     expect(body.sessions?.[0]?.first_question_preview).toBe("Why is career stuck?");
     expect(body.sessions?.[0]?.last_updated).toBe("2026-04-25T01:00:02Z");
+    expect(body.sessions?.[0]?.context_kind).toBe("daily");
+    expect(body.sessions?.[0]?.context_date).toBe("2026-04-25");
   });
 
   it("returns one resumed session with ordered messages", async () => {
@@ -114,6 +120,8 @@ describe("/api/ask/sessions", () => {
                   birth_profile_id: "profile-1",
                   topic: "career",
                   tone_mode: "direct",
+                  context_kind: "daily",
+                  context_date: "2026-04-25",
                   created_at: "2026-04-25T01:00:00Z",
                 },
               }),
@@ -151,9 +159,10 @@ describe("/api/ask/sessions", () => {
     });
 
     const response = await getSession({} as never, { params: { id: "session-1" } });
-    const body = (await response.json()) as { messages?: Array<{ role?: string }> };
+    const body = (await response.json()) as { session?: { context_date?: string }; messages?: Array<{ role?: string }> };
 
     expect(response.status).toBe(200);
+    expect(body.session?.context_date).toBe("2026-04-25");
     expect(body.messages?.map((message) => message.role)).toEqual(["user", "assistant"]);
   });
 
