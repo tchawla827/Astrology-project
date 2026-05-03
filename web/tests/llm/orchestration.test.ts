@@ -354,4 +354,119 @@ describe("phase 07 LLM orchestration", () => {
       prompt_versions: { route: PROMPT_VERSIONS.day_question_route },
     });
   });
+
+  it("recovers when a day-wise provider returns daily prediction JSON instead of AskAnswer JSON", async () => {
+    const supabase = new AskSupabaseMock("exact");
+    const dayContext: AstrologyFactsAskContext = {
+      source_export_kind: "charts_transits_json",
+      requested_date: "2026-04-25",
+      transit_at: "2026-04-24T18:30:00.000Z",
+      profile: { timezone: "Asia/Kolkata", ayanamsha: "lahiri", birth_time_confidence: "exact" },
+      natal_summary: goldenSnapshot.summary,
+      chart_keys: ["D1"],
+      natal_planets: [],
+      transits: {
+        as_of: "2026-04-24T18:30:00.000Z",
+        positions: [
+          {
+            planet: "Sun",
+            longitude_deg: 10,
+            sign: "Aries",
+            house: 3,
+            nakshatra: "Ashwini",
+            pada: 1,
+            retrograde: false,
+            combust: false,
+            dignity: "exalted",
+          },
+        ],
+        natal_overlay: { planet_to_house: { Sun: 3 } },
+      },
+      allowed_citations: { charts: ["D1", "Transit"], houses: [3], planets: ["Sun"] },
+    };
+    const dailyOutput = {
+      date: "2026-04-25",
+      verdict: "This day has enough fire for visible work.",
+      felt_sense: "The day feels cleaner when effort is directed into one visible task.",
+      aspect_scores: ["love", "emotional", "career", "focus"].map((aspect) => ({
+        aspect,
+        score: aspect === "career" ? 70 : 55,
+        label: aspect === "career" ? "steady" : "steady",
+        sentence: `${aspect} has a steady but not extreme signal.`,
+        basis: { houses: [3], planets: ["Sun"], transit_rules: ["selected-day transit"] },
+      })),
+      favorable: ["Handle one visible work item."],
+      caution: ["Do not scatter effort."],
+      technical_basis: {
+        triggered_houses: [3],
+        planets_used: ["Sun"],
+        transit_rules: ["selected-day transit"],
+      },
+      tone: "direct",
+      answer_schema_version: "daily_v2",
+    };
+
+    const result = await generateAnswer({
+      supabase,
+      profile_id: profileId,
+      question: "How is work on this date?",
+      tone: "direct",
+      depth: "technical",
+      day_context: dayContext,
+      providers: [providerReturning("gemini", dailyOutput)],
+    });
+
+    expect(result.answer.verdict).toBe(dailyOutput.verdict);
+    expect(result.answer.timing.type).toEqual(["transit"]);
+    expect(result.answer.technical_basis).toEqual({
+      charts_used: ["Transit", "D1"],
+      houses_used: [3],
+      planets_used: ["Sun"],
+    });
+  });
+
+  it("normalizes common AskAnswer field-shape drift for day-wise answers", async () => {
+    const supabase = new AskSupabaseMock("exact");
+    const dayContext: AstrologyFactsAskContext = {
+      source_export_kind: "charts_transits_json",
+      requested_date: "2026-04-25",
+      transit_at: "2026-04-24T18:30:00.000Z",
+      profile: { timezone: "Asia/Kolkata", ayanamsha: "lahiri", birth_time_confidence: "exact" },
+      natal_summary: goldenSnapshot.summary,
+      chart_keys: ["D1"],
+      natal_planets: [],
+      transits: { as_of: "2026-04-24T18:30:00.000Z", positions: [], natal_overlay: { planet_to_house: { Sun: 3 } } },
+      allowed_citations: { charts: ["Transit"], houses: [3], planets: ["Sun"] },
+    };
+
+    const result = await generateAnswer({
+      supabase,
+      profile_id: profileId,
+      question: "What is strongest that day?",
+      tone: "direct",
+      depth: "simple",
+      day_context: dayContext,
+      providers: [
+        providerReturning("gemini", {
+          answer: {
+            verdict: "The strongest signal is focused outward effort.",
+            why: "Sun is the cited selected-day transit factor.",
+            timing: { summary: "Selected day only.", type: "daily" },
+            confidence: { level: "Medium", note: "The date context is narrow but clear." },
+            advice: "Use the day for one visible task.",
+            technical_basis: { charts: "Transit", houses: 3, planets: "Sun" },
+          },
+        }),
+      ],
+    });
+
+    expect(result.answer.timing.type).toEqual(["transit"]);
+    expect(result.answer.why).toEqual(["Sun is the cited selected-day transit factor."]);
+    expect(result.answer.confidence.level).toBe("medium");
+    expect(result.answer.technical_basis).toEqual({
+      charts_used: ["Transit"],
+      houses_used: [3],
+      planets_used: ["Sun"],
+    });
+  });
 });
