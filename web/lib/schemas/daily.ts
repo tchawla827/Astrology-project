@@ -24,7 +24,7 @@ export const DailyScoreBreakdownSchema = z.object({
 
 export const DailyAspectScoreSchema = z.object({
   aspect: DailyAspectSchema,
-  score: z.number().int().min(1).max(10),
+  score: z.number().int().min(1).max(100),
   label: DailyAspectScoreLabelSchema,
   sentence: z.string().min(1).max(160),
   basis: z.object({

@@ -262,28 +262,28 @@ function provider(): LlmProvider {
           aspect_scores: [
             {
               aspect: "love",
-              score: 5,
+              score: 50,
               label: "mixed",
               sentence: "Love is workable if expectations stay simple.",
               basis: { houses: [5], planets: ["Jupiter", "Moon"], transit_rules: ["jupiter_trine_support", "moon_daily_house_focus"] },
             },
             {
               aspect: "emotional",
-              score: 4,
+              score: 42,
               label: "mixed",
               sentence: "Emotionally, the day is sensitive but manageable.",
               basis: { houses: [4], planets: ["Saturn", "Moon"], transit_rules: ["saturn_kendra_pressure", "moon_daily_house_focus"] },
             },
             {
               aspect: "career",
-              score: 6,
+              score: 65,
               label: "steady",
               sentence: "Career work is supported through steady execution.",
               basis: { houses: [10], planets: ["Saturn", "Jupiter"], transit_rules: ["saturn_kendra_pressure", "jupiter_trine_support"] },
             },
             {
               aspect: "focus",
-              score: 6,
+              score: 62,
               label: "steady",
               sentence: "Focus is steady enough for one clear priority.",
               basis: { houses: [10], planets: ["Saturn", "Moon"], transit_rules: ["saturn_kendra_pressure", "moon_daily_house_focus"] },
@@ -321,7 +321,7 @@ function driftingScoreProvider(input: { tone: DailyPrediction["tone"]; focusScor
               ? {
                   ...score,
                   score: input.focusScore,
-                  label: input.focusScore <= 3 ? "low" : input.focusScore <= 5 ? "mixed" : input.focusScore <= 7 ? "steady" : "strong",
+                  label: input.focusScore <= 34 ? "low" : input.focusScore <= 54 ? "mixed" : input.focusScore <= 74 ? "steady" : "strong",
                   sentence: `Provider tried to make focus ${input.focusScore}.`,
                 }
               : score,
@@ -439,14 +439,14 @@ describe("generateDailyPrediction", () => {
       profile_id: profileId,
       date: "2026-04-25",
       tone: "balanced",
-      providers: [driftingScoreProvider({ tone: "balanced", focusScore: 3 })],
+      providers: [driftingScoreProvider({ tone: "balanced", focusScore: 30 })],
     });
     const brutal = await generateDailyPrediction({
       supabase: new DailySupabaseMock(),
       profile_id: profileId,
       date: "2026-04-25",
       tone: "brutal",
-      providers: [driftingScoreProvider({ tone: "brutal", focusScore: 8 })],
+      providers: [driftingScoreProvider({ tone: "brutal", focusScore: 80 })],
     });
 
     expect(balanced.prediction.tone).toBe("balanced");
@@ -454,9 +454,9 @@ describe("generateDailyPrediction", () => {
     expect(balanced.prediction.aspect_scores.map(({ aspect, score, label, basis }) => ({ aspect, score, label, basis }))).toEqual(
       brutal.prediction.aspect_scores.map(({ aspect, score, label, basis }) => ({ aspect, score, label, basis })),
     );
-    expect(balanced.prediction.aspect_scores.find((score) => score.aspect === "focus")?.score).not.toBe(3);
-    expect(brutal.prediction.aspect_scores.find((score) => score.aspect === "focus")?.score).not.toBe(8);
-    expect(brutal.prediction.aspect_scores.find((score) => score.aspect === "focus")?.sentence).not.toContain("8");
+    expect(balanced.prediction.aspect_scores.find((score) => score.aspect === "focus")?.score).not.toBe(30);
+    expect(brutal.prediction.aspect_scores.find((score) => score.aspect === "focus")?.score).not.toBe(80);
+    expect(brutal.prediction.aspect_scores.find((score) => score.aspect === "focus")?.sentence).not.toContain("80");
     expect(balanced.prediction.score_breakdown).toEqual(brutal.prediction.score_breakdown);
   });
 });

@@ -8,7 +8,7 @@ Output requirements:
 - felt_sense: one simple sentence describing how the person may feel that day.
 - aspect_scores: exactly four entries, in this order: love, emotional, career, focus.
 - aspect_scores[].score: use the supplied deterministic aspect score for this aspect exactly. Tone must never change the number.
-- aspect_scores[].label: use the supplied deterministic label exactly: low for 1-3, mixed for 4-5, steady for 6-7, strong for 8-10.
+- aspect_scores[].label: use the supplied deterministic label exactly: low for 1-34, mixed for 35-54, steady for 55-74, strong for 75-100.
 - aspect_scores[].sentence: one practical sentence that honestly matches the deterministic score and tone.
 - aspect_scores[].basis.houses: use the supplied deterministic basis houses exactly.
 - aspect_scores[].basis.planets: use the supplied deterministic basis planets exactly.
