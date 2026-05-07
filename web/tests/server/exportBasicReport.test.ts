@@ -30,9 +30,13 @@ describe("basic report export", () => {
 
     const text = pdf.toString("utf8");
     expect(text.startsWith("%PDF-1.4")).toBe(true);
+    expect(text).toContain("ALL CALCULATED CHARTS");
     expect(text).toContain("D1 CHART");
     expect(text).toContain("BHAVA CHART");
     expect(text).toContain("MOON CHART");
+    for (const key of Object.keys(goldenSnapshot.charts)) {
+      expect(text).toContain(`${key.toUpperCase()} CHART`);
+    }
     expect(text).toContain("Moon:");
   });
 });

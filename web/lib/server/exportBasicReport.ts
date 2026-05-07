@@ -1,4 +1,5 @@
 import { ChartSnapshotSchema, DerivedFeaturePayloadSchema, type BirthProfile, type Chart, type ChartSnapshot } from "@/lib/schemas";
+import { chartTitle, SUPPORTED_CHART_KEYS } from "@/lib/charts/catalog";
 import { buildDashboardSummary } from "@/lib/insights/themes";
 
 type DbError = { message: string } | Error;
@@ -109,11 +110,36 @@ function chartLines(chart: Chart | undefined) {
   });
 }
 
+function chartSortIndex(key: string) {
+  const index = (SUPPORTED_CHART_KEYS as readonly string[]).indexOf(key);
+  return index === -1 ? Number.MAX_SAFE_INTEGER : index;
+}
+
+function calculatedChartEntries(charts: ChartSnapshot["charts"]) {
+  return Object.entries(charts).sort(([left], [right]) => {
+    const leftIndex = chartSortIndex(left);
+    const rightIndex = chartSortIndex(right);
+    return leftIndex === rightIndex ? left.localeCompare(right) : leftIndex - rightIndex;
+  });
+}
+
+function chartSectionTitle(key: string, chart: Chart) {
+  const title = chartTitle(chart.chart_key);
+  const label = title.startsWith(`${key} `) ? title.slice(key.length + 1) : title;
+  const heading = `${key.toUpperCase()} CHART`;
+  return label ? `${heading} - ${label}` : heading;
+}
+
 function buildReportLines(data: BasicReportData) {
   const derived = DerivedFeaturePayloadSchema.safeParse(data.derivedPayload);
   const dashboard = buildDashboardSummary(data.snapshot, derived.success ? derived.data : undefined);
   const bundles = derived.success ? derived.data.topic_bundles : undefined;
   const focus = dashboard.focus_cards[0];
+  const chartSections = calculatedChartEntries(data.snapshot.charts).flatMap(([key, chart]) => [
+    chartSectionTitle(key, chart),
+    ...chartLines(chart),
+    "",
+  ]);
 
   const lines: string[] = [
     "ASTRI BASIC PROFILE REPORT",
@@ -141,14 +167,8 @@ function buildReportLines(data: BasicReportData) {
       return `${topic}: ${headline}`;
     }),
     "",
-    "D1 CHART",
-    ...chartLines(data.snapshot.charts.D1),
-    "",
-    "BHAVA CHART",
-    ...chartLines(data.snapshot.charts.Bhava),
-    "",
-    "MOON CHART",
-    ...chartLines(data.snapshot.charts.Moon),
+    "ALL CALCULATED CHARTS",
+    ...chartSections,
     "",
     "PLANETARY POSITIONS",
     ...data.snapshot.planetary_positions.map(
