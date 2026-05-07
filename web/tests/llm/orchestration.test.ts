@@ -163,7 +163,7 @@ function answerForTopic(topic: Topic): AskAnswer {
   };
 }
 
-function providerReturning(name: "gemini" | "groq", output: unknown): LlmProvider {
+function providerReturning(name: "gemini" | "groq" | "openrouter", output: unknown): LlmProvider {
   return {
     name,
     defaultModel: `${name}-mock`,
@@ -235,6 +235,30 @@ describe("phase 07 LLM orchestration", () => {
     });
 
     expect(result.meta.provider).toBe("groq");
+    expect(result.answer.technical_basis.charts_used).toContain("D10");
+  });
+
+  it("falls back to OpenRouter when Gemini is rate limited", async () => {
+    const supabase = new AskSupabaseMock("exact");
+    const result = await generateAnswer({
+      supabase,
+      profile_id: profileId,
+      question: "Why has my career felt blocked lately?",
+      tone: "direct",
+      depth: "simple",
+      providers: [
+        {
+          name: "gemini",
+          defaultModel: "gemini-mock",
+          async generate() {
+            throw new LlmProviderError("quota exceeded", { provider: "gemini", status: 429 });
+          },
+        },
+        providerReturning("openrouter", answerForTopic("career")),
+      ],
+    });
+
+    expect(result.meta.provider).toBe("openrouter");
     expect(result.answer.technical_basis.charts_used).toContain("D10");
   });
 

@@ -3,7 +3,7 @@ import { parseJsonFromText } from "@/lib/llm/providers/json";
 import type { LlmProvider } from "@/lib/llm/providers/gemini";
 import { serverEnv } from "@/lib/server/env";
 
-type GroqResponse = {
+type OpenRouterResponse = {
   choices?: Array<{ message?: { content?: string } }>;
   usage?: {
     prompt_tokens?: number;
@@ -12,22 +12,24 @@ type GroqResponse = {
   error?: { message?: string };
 };
 
-export const groqProvider: LlmProvider = {
-  name: "groq",
-  defaultModel: "llama-3.3-70b-versatile",
+export const openRouterProvider: LlmProvider = {
+  name: "openrouter",
+  defaultModel: "openrouter/free",
   async generate(args) {
-    const apiKey = serverEnv("GROQ_API_KEY");
+    const apiKey = serverEnv("OPENROUTER_API_KEY");
     if (!apiKey) {
-      throw new LlmProviderError("GROQ_API_KEY is not configured.", { provider: "groq" });
+      throw new LlmProviderError("OPENROUTER_API_KEY is not configured.", { provider: "openrouter" });
     }
 
-    const model = args.model ?? this.defaultModel;
+    const model = (args.model ?? serverEnv("OPENROUTER_MODEL")) || this.defaultModel;
     const start = Date.now();
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         authorization: `Bearer ${apiKey}`,
         "content-type": "application/json",
+        "http-referer": serverEnv("NEXT_PUBLIC_APP_URL") || "http://localhost:3000",
+        "x-title": "Astri",
       },
       body: JSON.stringify({
         model,
@@ -37,18 +39,18 @@ export const groqProvider: LlmProvider = {
       }),
     });
     const latency_ms = Date.now() - start;
-    const body = (await response.json().catch(() => ({}))) as GroqResponse;
+    const body = (await response.json().catch(() => ({}))) as OpenRouterResponse;
 
     if (!response.ok) {
-      throw new LlmProviderError(body.error?.message ?? "Groq request failed.", {
-        provider: "groq",
+      throw new LlmProviderError(body.error?.message ?? "OpenRouter request failed.", {
+        provider: "openrouter",
         status: response.status,
       });
     }
 
     const text = body.choices?.[0]?.message?.content ?? "";
     if (!text) {
-      throw new LlmProviderError("Groq returned an empty response.", { provider: "groq" });
+      throw new LlmProviderError("OpenRouter returned an empty response.", { provider: "openrouter" });
     }
 
     return {

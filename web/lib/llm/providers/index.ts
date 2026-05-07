@@ -3,6 +3,7 @@ import type { ZodSchema } from "zod";
 import { PROMPT_VERSIONS } from "@/lib/llm/prompts";
 import { geminiProvider, type LlmMessage, type LlmProvider } from "@/lib/llm/providers/gemini";
 import { groqProvider } from "@/lib/llm/providers/groq";
+import { openRouterProvider } from "@/lib/llm/providers/openrouter";
 import { LlmProviderError } from "@/lib/llm/errors";
 import type { AskClassification } from "@/lib/llm/classify";
 import type { LlmMetadata, Topic } from "@/lib/schemas";
@@ -31,7 +32,7 @@ export type CallWithFallbackArgs = {
 };
 
 export async function callWithFallback(args: CallWithFallbackArgs): Promise<{ output: unknown; meta: LlmMetadata }> {
-  const providers = args.providers ?? [geminiProvider, groqProvider];
+  const providers = args.providers ?? [geminiProvider, openRouterProvider, groqProvider];
   const maxAttempts = Math.max(1, args.max_attempts_per_provider ?? 2);
   let lastError: unknown;
 

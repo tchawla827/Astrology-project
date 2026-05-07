@@ -2,6 +2,7 @@ import type { ZodSchema } from "zod";
 
 import { LlmProviderError } from "@/lib/llm/errors";
 import { parseJsonFromText } from "@/lib/llm/providers/json";
+import { serverEnv } from "@/lib/server/env";
 
 export type LlmMessage = { role: "user" | "assistant"; content: string };
 
@@ -21,7 +22,7 @@ export type LlmGenerateResult = {
 };
 
 export type LlmProvider = {
-  name: "gemini" | "groq";
+  name: "gemini" | "groq" | "openrouter";
   defaultModel: string;
   generate(args: LlmGenerateArgs): Promise<LlmGenerateResult>;
 };
@@ -46,7 +47,7 @@ export const geminiProvider: LlmProvider = {
   name: "gemini",
   defaultModel: "gemini-2.5-flash",
   async generate(args) {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = serverEnv("GEMINI_API_KEY");
     if (!apiKey) {
       throw new LlmProviderError("GEMINI_API_KEY is not configured.", { provider: "gemini" });
     }
