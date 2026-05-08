@@ -18,7 +18,7 @@ export const groqProvider: LlmProvider = {
   async generate(args) {
     const apiKey = serverEnv("GROQ_API_KEY");
     if (!apiKey) {
-      throw new LlmProviderError("GROQ_API_KEY is not configured.", { provider: "groq" });
+      throw new LlmProviderError("GROQ_API_KEY is not configured.", { provider: "groq", retryable: false });
     }
 
     const model = args.model ?? this.defaultModel;

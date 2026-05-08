@@ -9,8 +9,27 @@ type OpenRouterResponse = {
     prompt_tokens?: number;
     completion_tokens?: number;
   };
-  error?: { message?: string };
+  error?: {
+    message?: string;
+    code?: number;
+    metadata?: unknown;
+  };
 };
+
+function openRouterErrorMessage(body: OpenRouterResponse) {
+  const message = body.error?.message ?? "OpenRouter request failed.";
+  const metadata = body.error?.metadata;
+  if (!metadata || typeof metadata !== "object") {
+    return message;
+  }
+
+  const record = metadata as Record<string, unknown>;
+  const providerName = typeof record.provider_name === "string" ? record.provider_name : undefined;
+  const raw = typeof record.raw === "string" ? record.raw : undefined;
+  return [message, providerName ? `provider=${providerName}` : undefined, raw ? `raw=${raw}` : undefined]
+    .filter(Boolean)
+    .join("; ");
+}
 
 export const openRouterProvider: LlmProvider = {
   name: "openrouter",
@@ -18,7 +37,7 @@ export const openRouterProvider: LlmProvider = {
   async generate(args) {
     const apiKey = serverEnv("OPENROUTER_API_KEY");
     if (!apiKey) {
-      throw new LlmProviderError("OPENROUTER_API_KEY is not configured.", { provider: "openrouter" });
+      throw new LlmProviderError("OPENROUTER_API_KEY is not configured.", { provider: "openrouter", retryable: false });
     }
 
     const model = (args.model ?? serverEnv("OPENROUTER_MODEL")) || this.defaultModel;
@@ -42,9 +61,10 @@ export const openRouterProvider: LlmProvider = {
     const body = (await response.json().catch(() => ({}))) as OpenRouterResponse;
 
     if (!response.ok) {
-      throw new LlmProviderError(body.error?.message ?? "OpenRouter request failed.", {
+      throw new LlmProviderError(openRouterErrorMessage(body), {
         provider: "openrouter",
         status: response.status,
+        cause: body,
       });
     }
 

@@ -1,12 +1,14 @@
 export class LlmProviderError extends Error {
   readonly provider?: string;
   readonly status?: number;
+  readonly retryable?: boolean;
 
-  constructor(message: string, options: { provider?: string; status?: number; cause?: unknown } = {}) {
+  constructor(message: string, options: { provider?: string; status?: number; retryable?: boolean; cause?: unknown } = {}) {
     super(message, { cause: options.cause });
     this.name = "LlmProviderError";
     this.provider = options.provider;
     this.status = options.status;
+    this.retryable = options.retryable;
   }
 }
 

@@ -267,6 +267,15 @@ ${JSON.stringify(input.originalOutput, null, 2)}
 Return only the corrected JSON.`;
 }
 
+function logLlmValidationFailure(error: LlmCitationError | LlmSchemaError) {
+  console.error("LLM answer validation failed; attempting repair", {
+    reason: error.message,
+    error_type: error.name,
+    citation_type: error instanceof LlmCitationError ? error.citationType : undefined,
+    cause: error.cause instanceof Error ? error.cause.message : undefined,
+  });
+}
+
 export async function generateAnswer(input: GenerateAnswerInput): Promise<{
   answer: AskAnswer;
   meta: LlmMetadata;
@@ -310,6 +319,7 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<{
       throw error;
     }
 
+    logLlmValidationFailure(error);
     const repaired = await callWithFallback({
       system: systemPromptV1,
       messages: [{ role: "user", content: buildRepairPrompt({ originalOutput: firstCall.output, validationError: error, context, depth: input.depth }) }],

@@ -31,6 +31,46 @@ export type CallWithFallbackArgs = {
   providers?: LlmProvider[];
 };
 
+function llmFailureReason(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
+
+function llmFailureDetails(error: unknown) {
+  if (!(error instanceof Error) || error.cause === undefined) {
+    return undefined;
+  }
+  if (error.cause instanceof Error) {
+    return { name: error.cause.name, message: error.cause.message };
+  }
+  return error.cause;
+}
+
+function logLlmProviderFailure(input: {
+  error: unknown;
+  provider: LlmProvider;
+  model?: string;
+  topic: ContextBundleType;
+  attempt: number;
+  maxAttempts: number;
+  retryable: boolean;
+}) {
+  const status = input.error instanceof LlmProviderError ? input.error.status : undefined;
+  console.error("LLM provider failed", {
+    provider: input.provider.name,
+    model: input.model ?? input.provider.defaultModel,
+    topic: input.topic,
+    attempt: input.attempt,
+    max_attempts: input.maxAttempts,
+    retryable: input.retryable,
+    status,
+    reason: llmFailureReason(input.error),
+    details: llmFailureDetails(input.error),
+  });
+}
+
 export async function callWithFallback(args: CallWithFallbackArgs): Promise<{ output: unknown; meta: LlmMetadata }> {
   const providers = args.providers ?? [geminiProvider, openRouterProvider, groqProvider];
   const maxAttempts = Math.max(1, args.max_attempts_per_provider ?? 2);
@@ -69,7 +109,19 @@ export async function callWithFallback(args: CallWithFallbackArgs): Promise<{ ou
       } catch (error) {
         lastError = error;
         const status = error instanceof LlmProviderError ? error.status : undefined;
-        const retryable = status === undefined || status === 429 || status >= 500;
+        const retryable =
+          error instanceof LlmProviderError && error.retryable !== undefined
+            ? error.retryable
+            : status === undefined || status === 429 || status >= 500;
+        logLlmProviderFailure({
+          error,
+          provider,
+          model: args.model,
+          topic: args.topic,
+          attempt,
+          maxAttempts,
+          retryable,
+        });
         if (!retryable || attempt === maxAttempts) {
           break;
         }

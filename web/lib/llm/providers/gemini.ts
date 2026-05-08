@@ -49,7 +49,7 @@ export const geminiProvider: LlmProvider = {
   async generate(args) {
     const apiKey = serverEnv("GEMINI_API_KEY");
     if (!apiKey) {
-      throw new LlmProviderError("GEMINI_API_KEY is not configured.", { provider: "gemini" });
+      throw new LlmProviderError("GEMINI_API_KEY is not configured.", { provider: "gemini", retryable: false });
     }
 
     const model = args.model ?? this.defaultModel;

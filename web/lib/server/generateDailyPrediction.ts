@@ -681,6 +681,15 @@ function validateDailyPrediction(output: unknown, context: DailyContextBundle): 
   return prediction;
 }
 
+function logDailyLlmValidationFailure(error: LlmCitationError | LlmSchemaError) {
+  console.error("LLM daily prediction validation failed", {
+    reason: error.message,
+    error_type: error.name,
+    citation_type: error instanceof LlmCitationError ? error.citationType : undefined,
+    cause: error.cause instanceof Error ? error.cause.message : undefined,
+  });
+}
+
 async function loadProfile(supabase: SupabaseDailyClient, profileId: string) {
   const { data, error } = await supabase
     .from("birth_profiles")
@@ -865,7 +874,14 @@ async function generateWithLlm(input: { context: DailyContextBundle; providers?:
     throw error;
   }
 
-  return validateDailyPrediction(normalizeDailyPrediction(result.output, input.context), input.context);
+  try {
+    return validateDailyPrediction(normalizeDailyPrediction(result.output, input.context), input.context);
+  } catch (error) {
+    if (error instanceof LlmCitationError || error instanceof LlmSchemaError) {
+      logDailyLlmValidationFailure(error);
+    }
+    throw error;
+  }
 }
 
 export async function generateDailyPrediction(input: GenerateDailyPredictionInput): Promise<GenerateDailyPredictionResult> {
