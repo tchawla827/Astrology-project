@@ -66,10 +66,9 @@ export function buildMockAnswer(context: Pick<AskContextBundle, "topic" | "allow
 
   return {
     verdict: `${context.topic} is active, but the chart shows a mixed path rather than a clean yes.`,
-    why: [
-      firstSignal,
-      `${firstPlanet} and ${secondPlanet} are the strongest supplied factors for this question.`,
-    ],
+    explanation: `The strongest supplied signals keep ${context.topic} active, but they do not point in only one direction. That means the answer needs discipline rather than a simple promise. The current period matters because it keeps the same theme in motion instead of leaving it dormant.`,
+    advice: ["Act on the strongest signal first and avoid forcing weak areas."],
+    why: [firstSignal, `${firstPlanet} and ${secondPlanet} are the strongest supplied factors for this question.`],
     timing: {
       summary: context.timing.current_antardasha,
       type: ["natal", "dasha"],
@@ -78,7 +77,6 @@ export function buildMockAnswer(context: Pick<AskContextBundle, "topic" | "allow
       level: "high",
       note: "The answer is based only on the supplied topic bundle.",
     },
-    advice: ["Act on the strongest signal first and avoid forcing weak areas."],
     technical_basis: {
       charts_used: [firstChart, secondChart].filter((value, index, values) => values.indexOf(value) === index),
       houses_used: [firstHouse],

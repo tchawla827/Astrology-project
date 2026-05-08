@@ -2,7 +2,7 @@ import { AskAnswerSchema, type AskAnswer, type DepthMode, type LlmMetadata, type
 import { buildContextBundle, type AskContextBundle } from "@/lib/llm/buildContext";
 import { classifyQuestion, type AskClassification } from "@/lib/llm/classify";
 import { LlmCitationError, LlmSchemaError } from "@/lib/llm/errors";
-import { PROMPT_VERSIONS, routeDayQuestionV1, routePromptFor, systemPromptV1, userPromptV1 } from "@/lib/llm/prompts";
+import { PROMPT_VERSIONS, routeDayQuestionV2, routePromptFor, systemPromptV1, userPromptV2 } from "@/lib/llm/prompts";
 import { callWithFallback, type LlmProvider } from "@/lib/llm/providers";
 import { applyBirthTimeConsistency, validateAnswer } from "@/lib/llm/validate";
 import type { AstrologyFactsAskContext } from "@/lib/server/exportAstrologyFacts";
@@ -223,8 +223,8 @@ function buildPrompt(input: {
   depth: DepthMode;
 }) {
   const topicRoute = routePromptFor(input.context.topic);
-  const route = input.context.day_context ? `${routeDayQuestionV1}\n\n${topicRoute}` : topicRoute;
-  const user = userPromptV1({
+  const route = input.context.day_context ? `${routeDayQuestionV2}\n\n${topicRoute}` : topicRoute;
+  const user = userPromptV2({
     context_bundle: input.context,
     question: input.question,
     tone: input.tone,
@@ -246,11 +246,17 @@ function buildRepairPrompt(input: {
   originalOutput: unknown;
   validationError: Error;
   context: AskContextBundle;
+  depth: DepthMode;
 }) {
   return `Repair the previous JSON so it matches the AskAnswer schema and cites only allowed context factors.
 
 Validation error:
 ${input.validationError.message}
+
+Depth:
+${input.depth}
+
+${input.depth === "simple" ? "For simple depth, rewrite explanation in everyday language only. Do not use chart labels, houses, planets, dashas, transits, signs, yogas, aspects, or astrology jargon in explanation." : ""}
 
 Allowed citations:
 ${JSON.stringify(input.context.allowed_citations, null, 2)}
@@ -298,7 +304,7 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<{
   let meta = firstCall.meta;
 
   try {
-    answer = validateAnswer(firstCall.output, context);
+    answer = validateAnswer(firstCall.output, context, { depth: input.depth });
   } catch (error) {
     if (!(error instanceof LlmCitationError || error instanceof LlmSchemaError)) {
       throw error;
@@ -306,7 +312,7 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<{
 
     const repaired = await callWithFallback({
       system: systemPromptV1,
-      messages: [{ role: "user", content: buildRepairPrompt({ originalOutput: firstCall.output, validationError: error, context }) }],
+      messages: [{ role: "user", content: buildRepairPrompt({ originalOutput: firstCall.output, validationError: error, context, depth: input.depth }) }],
       schema: AskAnswerSchema,
       topic: context.day_context ? "daily" : classification.topic,
       classification,
@@ -315,7 +321,7 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<{
       providers: input.providers,
       temperature: 0,
     });
-    answer = validateAnswer(repaired.output, context);
+    answer = validateAnswer(repaired.output, context, { depth: input.depth });
     meta = {
       ...repaired.meta,
       repaired_from_provider: firstCall.meta.provider,

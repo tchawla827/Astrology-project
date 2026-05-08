@@ -15,10 +15,12 @@ vi.mock("@/lib/supabase/server", () => ({
 
 const answer: AskAnswer = {
   verdict: "Career is active.",
+  explanation:
+    "The supplied career factors are active enough to matter now. They do not show a simple open road, so the useful response is practical structure. Treat this as a work period that rewards steady action.",
+  advice: ["Act on the strongest signal first."],
   why: ["Saturn is involved."],
   timing: { summary: "Current period", type: ["dasha"] },
   confidence: { level: "medium", note: "Grounded in supplied context." },
-  advice: ["Act on the strongest signal first."],
   technical_basis: { charts_used: ["D1"], houses_used: [10], planets_used: ["Saturn"] },
 };
 
@@ -26,7 +28,7 @@ const metadata: LlmMetadata = {
   provider: "gemini",
   model: "gemini-mock",
   prompt_version: "ask_v1",
-  answer_schema_version: "answer_v1",
+  answer_schema_version: "answer_v2",
   context_bundle_type: "career",
   latency_ms: 1,
 };

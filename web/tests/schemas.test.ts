@@ -40,10 +40,12 @@ describe("schemas", () => {
     expect(() =>
       AskAnswerSchema.parse({
         verdict: "Move slowly.",
+        explanation:
+          "The answer points to caution rather than a hard stop. The supplied timing favors waiting for cleaner confirmation. That makes slow movement more useful than forcing speed.",
+        advice: ["Wait for confirmation."],
         why: ["Saturn is involved."],
         timing: { summary: "Current period", type: ["dasha"] },
         confidence: { level: "medium", note: "Birth time exact." },
-        advice: ["Wait for confirmation."],
         technical_basis: { charts_used: ["D1"], houses_used: [10], planets_used: ["Saturn"] },
       })
     ).not.toThrow();

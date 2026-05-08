@@ -208,7 +208,7 @@ describe("phase 07 LLM orchestration", () => {
       expect(supabase.messages).toHaveLength(2);
       expect(supabase.messages[1]?.llm_metadata).toMatchObject({
         provider: "gemini",
-        answer_schema_version: "answer_v1",
+        answer_schema_version: "answer_v2",
         context_bundle_type: testCase.expected_topic,
       });
     }
@@ -355,10 +355,12 @@ describe("phase 07 LLM orchestration", () => {
     };
     const answer: AskAnswer = {
       verdict: "This date favors focused work, with a transit-led push rather than a permanent promise.",
+      explanation:
+        "The selected date has enough transit support to make focused work useful. This does not rewrite the long-term chart, so it should be treated as a temporary opening. Use the day for concrete output rather than broad emotional decisions.",
+      advice: ["Use the day for visible work rather than emotional cleanup."],
       why: ["The selected-day transit context puts Sun emphasis into an action house."],
       timing: { summary: "This is about the selected date's transit context.", type: ["transit"] },
       confidence: { level: "medium", note: "Grounded in the attached selected-day facts." },
-      advice: ["Use the day for visible work rather than emotional cleanup."],
       technical_basis: { charts_used: ["Transit"], houses_used: [3], planets_used: ["Sun"] },
     };
 
@@ -480,10 +482,12 @@ describe("phase 07 LLM orchestration", () => {
         providerReturning("gemini", {
           answer: {
             verdict: "The strongest signal is focused outward effort.",
+            explanation:
+              "The selected day points outward rather than inward. The answer should stay focused on visible effort. This is a narrow date-specific read, not a broad life verdict.",
+            advice: "Use the day for one visible task.",
             why: "Sun is the cited selected-day transit factor.",
             timing: { summary: "Selected day only.", type: "daily" },
             confidence: { level: "Medium", note: "The date context is narrow but clear." },
-            advice: "Use the day for one visible task.",
             technical_basis: { charts: "Transit", houses: 3, planets: "Sun" },
           },
         }),
@@ -498,5 +502,42 @@ describe("phase 07 LLM orchestration", () => {
       houses_used: [3],
       planets_used: ["Sun"],
     });
+  });
+
+  it("repairs simple explanations that include astrology terms", async () => {
+    const supabase = new AskSupabaseMock("exact");
+    let calls = 0;
+    const invalid = {
+      ...answerForTopic("career"),
+      explanation:
+        "Saturn in D10 shows the pressure is real. The 10th house keeps work exposed. This dasha needs patience.",
+    };
+    const repaired = {
+      ...answerForTopic("career"),
+      explanation:
+        "The pressure is real, but it has structure. You need steady effort rather than a dramatic escape. Treat this as a period for building consistency.",
+    };
+
+    const result = await generateAnswer({
+      supabase,
+      profile_id: profileId,
+      question: "Why has my career felt blocked lately?",
+      tone: "direct",
+      depth: "simple",
+      providers: [
+        {
+          name: "gemini",
+          defaultModel: "gemini-mock",
+          async generate() {
+            calls += 1;
+            return { output: calls === 1 ? invalid : repaired, latency_ms: 1 };
+          },
+        },
+      ],
+    });
+
+    expect(calls).toBe(2);
+    expect(result.meta.repaired_from_provider).toBe("gemini");
+    expect(result.answer.explanation).not.toMatch(/\b(?:Saturn|D10|house|dasha)\b/i);
   });
 });

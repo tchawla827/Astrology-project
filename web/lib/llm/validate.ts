@@ -1,7 +1,19 @@
-import { AskAnswerSchema, DailyPredictionSchema, PlanetSchema, type AskAnswer, type Planet } from "@/lib/schemas";
+import { AskAnswerSchema, DailyPredictionSchema, PlanetSchema, type AskAnswer, type DepthMode, type Planet } from "@/lib/schemas";
 import { LlmCitationError, LlmSchemaError } from "@/lib/llm/errors";
 import type { AskClassification } from "@/lib/llm/classify";
 import type { AskContextBundle } from "@/lib/llm/buildContext";
+
+type AnswerValidationOptions = {
+  depth?: DepthMode;
+};
+
+const SIMPLE_EXPLANATION_ASTROLOGY_PATTERNS = [
+  /\bD(?:1|2|3|4|5|6|7|8|9|10|11|12|16|20|24|27|30|40|45|60)\b/i,
+  /\b(?:lagna|navamsa|vimshottari|mahadasha|antardasha|pratyantardasha|dasha|bhava|nakshatra|pada|rashi|varga|yoga|yogas|transit|transits|aspect|aspects|house|houses|chart|charts|planet|planets|placement|placements|lord|lords|ascendant)\b/i,
+  /\b(?:sun|moon|mars|mercury|jupiter|venus|saturn|rahu|ketu)\b/i,
+  /\b(?:aries|taurus|gemini|cancer|leo|virgo|libra|scorpio|sagittarius|capricorn|aquarius|pisces)\b/i,
+  /\b(?:exalted|debilitated|retrograde|combust|benefic|malefic|conjunction|opposition|trine|square|graha|drishti|panchang|tithi|karana|vaara|muhurta|ayanamsha)\b/i,
+];
 
 function missingValues<T>(used: T[], allowed: T[]) {
   return used.filter((value) => !allowed.includes(value));
@@ -16,6 +28,18 @@ function arrayOfStrings(value: unknown) {
     return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
   }
   return typeof value === "string" && value.trim().length > 0 ? [value] : [];
+}
+
+function textValue(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function sentenceCount(value: string) {
+  return value
+    .trim()
+    .split(/(?<=[.!?])\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean).length;
 }
 
 function arrayOfNumbers(value: unknown) {
@@ -70,8 +94,9 @@ function normalizeAskAnswerShape(output: unknown, context: AskContextBundle) {
 
   return {
     ...row,
-    why: arrayOfStrings(row.why),
+    explanation: textValue(row.explanation ?? row.expanded_verdict ?? row.summary),
     advice: arrayOfStrings(row.advice).slice(0, 5),
+    why: arrayOfStrings(row.why),
     timing: {
       ...timing,
       type: timingTypes(timing?.type, context),
@@ -90,7 +115,23 @@ function uniqueAllowed<T>(values: T[], allowed: T[]) {
   return [...new Set(values.filter((value) => allowed.includes(value)))];
 }
 
-function fromDailyPredictionOutput(output: unknown, context: AskContextBundle): AskAnswer | null {
+function simpleDailyExplanation(daily: { felt_sense: string; date: string }) {
+  return [
+    daily.felt_sense.replace(/[.!?]\s*$/, ""),
+    `This is about ${daily.date}, not a permanent life pattern`,
+    "Use the cleaner openings and respect the cautions",
+  ].join(". ") + ".";
+}
+
+function technicalDailyExplanation(daily: { felt_sense: string; date: string }) {
+  return [
+    daily.felt_sense.replace(/[.!?]\s*$/, ""),
+    `The selected-day context points to ${daily.date} specifically, so this is a timing read rather than a permanent natal verdict`,
+    "Use the favorable signals where they are clean and respect the listed cautions",
+  ].join(". ") + ".";
+}
+
+function fromDailyPredictionOutput(output: unknown, context: AskContextBundle, options: AnswerValidationOptions): AskAnswer | null {
   if (!context.day_context) {
     return null;
   }
@@ -114,6 +155,8 @@ function fromDailyPredictionOutput(output: unknown, context: AskContextBundle): 
 
   return {
     verdict: daily.verdict,
+    explanation: options.depth === "simple" ? simpleDailyExplanation(daily) : technicalDailyExplanation(daily),
+    advice: [...daily.favorable, ...daily.caution.map((item) => `Avoid: ${item}`)].slice(0, 5),
     why: [daily.felt_sense, ...daily.aspect_scores.map((score) => score.sentence)].slice(0, 5),
     timing: {
       summary: `This answer is scoped to ${daily.date} using the selected-day transit facts.`,
@@ -123,7 +166,6 @@ function fromDailyPredictionOutput(output: unknown, context: AskContextBundle): 
       level: "medium",
       note: "Grounded in the attached selected-day facts and converted from the provider's daily-format output.",
     },
-    advice: [...daily.favorable, ...daily.caution.map((item) => `Avoid: ${item}`)].slice(0, 5),
     technical_basis: {
       charts_used: charts.length > 0 ? charts : [context.allowed_citations.charts[0] ?? "Transit"],
       houses_used: houses.length > 0 ? houses : fallbackHouse ? [fallbackHouse] : [1],
@@ -132,17 +174,28 @@ function fromDailyPredictionOutput(output: unknown, context: AskContextBundle): 
   };
 }
 
-function normalizeOutputForAskAnswer(output: unknown, context: AskContextBundle) {
-  return fromDailyPredictionOutput(output, context) ?? normalizeAskAnswerShape(output, context);
+function normalizeOutputForAskAnswer(output: unknown, context: AskContextBundle, options: AnswerValidationOptions) {
+  return fromDailyPredictionOutput(output, context, options) ?? normalizeAskAnswerShape(output, context);
 }
 
-export function validateAnswer(output: unknown, context: AskContextBundle): AskAnswer {
-  const parsed = AskAnswerSchema.safeParse(normalizeOutputForAskAnswer(output, context));
+export function validateAnswer(output: unknown, context: AskContextBundle, options: AnswerValidationOptions = {}): AskAnswer {
+  const parsed = AskAnswerSchema.safeParse(normalizeOutputForAskAnswer(output, context, options));
   if (!parsed.success) {
     throw new LlmSchemaError("LLM output did not match AskAnswer schema.", { cause: parsed.error });
   }
 
   const answer = parsed.data;
+  const explanationSentences = sentenceCount(answer.explanation);
+  if (explanationSentences < 3 || explanationSentences > 5) {
+    throw new LlmSchemaError("AskAnswer.explanation must explain the verdict in 3-5 short sentences.");
+  }
+  if (
+    options.depth === "simple" &&
+    SIMPLE_EXPLANATION_ASTROLOGY_PATTERNS.some((pattern) => pattern.test(answer.explanation))
+  ) {
+    throw new LlmSchemaError("Simple AskAnswer.explanation must elaborate the verdict in everyday language without astrology terms.");
+  }
+
   const missingCharts = missingValues(answer.technical_basis.charts_used, context.allowed_citations.charts);
   if (missingCharts.length > 0) {
     throw new LlmCitationError(`Answer cited chart(s) not present in context: ${missingCharts.join(", ")}.`, "chart");

@@ -1,8 +1,8 @@
 import type { Topic } from "@/lib/schemas";
 import { systemPromptV1 } from "@/lib/llm/prompts/system_v1";
-import { userPromptV1 } from "@/lib/llm/prompts/user_v1";
+import { userPromptV2 } from "@/lib/llm/prompts/user_v2";
 import { routePromptFor } from "@/lib/llm/prompts/route";
-import { routeDayQuestionV1 } from "@/lib/llm/prompts/route/day_question_v1";
+import { routeDayQuestionV2 } from "@/lib/llm/prompts/route/day_question_v2";
 
 export const PROMPT_VERSIONS = {
   system: "system_v1",
@@ -18,11 +18,11 @@ export const PROMPT_VERSIONS = {
     spirituality: "route_spirituality_v1",
     relocation: "route_relocation_v1",
   } satisfies Record<Topic, string>,
-  day_question_route: "route_day_question_v1",
+  day_question_route: "route_day_question_v2",
   daily_route: "route_daily_v2",
-  user: "user_v1",
-  answer_schema: "answer_v1",
+  user: "user_v2",
+  answer_schema: "answer_v2",
   daily_answer_schema: "daily_v2",
 } as const;
 
-export { routeDayQuestionV1, routePromptFor, systemPromptV1, userPromptV1 };
+export { routeDayQuestionV2, routePromptFor, systemPromptV1, userPromptV2 };

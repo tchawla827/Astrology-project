@@ -257,6 +257,8 @@ export const AskSessionSchema = z.object({
 
 export const AskAnswerSchema = z.object({
   verdict: z.string().min(1).max(280),
+  explanation: z.string().max(900).default(""),
+  advice: z.array(z.string().min(1)).max(5),
   why: z.array(z.string().min(1)).min(1).max(5),
   timing: z.object({
     summary: z.string().min(1),
@@ -266,7 +268,6 @@ export const AskAnswerSchema = z.object({
     level: z.enum(["high", "medium", "low"]),
     note: z.string().min(1),
   }),
-  advice: z.array(z.string().min(1)).max(5),
   technical_basis: z.object({
     charts_used: z.array(z.string()).min(1),
     houses_used: z.array(z.number().int().min(1).max(12)).min(1),

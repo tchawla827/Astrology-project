@@ -9,10 +9,12 @@ import type { AskAnswer } from "@/lib/schemas";
 
 const answer: AskAnswer = {
   verdict: "Career pressure is real, but it is structured rather than random.",
+  explanation:
+    "The chart does not describe the pressure as meaningless chaos. It points to a work pattern that demands patience, consistency, and better structure. That makes the period uncomfortable, but still usable.",
+  advice: ["Prioritize durable work over quick recognition.", "Do not change direction just to escape pressure."],
   why: ["Saturn is tied to the 10th house.", "The current dasha keeps work themes active."],
   timing: { summary: "This is mainly a dasha-led period with transit pressure.", type: ["dasha", "transit"] },
   confidence: { level: "medium", note: "Grounded in D1 and timing factors." },
-  advice: ["Prioritize durable work over quick recognition.", "Do not change direction just to escape pressure."],
   technical_basis: { charts_used: ["D1", "D10"], houses_used: [10], planets_used: ["Saturn"] },
 };
 
@@ -24,10 +26,11 @@ describe("Ask components", () => {
 
     expect(screen.getByText("Verdict")).toBeTruthy();
     expect(screen.getByText(answer.verdict)).toBeTruthy();
+    expect(screen.getByText(answer.explanation)).toBeTruthy();
+    expect(screen.getByText("What to do")).toBeTruthy();
     expect(screen.getByText("Why")).toBeTruthy();
     expect(screen.getAllByText("Timing").length).toBeGreaterThan(0);
     expect(screen.getByText("Confidence")).toBeTruthy();
-    expect(screen.getByText("What to do")).toBeTruthy();
     expect(screen.getByText("Show reasoning")).toBeTruthy();
     expect(screen.getByRole("button", { name: /Share/i })).toHaveProperty("disabled", true);
   });

@@ -86,16 +86,18 @@ describe("/api/ask", () => {
         provider: "gemini",
         model: "gemini-mock",
         prompt_version: "ask_v1",
-        answer_schema_version: "answer_v1",
+        answer_schema_version: "answer_v2",
         context_bundle_type: "career",
         latency_ms: 1,
       },
       answer: {
         verdict: "Career is active, but the chart shows a mixed path.",
+        explanation:
+          "The career signal is not absent, but it is not effortless either. The chart points to pressure that needs structure more than escape. That makes the next step practical rather than dramatic.",
+        advice: ["Act on the strongest signal first."],
         why: ["Saturn is involved."],
         timing: { summary: "Current period", type: ["dasha"] },
         confidence: { level: "medium", note: "Grounded in supplied context." },
-        advice: ["Act on the strongest signal first."],
         technical_basis: { charts_used: ["D1"], houses_used: [10], planets_used: ["Saturn"] },
       },
     });
@@ -172,16 +174,18 @@ describe("/api/ask", () => {
         provider: "gemini",
         model: "gemini-mock",
         prompt_version: "ask_v1",
-        answer_schema_version: "answer_v1",
+        answer_schema_version: "answer_v2",
         context_bundle_type: "daily",
         latency_ms: 1,
       },
       answer: {
         verdict: "Work is clearer than usual on this date.",
+        explanation:
+          "The selected-day facts point to a cleaner work signal than the surrounding noise. This is a date-specific opening, not a permanent promise. Use it for visible action while the support is present.",
+        advice: ["Use the cleaner work window."],
         why: ["The selected-day transits support action."],
         timing: { summary: "Selected-day transit context", type: ["transit"] },
         confidence: { level: "medium", note: "Grounded in supplied selected-day facts." },
-        advice: ["Use the cleaner work window."],
         technical_basis: { charts_used: ["Transit"], houses_used: [1], planets_used: ["Sun"] },
       },
     });
@@ -286,16 +290,18 @@ describe("/api/ask", () => {
         provider: "gemini",
         model: "gemini-mock",
         prompt_version: "ask_v1",
-        answer_schema_version: "answer_v1",
+        answer_schema_version: "answer_v2",
         context_bundle_type: "daily",
         latency_ms: 1,
       },
       answer: {
         verdict: "The saved day context still applies.",
+        explanation:
+          "The follow-up is still anchored to the saved selected date. That keeps the answer tied to the same transit context instead of drifting into a general natal reading. The useful move is to keep the question scoped to that date.",
+        advice: ["Keep the follow-up about the same date."],
         why: ["The session stores the selected date."],
         timing: { summary: "Selected-day transit context", type: ["transit"] },
         confidence: { level: "medium", note: "Grounded in supplied selected-day facts." },
-        advice: ["Keep the follow-up about the same date."],
         technical_basis: { charts_used: ["Transit"], houses_used: [1], planets_used: ["Sun"] },
       },
     });

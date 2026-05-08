@@ -52,8 +52,18 @@ export function AnswerCard({
           </div>
           <ShareButton askMessageId={messageId} />
         </div>
+        {answer.explanation ? (
+          <p className="max-w-3xl text-sm leading-6 text-muted-foreground">{answer.explanation}</p>
+        ) : null}
       </CardHeader>
       <CardContent className="space-y-5">
+        {answer.advice.length > 0 ? (
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold">What to do</h3>
+            <BulletList items={answer.advice} />
+          </section>
+        ) : null}
+
         <section className="space-y-2">
           <h3 className="text-sm font-semibold">Why</h3>
           <BulletList items={answer.why} />
@@ -80,13 +90,6 @@ export function AnswerCard({
             <span className="text-sm text-muted-foreground">{answer.confidence.note}</span>
           </div>
         </section>
-
-        {answer.advice.length > 0 ? (
-          <section className="space-y-2">
-            <h3 className="text-sm font-semibold">What to do</h3>
-            <BulletList items={answer.advice} />
-          </section>
-        ) : null}
 
         <TransparencyPanel answer={answer} messageId={messageId} metadata={metadata} />
       </CardContent>
