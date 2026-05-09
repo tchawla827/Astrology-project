@@ -4,13 +4,13 @@ import { AskWorkspace } from "@/components/ask/AskWorkspace";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { checkAskQuota, type SupabaseAskQuotaClient } from "@/lib/quotas/askQuota";
 import { loadAskShellContext, type SupabaseAskUiClient } from "@/lib/server/loadAsk";
-import { ToneModeSchema, TopicSchema } from "@/lib/schemas";
+import { DepthModeSchema, ToneModeSchema, TopicSchema } from "@/lib/schemas";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AskPage({
   searchParams,
 }: {
-  searchParams?: { topic?: string; tone?: string; question?: string };
+  searchParams?: { topic?: string; tone?: string; depth?: string; question?: string };
 }) {
   const supabase = createClient();
   const {
@@ -34,6 +34,7 @@ export default async function AskPage({
 
   const topic = TopicSchema.safeParse(searchParams?.topic).success ? TopicSchema.parse(searchParams?.topic) : undefined;
   const tone = ToneModeSchema.safeParse(searchParams?.tone).success ? ToneModeSchema.parse(searchParams?.tone) : undefined;
+  const depth = DepthModeSchema.safeParse(searchParams?.depth).success ? DepthModeSchema.parse(searchParams?.depth) : undefined;
   const context = await loadAskShellContext(supabase as unknown as SupabaseAskUiClient, user.id, topic);
   const quota = await checkAskQuota({ supabase: supabase as unknown as SupabaseAskQuotaClient, userId: user.id });
 
@@ -70,6 +71,7 @@ export default async function AskPage({
   return (
     <AskWorkspace
       initialQuestion={searchParams?.question ?? ""}
+      initialDepth={depth}
       initialTone={tone ?? context.defaultToneMode}
       profileId={context.profileId}
       quota={quota}

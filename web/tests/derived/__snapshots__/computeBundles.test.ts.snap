@@ -488,6 +488,2564 @@ exports[`computeBundles > produces a stable payload for the golden chart snapsho
       "confidence_note": "Signals are internally consistent and mostly supportive. Birth time is exact, so house weighting is relatively reliable."
     }
   },
+  "topic_evidence_v1": {
+    "personality": {
+      "version": "topic_evidence_v1",
+      "topic": "personality",
+      "verdict": "Personality shows a mixed but workable identity and temperament pattern: progress depends on choosing structure over reaction.",
+      "overview": {
+        "lifelong_pattern": "The whole-life personality pattern has workable support. The 1st house, ruled by Saturn, gives the main foundation, so this area improves when the person repeats the strongest chart-supported behavior until it becomes stable.",
+        "current_phase": "Right now the person is in a Rahu Mahadasha with Saturn Antardasha influence, so identity and temperament can feel heavier or more conditional than usual. The current phase is asking for cleanup, patience, and practical consistency before expansion feels clean.",
+        "practical_focus": "Use the stable traits deliberately instead of scattering attention across every impulse."
+      },
+      "primary_factors": [
+        {
+          "kind": "house",
+          "label": "Whole-life personality structure",
+          "summary": "1st house in Aquarius, ruled by Saturn placed in the 2nd in Pisces, without direct planetary occupation; the structure is mixed.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              1
+            ],
+            "planets": [
+              "Saturn"
+            ]
+          }
+        },
+        {
+          "kind": "chart",
+          "label": "D1 confirmation",
+          "summary": "Personality is currently read from D1/Bhava because a dedicated divisional chart is unavailable in this snapshot.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              1
+            ],
+            "planets": []
+          }
+        }
+      ],
+      "timing_factors": [
+        {
+          "type": "dasha",
+          "label": "Current Mahadasha",
+          "summary": "Rahu (Oct 30, 2012 to Oct 31, 2030) sets the broad personality background.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              1
+            ],
+            "planets": [
+              "Rahu"
+            ]
+          }
+        },
+        {
+          "type": "dasha",
+          "label": "Current Antardasha",
+          "summary": "Saturn (Dec 6, 2017 to Oct 12, 2020) is the sharper current timing layer for personality.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              1
+            ],
+            "planets": [
+              "Saturn"
+            ]
+          }
+        },
+        {
+          "type": "upcoming",
+          "label": "Next dasha shift",
+          "summary": "Jupiter (Oct 31, 2030 to Oct 31, 2046) is the next timing transition to watch.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              1
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        }
+      ],
+      "supporting_factors": [
+        {
+          "kind": "planet",
+          "label": "Moon supports identity and temperament",
+          "summary": "Emotional signature Moon is in Virgo in the 8th with supported by a friendly sign. For personality, this points to emotional rhythm, care, public response, comfort, and recovery.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava",
+              "Moon"
+            ],
+            "houses": [
+              8
+            ],
+            "planets": [
+              "Moon"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Venus in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              1
+            ],
+            "planets": [
+              "Sun",
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Mercury in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              1
+            ],
+            "planets": [
+              "Mercury",
+              "Sun"
+            ]
+          }
+        }
+      ],
+      "friction_factors": [
+        {
+          "kind": "planet",
+          "label": "Moon needs correction",
+          "summary": "Emotional signature Moon is in Virgo in the 8th with supported by a friendly sign. For personality, this affects emotional rhythm, care, public response, comfort, and recovery. This reads as friction because of 8th house.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava",
+              "Moon"
+            ],
+            "houses": [
+              8
+            ],
+            "planets": [
+              "Moon"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Sun needs correction",
+          "summary": "Core identity Sun is in Taurus in the 4th with working in an enemy sign. For personality, this affects authority, visibility, confidence, father or leadership themes. This reads as friction because of enemy.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava",
+              "Moon"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Sun"
+            ]
+          }
+        }
+      ],
+      "confidence": {
+        "level": "high",
+        "reasons": [
+          "2 correction factor(s) need caveats.",
+          "Birth time confidence is exact."
+        ]
+      },
+      "birth_time_sensitivity": {
+        "level": "low",
+        "note": "Birth time is exact, so Lagna, house weighting, and divisional chart detail are usable for personality with normal confidence."
+      },
+      "citations": {
+        "charts": [
+          "D1",
+          "Bhava",
+          "Moon"
+        ],
+        "houses": [
+          1,
+          4,
+          8
+        ],
+        "planets": [
+          "Saturn",
+          "Moon",
+          "Sun",
+          "Venus",
+          "Mercury",
+          "Rahu",
+          "Jupiter"
+        ]
+      }
+    },
+    "career": {
+      "version": "topic_evidence_v1",
+      "topic": "career",
+      "verdict": "Career growth is supported, but the current Saturn Antardasha asks for disciplined execution rather than quick validation.",
+      "overview": {
+        "lifelong_pattern": "The whole-life career pattern has workable professional support. The 10th lord Mars connects career with clients, partnerships, business-facing work, and public dealing, so the strongest path is built by repeating that skill until it becomes visible authority.",
+        "current_phase": "Right now the person is in a Rahu Mahadasha with Saturn Antardasha influence, so career can feel heavier than the effort being rewarded. The current phase is asking for cleanup, discipline, and practical consistency before expansion feels clean.",
+        "practical_focus": "The practical focus should be to use the supportive window: take responsibility, publish visible work, and build leverage through the strongest career skill."
+      },
+      "primary_factors": [
+        {
+          "kind": "house",
+          "label": "Whole-life career structure",
+          "summary": "10th house in Scorpio, ruled by Mars placed in the 7th in Leo, occupied by Jupiter; the structure is supportive.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              10
+            ],
+            "planets": [
+              "Mars",
+              "Jupiter"
+            ]
+          }
+        },
+        {
+          "kind": "chart",
+          "label": "D10 professional confirmation",
+          "summary": "D10 reinforces professional detail: Venus, Rahu occupy the 10th; career planets show Mars in Sagittarius/9th; Saturn in Scorpio/8th; Sun in Leo/5th; Mercury in Cancer/4th; Jupiter in Sagittarius/9th.",
+          "citations": {
+            "charts": [
+              "D10"
+            ],
+            "houses": [
+              10
+            ],
+            "planets": [
+              "Venus",
+              "Rahu",
+              "Saturn"
+            ]
+          }
+        }
+      ],
+      "timing_factors": [
+        {
+          "type": "dasha",
+          "label": "Current Mahadasha",
+          "summary": "Rahu (Oct 30, 2012 to Oct 31, 2030) sets the broad career background.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              6,
+              10,
+              11
+            ],
+            "planets": [
+              "Rahu"
+            ]
+          }
+        },
+        {
+          "type": "dasha",
+          "label": "Current Antardasha",
+          "summary": "Saturn (Dec 6, 2017 to Oct 12, 2020) is the sharper current timing layer.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              6,
+              10,
+              11
+            ],
+            "planets": [
+              "Saturn"
+            ]
+          }
+        },
+        {
+          "type": "upcoming",
+          "label": "Next dasha shift",
+          "summary": "Jupiter (Oct 31, 2030 to Oct 31, 2046) is the next timing transition to watch.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              6,
+              10,
+              11
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        }
+      ],
+      "supporting_factors": [
+        {
+          "kind": "house",
+          "label": "10th house support",
+          "summary": "10th house in Scorpio, ruled by Mars placed in the 7th in Leo, occupied by Jupiter; the structure is supportive.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              10
+            ],
+            "planets": [
+              "Mars",
+              "Jupiter"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Mars supports career function",
+          "summary": "10th lord Mars is in Leo in the 7th with supported by a friendly sign. D10 echoes this through Sagittarius in the 9th. In career terms this points to execution, competition, engineering, conflict handling, and decisive action.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D10"
+            ],
+            "houses": [
+              7
+            ],
+            "planets": [
+              "Mars"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Jupiter supports career function",
+          "summary": "Karaka of guidance and growth Jupiter is in Scorpio in the 10th with supported by a friendly sign, retrograde. D10 echoes this through Sagittarius in the 9th. In career terms this points to guidance, teaching, counsel, judgment, and growth through knowledge.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D10"
+            ],
+            "houses": [
+              10
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        },
+        {
+          "kind": "chart",
+          "label": "Venus in D10 10th",
+          "summary": "Venus directly occupies the D10 10th house, making professional visibility a key part of the career reading.",
+          "citations": {
+            "charts": [
+              "D10"
+            ],
+            "houses": [
+              10
+            ],
+            "planets": [
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "chart",
+          "label": "Rahu in D10 10th",
+          "summary": "Rahu directly occupies the D10 10th house, making professional visibility a key part of the career reading.",
+          "citations": {
+            "charts": [
+              "D10"
+            ],
+            "houses": [
+              10
+            ],
+            "planets": [
+              "Rahu"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Venus in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              10
+            ],
+            "planets": [
+              "Sun",
+              "Venus"
+            ]
+          }
+        }
+      ],
+      "friction_factors": [
+        {
+          "kind": "planet",
+          "label": "Sun needs correction",
+          "summary": "Karaka of authority Sun is in Taurus in the 4th with working in an enemy sign. D10 echoes this through Leo in the 5th. In career terms this affects authority, visibility, leadership, and dealing with senior figures. This reads as friction because of enemy.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D10"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Sun"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Mercury needs correction",
+          "summary": "Karaka of skill and trade Mercury is in Taurus in the 4th with supported by a friendly sign, retrograde and combust. D10 echoes this through Cancer in the 4th. In career terms this affects analysis, trade, writing, communication, systems, and technical skill. This reads as friction because of combust, retrograde.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D10"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Mercury"
+            ]
+          }
+        }
+      ],
+      "confidence": {
+        "level": "high",
+        "reasons": [
+          "1 career house signal(s) are supportive.",
+          "2 friction factor(s) need caveats.",
+          "Birth time confidence is exact."
+        ]
+      },
+      "birth_time_sensitivity": {
+        "level": "low",
+        "note": "Birth time is exact, so Lagna, houses, and D10 career factors are usable with normal confidence."
+      },
+      "citations": {
+        "charts": [
+          "D1",
+          "Bhava",
+          "D10"
+        ],
+        "houses": [
+          2,
+          4,
+          6,
+          7,
+          10,
+          11
+        ],
+        "planets": [
+          "Mars",
+          "Jupiter",
+          "Venus",
+          "Rahu",
+          "Saturn",
+          "Sun",
+          "Mercury"
+        ]
+      }
+    },
+    "wealth": {
+      "version": "topic_evidence_v1",
+      "topic": "wealth",
+      "verdict": "Wealth has structural support, with timing that rewards steady, repeatable action.",
+      "overview": {
+        "lifelong_pattern": "The whole-life wealth pattern has workable support. The 2nd house, ruled by Jupiter, gives the main foundation, so this area improves when the person repeats the strongest chart-supported behavior until it becomes stable.",
+        "current_phase": "Right now the person is in a Rahu Mahadasha with Saturn Antardasha influence, so wealth and resources is active rather than dormant. The current phase supports steady choices and visible effort in this area.",
+        "practical_focus": "Favor steady earning channels, savings discipline, and practical asset-building over scattered opportunity chasing."
+      },
+      "primary_factors": [
+        {
+          "kind": "house",
+          "label": "Whole-life wealth structure",
+          "summary": "2nd house in Pisces, ruled by Jupiter placed in the 10th in Scorpio, occupied by Saturn; the structure is mixed.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              2
+            ],
+            "planets": [
+              "Jupiter",
+              "Saturn"
+            ]
+          }
+        },
+        {
+          "kind": "chart",
+          "label": "D2 confirmation",
+          "summary": "D2 adds topic detail: the 2nd is Capricorn and ruled by Saturn.",
+          "citations": {
+            "charts": [
+              "D2"
+            ],
+            "houses": [
+              2
+            ],
+            "planets": [
+              "Saturn"
+            ]
+          }
+        }
+      ],
+      "timing_factors": [
+        {
+          "type": "dasha",
+          "label": "Current Mahadasha",
+          "summary": "Rahu (Oct 30, 2012 to Oct 31, 2030) sets the broad wealth background.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              5,
+              9,
+              11
+            ],
+            "planets": [
+              "Rahu"
+            ]
+          }
+        },
+        {
+          "type": "dasha",
+          "label": "Current Antardasha",
+          "summary": "Saturn (Dec 6, 2017 to Oct 12, 2020) is the sharper current timing layer for wealth.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              5,
+              9,
+              11
+            ],
+            "planets": [
+              "Saturn"
+            ]
+          }
+        },
+        {
+          "type": "upcoming",
+          "label": "Next dasha shift",
+          "summary": "Jupiter (Oct 31, 2030 to Oct 31, 2046) is the next timing transition to watch.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              5,
+              9,
+              11
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        }
+      ],
+      "supporting_factors": [
+        {
+          "kind": "house",
+          "label": "9th house support",
+          "summary": "9th house in Libra, ruled by Venus placed in the 4th in Taurus, occupied by Rahu; the structure is supportive.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              9
+            ],
+            "planets": [
+              "Venus",
+              "Rahu"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Jupiter supports wealth and resources",
+          "summary": "2nd lord / 11th lord / Karaka of prosperity Jupiter is in Scorpio in the 10th with supported by a friendly sign, retrograde. D2 echoes this through Gemini in the 7th. For wealth, this points to growth, judgment, counsel, teachers, faith, and protection.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D2",
+              "D11"
+            ],
+            "houses": [
+              10
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Venus supports wealth and resources",
+          "summary": "Karaka of comfort and liquidity Venus is in Taurus in the 4th with steady in its own sign. D2 echoes this through Cancer in the 8th. For wealth, this points to comfort, attraction, value, pleasure, art, and relational ease.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D2",
+              "D11"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Venus in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              5,
+              9,
+              11
+            ],
+            "planets": [
+              "Sun",
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Mercury in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              5,
+              9,
+              11
+            ],
+            "planets": [
+              "Mercury",
+              "Sun"
+            ]
+          }
+        }
+      ],
+      "friction_factors": [],
+      "confidence": {
+        "level": "high",
+        "reasons": [
+          "1 wealth and resources house signal(s) are supportive.",
+          "Birth time confidence is exact."
+        ]
+      },
+      "birth_time_sensitivity": {
+        "level": "low",
+        "note": "Birth time is exact, so Lagna, house weighting, and divisional chart detail are usable for wealth with normal confidence."
+      },
+      "citations": {
+        "charts": [
+          "D1",
+          "Bhava",
+          "D2",
+          "D11"
+        ],
+        "houses": [
+          2,
+          4,
+          5,
+          9,
+          10,
+          11
+        ],
+        "planets": [
+          "Jupiter",
+          "Saturn",
+          "Venus",
+          "Rahu",
+          "Sun",
+          "Mercury"
+        ]
+      }
+    },
+    "relationships": {
+      "version": "topic_evidence_v1",
+      "topic": "relationships",
+      "verdict": "Relationships is under real pressure now; the chart points to correction and cleanup before the area feels easy.",
+      "overview": {
+        "lifelong_pattern": "The whole-life relationships pattern is not simple or effortless. The 5th house, ruled by Mercury, carries visible pressure, so this area improves when the person works with structure, boundaries, and repeated correction instead of expecting instant ease.",
+        "current_phase": "Right now the person is in a Rahu Mahadasha with Saturn Antardasha influence, so relationship pattern can feel heavier or more conditional than usual. The current phase is asking for cleanup, patience, and practical consistency before expansion feels clean.",
+        "practical_focus": "Slow down assumptions, name the conflict pattern early, and avoid making one intense moment define the bond."
+      },
+      "primary_factors": [
+        {
+          "kind": "house",
+          "label": "Whole-life relationships structure",
+          "summary": "5th house in Gemini, ruled by Mercury placed in the 4th in Taurus, without direct planetary occupation; the structure is mixed.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              5
+            ],
+            "planets": [
+              "Mercury"
+            ]
+          }
+        },
+        {
+          "kind": "chart",
+          "label": "D7 confirmation",
+          "summary": "D7 adds topic detail: the 5th is Cancer and ruled by Moon.",
+          "citations": {
+            "charts": [
+              "D7"
+            ],
+            "houses": [
+              5
+            ],
+            "planets": [
+              "Moon"
+            ]
+          }
+        }
+      ],
+      "timing_factors": [
+        {
+          "type": "dasha",
+          "label": "Current Mahadasha",
+          "summary": "Rahu (Oct 30, 2012 to Oct 31, 2030) sets the broad relationships background.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              5,
+              7,
+              11
+            ],
+            "planets": [
+              "Rahu"
+            ]
+          }
+        },
+        {
+          "type": "dasha",
+          "label": "Current Antardasha",
+          "summary": "Saturn (Dec 6, 2017 to Oct 12, 2020) is the sharper current timing layer for relationships.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              5,
+              7,
+              11
+            ],
+            "planets": [
+              "Saturn"
+            ]
+          }
+        },
+        {
+          "type": "upcoming",
+          "label": "Next dasha shift",
+          "summary": "Jupiter (Oct 31, 2030 to Oct 31, 2046) is the next timing transition to watch.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              5,
+              7,
+              11
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        }
+      ],
+      "supporting_factors": [
+        {
+          "kind": "planet",
+          "label": "Venus supports relationship pattern",
+          "summary": "Karaka of relating Venus is in Taurus in the 4th with steady in its own sign. D7 echoes this through Scorpio in the 9th. For relationships, this points to comfort, attraction, value, pleasure, art, and relational ease.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D7",
+              "D9"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Mars supports relationship pattern",
+          "summary": "Passion and conflict marker Mars is in Leo in the 7th with supported by a friendly sign. D7 echoes this through Libra in the 8th. For relationships, this points to drive, conflict, stamina, competition, courage, and decisive action.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D7",
+              "D9"
+            ],
+            "houses": [
+              7
+            ],
+            "planets": [
+              "Mars"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Moon supports relationship pattern",
+          "summary": "Emotional receptivity Moon is in Virgo in the 8th with supported by a friendly sign. D7 echoes this through Taurus in the 3rd. For relationships, this points to emotional rhythm, care, public response, comfort, and recovery.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D7",
+              "D9"
+            ],
+            "houses": [
+              8
+            ],
+            "planets": [
+              "Moon"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Venus in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              5,
+              7,
+              11
+            ],
+            "planets": [
+              "Sun",
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Mercury in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              5,
+              7,
+              11
+            ],
+            "planets": [
+              "Mercury",
+              "Sun"
+            ]
+          }
+        }
+      ],
+      "friction_factors": [
+        {
+          "kind": "house",
+          "label": "7th house pressure",
+          "summary": "7th house in Leo, ruled by Sun placed in the 4th in Taurus, occupied by Mars; the structure is under strain.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              7
+            ],
+            "planets": [
+              "Sun",
+              "Mars"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Sun needs correction",
+          "summary": "7th lord Sun is in Taurus in the 4th with working in an enemy sign. D7 echoes this through Aries in the 2nd. For relationships, this affects authority, visibility, confidence, father or leadership themes. This reads as friction because of enemy.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D7",
+              "D9"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Sun"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Moon needs correction",
+          "summary": "Emotional receptivity Moon is in Virgo in the 8th with supported by a friendly sign. D7 echoes this through Taurus in the 3rd. For relationships, this affects emotional rhythm, care, public response, comfort, and recovery. This reads as friction because of 8th house.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D7",
+              "D9"
+            ],
+            "houses": [
+              8
+            ],
+            "planets": [
+              "Moon"
+            ]
+          }
+        }
+      ],
+      "confidence": {
+        "level": "medium",
+        "reasons": [
+          "1 relationship pattern house signal(s) are under strain.",
+          "3 correction factor(s) need caveats.",
+          "Birth time confidence is exact."
+        ]
+      },
+      "birth_time_sensitivity": {
+        "level": "low",
+        "note": "Birth time is exact, so Lagna, house weighting, and divisional chart detail are usable for relationships with normal confidence."
+      },
+      "citations": {
+        "charts": [
+          "D1",
+          "Bhava",
+          "D7",
+          "D9"
+        ],
+        "houses": [
+          4,
+          5,
+          7,
+          8,
+          11
+        ],
+        "planets": [
+          "Mercury",
+          "Moon",
+          "Venus",
+          "Mars",
+          "Sun",
+          "Rahu",
+          "Saturn",
+          "Jupiter"
+        ]
+      }
+    },
+    "marriage": {
+      "version": "topic_evidence_v1",
+      "topic": "marriage",
+      "verdict": "Marriage is under real pressure now; the chart points to correction and cleanup before the area feels easy.",
+      "overview": {
+        "lifelong_pattern": "The whole-life marriage pattern is not simple or effortless. The 7th house, ruled by Sun, carries visible pressure, so this area improves when the person works with structure, boundaries, and repeated correction instead of expecting instant ease.",
+        "current_phase": "Right now the person is in a Rahu Mahadasha with Saturn Antardasha influence, so marriage and commitment can feel heavier or more conditional than usual. The current phase is asking for cleanup, patience, and practical consistency before expansion feels clean.",
+        "practical_focus": "Delay irreversible decisions until pressure reduces, and treat conflict as data rather than a final verdict."
+      },
+      "primary_factors": [
+        {
+          "kind": "house",
+          "label": "Whole-life marriage structure",
+          "summary": "7th house in Leo, ruled by Sun placed in the 4th in Taurus, occupied by Mars; the structure is under strain.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              7
+            ],
+            "planets": [
+              "Sun",
+              "Mars"
+            ]
+          }
+        },
+        {
+          "kind": "chart",
+          "label": "D9 confirmation",
+          "summary": "D9 adds topic detail: the 7th is Taurus and ruled by Venus.",
+          "citations": {
+            "charts": [
+              "D9"
+            ],
+            "houses": [
+              7
+            ],
+            "planets": [
+              "Venus"
+            ]
+          }
+        }
+      ],
+      "timing_factors": [
+        {
+          "type": "dasha",
+          "label": "Current Mahadasha",
+          "summary": "Rahu (Oct 30, 2012 to Oct 31, 2030) sets the broad marriage background.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              7
+            ],
+            "planets": [
+              "Rahu"
+            ]
+          }
+        },
+        {
+          "type": "dasha",
+          "label": "Current Antardasha",
+          "summary": "Saturn (Dec 6, 2017 to Oct 12, 2020) is the sharper current timing layer for marriage.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              7
+            ],
+            "planets": [
+              "Saturn"
+            ]
+          }
+        },
+        {
+          "type": "upcoming",
+          "label": "Next dasha shift",
+          "summary": "Jupiter (Oct 31, 2030 to Oct 31, 2046) is the next timing transition to watch.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              7
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        }
+      ],
+      "supporting_factors": [
+        {
+          "kind": "planet",
+          "label": "Venus supports marriage and commitment",
+          "summary": "Marriage significator Venus is in Taurus in the 4th with steady in its own sign. D9 echoes this through Capricorn in the 3rd. For marriage, this points to comfort, attraction, value, pleasure, art, and relational ease.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D9"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Jupiter supports marriage and commitment",
+          "summary": "Commitment stabilizer Jupiter is in Scorpio in the 10th with supported by a friendly sign, retrograde. D9 echoes this through Scorpio in the 1st. For marriage, this points to growth, judgment, counsel, teachers, faith, and protection.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D9"
+            ],
+            "houses": [
+              10
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Venus in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              7
+            ],
+            "planets": [
+              "Sun",
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Mercury in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              7
+            ],
+            "planets": [
+              "Mercury",
+              "Sun"
+            ]
+          }
+        }
+      ],
+      "friction_factors": [
+        {
+          "kind": "house",
+          "label": "7th house pressure",
+          "summary": "7th house in Leo, ruled by Sun placed in the 4th in Taurus, occupied by Mars; the structure is under strain.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              7
+            ],
+            "planets": [
+              "Sun",
+              "Mars"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Sun needs correction",
+          "summary": "7th lord Sun is in Taurus in the 4th with working in an enemy sign. D9 echoes this through Cancer in the 9th. For marriage, this affects authority, visibility, confidence, father or leadership themes. This reads as friction because of enemy.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D9"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Sun"
+            ]
+          }
+        }
+      ],
+      "confidence": {
+        "level": "medium",
+        "reasons": [
+          "1 marriage and commitment house signal(s) are under strain.",
+          "2 correction factor(s) need caveats.",
+          "Birth time confidence is exact."
+        ]
+      },
+      "birth_time_sensitivity": {
+        "level": "low",
+        "note": "Birth time is exact, so Lagna, house weighting, and divisional chart detail are usable for marriage with normal confidence."
+      },
+      "citations": {
+        "charts": [
+          "D1",
+          "Bhava",
+          "D9"
+        ],
+        "houses": [
+          4,
+          7,
+          10
+        ],
+        "planets": [
+          "Sun",
+          "Mars",
+          "Venus",
+          "Jupiter",
+          "Mercury",
+          "Rahu",
+          "Saturn"
+        ]
+      }
+    },
+    "family": {
+      "version": "topic_evidence_v1",
+      "topic": "family",
+      "verdict": "Family is supported, but the current Saturn Antardasha asks for disciplined handling rather than quick validation.",
+      "overview": {
+        "lifelong_pattern": "The whole-life family pattern has workable support. The 2nd house, ruled by Jupiter, gives the main foundation, so this area improves when the person repeats the strongest chart-supported behavior until it becomes stable.",
+        "current_phase": "Right now the person is in a Rahu Mahadasha with Saturn Antardasha influence, so family and home life can feel heavier or more conditional than usual. The current phase is asking for cleanup, patience, and practical consistency before expansion feels clean.",
+        "practical_focus": "Invest in routines, home stability, and practical care where the chart already shows continuity."
+      },
+      "primary_factors": [
+        {
+          "kind": "house",
+          "label": "Whole-life family structure",
+          "summary": "2nd house in Pisces, ruled by Jupiter placed in the 10th in Scorpio, occupied by Saturn; the structure is mixed.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              2
+            ],
+            "planets": [
+              "Jupiter",
+              "Saturn"
+            ]
+          }
+        },
+        {
+          "kind": "chart",
+          "label": "D3 confirmation",
+          "summary": "D3 adds topic detail: Jupiter, Saturn occupy the 2nd.",
+          "citations": {
+            "charts": [
+              "D3"
+            ],
+            "houses": [
+              2
+            ],
+            "planets": [
+              "Jupiter",
+              "Saturn"
+            ]
+          }
+        }
+      ],
+      "timing_factors": [
+        {
+          "type": "dasha",
+          "label": "Current Mahadasha",
+          "summary": "Rahu (Oct 30, 2012 to Oct 31, 2030) sets the broad family background.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "planets": [
+              "Rahu"
+            ]
+          }
+        },
+        {
+          "type": "dasha",
+          "label": "Current Antardasha",
+          "summary": "Saturn (Dec 6, 2017 to Oct 12, 2020) is the sharper current timing layer for family.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "planets": [
+              "Saturn"
+            ]
+          }
+        },
+        {
+          "type": "upcoming",
+          "label": "Next dasha shift",
+          "summary": "Jupiter (Oct 31, 2030 to Oct 31, 2046) is the next timing transition to watch.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        }
+      ],
+      "supporting_factors": [
+        {
+          "kind": "house",
+          "label": "4th house support",
+          "summary": "4th house in Taurus, ruled by Venus placed in the 4th in Taurus, occupied by Sun, Mercury, and Venus; the structure is supportive.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Venus",
+              "Sun",
+              "Mercury"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Venus supports family and home life",
+          "summary": "4th lord Venus is in Taurus in the 4th with steady in its own sign. D3 echoes this through Taurus in the 4th. For family, this points to comfort, attraction, value, pleasure, art, and relational ease.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D3",
+              "D4",
+              "D12"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Moon supports family and home life",
+          "summary": "Domestic climate Moon is in Virgo in the 8th with supported by a friendly sign. D3 echoes this through Virgo in the 8th. For family, this points to emotional rhythm, care, public response, comfort, and recovery.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D3",
+              "D4",
+              "D12"
+            ],
+            "houses": [
+              8
+            ],
+            "planets": [
+              "Moon"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Jupiter supports family and home life",
+          "summary": "Family guidance Jupiter is in Scorpio in the 10th with supported by a friendly sign, retrograde. D3 echoes this through Pisces in the 2nd. For family, this points to growth, judgment, counsel, teachers, faith, and protection.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D3",
+              "D4",
+              "D12"
+            ],
+            "houses": [
+              10
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Venus in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "planets": [
+              "Sun",
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Mercury in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "planets": [
+              "Mercury",
+              "Sun"
+            ]
+          }
+        }
+      ],
+      "friction_factors": [
+        {
+          "kind": "planet",
+          "label": "Moon needs correction",
+          "summary": "Domestic climate Moon is in Virgo in the 8th with supported by a friendly sign. D3 echoes this through Virgo in the 8th. For family, this affects emotional rhythm, care, public response, comfort, and recovery. This reads as friction because of 8th house.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D3",
+              "D4",
+              "D12"
+            ],
+            "houses": [
+              8
+            ],
+            "planets": [
+              "Moon"
+            ]
+          }
+        }
+      ],
+      "confidence": {
+        "level": "high",
+        "reasons": [
+          "1 family and home life house signal(s) are supportive.",
+          "1 correction factor(s) need caveats.",
+          "Birth time confidence is exact."
+        ]
+      },
+      "birth_time_sensitivity": {
+        "level": "low",
+        "note": "Birth time is exact, so Lagna, house weighting, and divisional chart detail are usable for family with normal confidence."
+      },
+      "citations": {
+        "charts": [
+          "D1",
+          "Bhava",
+          "D3",
+          "D4",
+          "D12"
+        ],
+        "houses": [
+          2,
+          3,
+          4,
+          5,
+          8,
+          10
+        ],
+        "planets": [
+          "Jupiter",
+          "Saturn",
+          "Venus",
+          "Sun",
+          "Mercury",
+          "Moon",
+          "Rahu"
+        ]
+      }
+    },
+    "health": {
+      "version": "topic_evidence_v1",
+      "topic": "health",
+      "verdict": "Health is supported, but the current Saturn Antardasha asks for disciplined handling rather than quick validation.",
+      "overview": {
+        "lifelong_pattern": "The whole-life health pattern has workable support. The 1st house, ruled by Saturn, gives the main foundation, so this area improves when the person repeats the strongest chart-supported behavior until it becomes stable.",
+        "current_phase": "Right now the person is in a Rahu Mahadasha with Saturn Antardasha influence, so health and recovery can feel heavier or more conditional than usual. The current phase is asking for cleanup, patience, and practical consistency before expansion feels clean.",
+        "practical_focus": "Use the supportive recovery pattern through routine, sleep, food discipline, and consistent maintenance."
+      },
+      "primary_factors": [
+        {
+          "kind": "house",
+          "label": "Whole-life health structure",
+          "summary": "1st house in Aquarius, ruled by Saturn placed in the 2nd in Pisces, without direct planetary occupation; the structure is mixed.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              1
+            ],
+            "planets": [
+              "Saturn"
+            ]
+          }
+        },
+        {
+          "kind": "chart",
+          "label": "D6 confirmation",
+          "summary": "D6 adds topic detail: Rahu, Ketu occupy the 1st.",
+          "citations": {
+            "charts": [
+              "D6"
+            ],
+            "houses": [
+              1
+            ],
+            "planets": [
+              "Rahu",
+              "Ketu",
+              "Venus"
+            ]
+          }
+        }
+      ],
+      "timing_factors": [
+        {
+          "type": "dasha",
+          "label": "Current Mahadasha",
+          "summary": "Rahu (Oct 30, 2012 to Oct 31, 2030) sets the broad health background.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              1,
+              6,
+              8,
+              12
+            ],
+            "planets": [
+              "Rahu"
+            ]
+          }
+        },
+        {
+          "type": "dasha",
+          "label": "Current Antardasha",
+          "summary": "Saturn (Dec 6, 2017 to Oct 12, 2020) is the sharper current timing layer for health.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              1,
+              6,
+              8,
+              12
+            ],
+            "planets": [
+              "Saturn"
+            ]
+          }
+        },
+        {
+          "type": "upcoming",
+          "label": "Next dasha shift",
+          "summary": "Jupiter (Oct 31, 2030 to Oct 31, 2046) is the next timing transition to watch.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              1,
+              6,
+              8,
+              12
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        }
+      ],
+      "supporting_factors": [
+        {
+          "kind": "house",
+          "label": "8th house support",
+          "summary": "8th house in Virgo, ruled by Mercury placed in the 4th in Taurus, occupied by Moon; the structure is supportive.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              8
+            ],
+            "planets": [
+              "Mercury",
+              "Moon"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Moon supports health and recovery",
+          "summary": "Recovery pattern Moon is in Virgo in the 8th with supported by a friendly sign. D6 echoes this through Scorpio in the 7th. For health, this points to emotional rhythm, care, public response, comfort, and recovery.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D6",
+              "D8",
+              "D30"
+            ],
+            "houses": [
+              8
+            ],
+            "planets": [
+              "Moon"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Venus in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              1,
+              6,
+              8,
+              12
+            ],
+            "planets": [
+              "Sun",
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Mercury in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              1,
+              6,
+              8,
+              12
+            ],
+            "planets": [
+              "Mercury",
+              "Sun"
+            ]
+          }
+        }
+      ],
+      "friction_factors": [
+        {
+          "kind": "planet",
+          "label": "Moon needs correction",
+          "summary": "Recovery pattern Moon is in Virgo in the 8th with supported by a friendly sign. D6 echoes this through Scorpio in the 7th. For health, this affects emotional rhythm, care, public response, comfort, and recovery. This reads as friction because of 8th house.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D6",
+              "D8",
+              "D30"
+            ],
+            "houses": [
+              8
+            ],
+            "planets": [
+              "Moon"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Sun needs correction",
+          "summary": "Vitality marker Sun is in Taurus in the 4th with working in an enemy sign. D6 echoes this through Aquarius in the 10th. For health, this affects authority, visibility, confidence, father or leadership themes. This reads as friction because of enemy.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D6",
+              "D8",
+              "D30"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Sun"
+            ]
+          }
+        }
+      ],
+      "confidence": {
+        "level": "high",
+        "reasons": [
+          "1 health and recovery house signal(s) are supportive.",
+          "2 correction factor(s) need caveats.",
+          "Birth time confidence is exact."
+        ]
+      },
+      "birth_time_sensitivity": {
+        "level": "low",
+        "note": "Birth time is exact, so Lagna, house weighting, and divisional chart detail are usable for health with normal confidence."
+      },
+      "citations": {
+        "charts": [
+          "D1",
+          "Bhava",
+          "D6",
+          "D8",
+          "D30"
+        ],
+        "houses": [
+          1,
+          4,
+          6,
+          8,
+          12
+        ],
+        "planets": [
+          "Saturn",
+          "Rahu",
+          "Ketu",
+          "Venus",
+          "Mercury",
+          "Moon",
+          "Sun",
+          "Jupiter"
+        ]
+      }
+    },
+    "education": {
+      "version": "topic_evidence_v1",
+      "topic": "education",
+      "verdict": "Education is supported, but the current Saturn Antardasha asks for disciplined handling rather than quick validation.",
+      "overview": {
+        "lifelong_pattern": "The whole-life education pattern has workable support. The 2nd house, ruled by Jupiter, gives the main foundation, so this area improves when the person repeats the strongest chart-supported behavior until it becomes stable.",
+        "current_phase": "Right now the person is in a Rahu Mahadasha with Saturn Antardasha influence, so education and learning can feel heavier or more conditional than usual. The current phase is asking for cleanup, patience, and practical consistency before expansion feels clean.",
+        "practical_focus": "Choose a narrow learning track, repeat practice, and convert curiosity into demonstrable skill."
+      },
+      "primary_factors": [
+        {
+          "kind": "house",
+          "label": "Whole-life education structure",
+          "summary": "2nd house in Pisces, ruled by Jupiter placed in the 10th in Scorpio, occupied by Saturn; the structure is mixed.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              2
+            ],
+            "planets": [
+              "Jupiter",
+              "Saturn"
+            ]
+          }
+        },
+        {
+          "kind": "chart",
+          "label": "D4 confirmation",
+          "summary": "D4 adds topic detail: Saturn occupy the 2nd.",
+          "citations": {
+            "charts": [
+              "D4"
+            ],
+            "houses": [
+              2
+            ],
+            "planets": [
+              "Saturn",
+              "Jupiter"
+            ]
+          }
+        }
+      ],
+      "timing_factors": [
+        {
+          "type": "dasha",
+          "label": "Current Mahadasha",
+          "summary": "Rahu (Oct 30, 2012 to Oct 31, 2030) sets the broad education background.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              4,
+              5,
+              9
+            ],
+            "planets": [
+              "Rahu"
+            ]
+          }
+        },
+        {
+          "type": "dasha",
+          "label": "Current Antardasha",
+          "summary": "Saturn (Dec 6, 2017 to Oct 12, 2020) is the sharper current timing layer for education.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              4,
+              5,
+              9
+            ],
+            "planets": [
+              "Saturn"
+            ]
+          }
+        },
+        {
+          "type": "upcoming",
+          "label": "Next dasha shift",
+          "summary": "Jupiter (Oct 31, 2030 to Oct 31, 2046) is the next timing transition to watch.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              4,
+              5,
+              9
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        }
+      ],
+      "supporting_factors": [
+        {
+          "kind": "house",
+          "label": "4th house support",
+          "summary": "4th house in Taurus, ruled by Venus placed in the 4th in Taurus, occupied by Sun, Mercury, and Venus; the structure is supportive.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Venus",
+              "Sun",
+              "Mercury"
+            ]
+          }
+        },
+        {
+          "kind": "house",
+          "label": "9th house support",
+          "summary": "9th house in Libra, ruled by Venus placed in the 4th in Taurus, occupied by Rahu; the structure is supportive.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              9
+            ],
+            "planets": [
+              "Venus",
+              "Rahu"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Jupiter supports education and learning",
+          "summary": "Higher knowledge Jupiter is in Scorpio in the 10th with supported by a friendly sign, retrograde. D4 echoes this through Taurus in the 4th. For education, this points to growth, judgment, counsel, teachers, faith, and protection.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D4",
+              "D24"
+            ],
+            "houses": [
+              10
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Venus supports education and learning",
+          "summary": "4th lord Venus is in Taurus in the 4th with steady in its own sign. D4 echoes this through Taurus in the 4th. For education, this points to comfort, attraction, value, pleasure, art, and relational ease.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D4",
+              "D24"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Venus in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              4,
+              5,
+              9
+            ],
+            "planets": [
+              "Sun",
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Mercury in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              2,
+              4,
+              5,
+              9
+            ],
+            "planets": [
+              "Mercury",
+              "Sun"
+            ]
+          }
+        }
+      ],
+      "friction_factors": [
+        {
+          "kind": "planet",
+          "label": "Mercury needs correction",
+          "summary": "Learning style / 5th lord Mercury is in Taurus in the 4th with supported by a friendly sign, retrograde and combust. D4 echoes this through Scorpio in the 10th. For education, this affects analysis, speech, trade, skill, study, and adaptability. This reads as friction because of combust, retrograde.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D4",
+              "D24"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Mercury"
+            ]
+          }
+        }
+      ],
+      "confidence": {
+        "level": "high",
+        "reasons": [
+          "2 education and learning house signal(s) are supportive.",
+          "1 correction factor(s) need caveats.",
+          "Birth time confidence is exact."
+        ]
+      },
+      "birth_time_sensitivity": {
+        "level": "low",
+        "note": "Birth time is exact, so Lagna, house weighting, and divisional chart detail are usable for education with normal confidence."
+      },
+      "citations": {
+        "charts": [
+          "D1",
+          "Bhava",
+          "D4",
+          "D24"
+        ],
+        "houses": [
+          2,
+          4,
+          5,
+          9,
+          10
+        ],
+        "planets": [
+          "Jupiter",
+          "Saturn",
+          "Venus",
+          "Sun",
+          "Mercury",
+          "Rahu"
+        ]
+      }
+    },
+    "spirituality": {
+      "version": "topic_evidence_v1",
+      "topic": "spirituality",
+      "verdict": "Spirituality has structural support, with timing that rewards steady, repeatable action.",
+      "overview": {
+        "lifelong_pattern": "The whole-life spirituality pattern has workable support. The 5th house, ruled by Mercury, gives the main foundation, so this area improves when the person repeats the strongest chart-supported behavior until it becomes stable.",
+        "current_phase": "Right now the person is in a Rahu Mahadasha with Saturn Antardasha influence, so spiritual direction is active rather than dormant. The current phase supports steady choices and visible effort in this area.",
+        "practical_focus": "Keep the practice simple, repeatable, and grounded in guidance rather than performance."
+      },
+      "primary_factors": [
+        {
+          "kind": "house",
+          "label": "Whole-life spirituality structure",
+          "summary": "5th house in Gemini, ruled by Mercury placed in the 4th in Taurus, without direct planetary occupation; the structure is mixed.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              5
+            ],
+            "planets": [
+              "Mercury"
+            ]
+          }
+        },
+        {
+          "kind": "chart",
+          "label": "D20 confirmation",
+          "summary": "D20 adds topic detail: Mars, Saturn occupy the 5th.",
+          "citations": {
+            "charts": [
+              "D20"
+            ],
+            "houses": [
+              5
+            ],
+            "planets": [
+              "Mars",
+              "Saturn",
+              "Sun"
+            ]
+          }
+        }
+      ],
+      "timing_factors": [
+        {
+          "type": "dasha",
+          "label": "Current Mahadasha",
+          "summary": "Rahu (Oct 30, 2012 to Oct 31, 2030) sets the broad spirituality background.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              5,
+              9,
+              12
+            ],
+            "planets": [
+              "Rahu"
+            ]
+          }
+        },
+        {
+          "type": "dasha",
+          "label": "Current Antardasha",
+          "summary": "Saturn (Dec 6, 2017 to Oct 12, 2020) is the sharper current timing layer for spirituality.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              5,
+              9,
+              12
+            ],
+            "planets": [
+              "Saturn"
+            ]
+          }
+        },
+        {
+          "type": "upcoming",
+          "label": "Next dasha shift",
+          "summary": "Jupiter (Oct 31, 2030 to Oct 31, 2046) is the next timing transition to watch.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              5,
+              9,
+              12
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        }
+      ],
+      "supporting_factors": [
+        {
+          "kind": "house",
+          "label": "9th house support",
+          "summary": "9th house in Libra, ruled by Venus placed in the 4th in Taurus, occupied by Rahu; the structure is supportive.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              9
+            ],
+            "planets": [
+              "Venus",
+              "Rahu"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Jupiter supports spiritual direction",
+          "summary": "Faith and guidance Jupiter is in Scorpio in the 10th with supported by a friendly sign, retrograde. D20 echoes this through Libra in the 7th. For spirituality, this points to growth, judgment, counsel, teachers, faith, and protection.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D20",
+              "D45",
+              "D60"
+            ],
+            "houses": [
+              10
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Venus supports spiritual direction",
+          "summary": "9th lord Venus is in Taurus in the 4th with steady in its own sign. D20 echoes this through Capricorn in the 10th. For spirituality, this points to comfort, attraction, value, pleasure, art, and relational ease.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D20",
+              "D45",
+              "D60"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Venus in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              5,
+              9,
+              12
+            ],
+            "planets": [
+              "Sun",
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Mercury in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              5,
+              9,
+              12
+            ],
+            "planets": [
+              "Mercury",
+              "Sun"
+            ]
+          }
+        }
+      ],
+      "friction_factors": [],
+      "confidence": {
+        "level": "high",
+        "reasons": [
+          "1 spiritual direction house signal(s) are supportive.",
+          "Birth time confidence is exact."
+        ]
+      },
+      "birth_time_sensitivity": {
+        "level": "low",
+        "note": "Birth time is exact, so Lagna, house weighting, and divisional chart detail are usable for spirituality with normal confidence."
+      },
+      "citations": {
+        "charts": [
+          "D1",
+          "Bhava",
+          "D20",
+          "D45",
+          "D60"
+        ],
+        "houses": [
+          4,
+          5,
+          9,
+          10,
+          12
+        ],
+        "planets": [
+          "Mercury",
+          "Mars",
+          "Saturn",
+          "Sun",
+          "Venus",
+          "Rahu",
+          "Jupiter"
+        ]
+      }
+    },
+    "relocation": {
+      "version": "topic_evidence_v1",
+      "topic": "relocation",
+      "verdict": "Relocation has structural support, with timing that rewards steady, repeatable action.",
+      "overview": {
+        "lifelong_pattern": "The whole-life relocation pattern has workable support. The 3rd house, ruled by Mars, gives the main foundation, so this area improves when the person repeats the strongest chart-supported behavior until it becomes stable.",
+        "current_phase": "Right now the person is in a Rahu Mahadasha with Saturn Antardasha influence, so relocation and foreign movement is active rather than dormant. The current phase supports steady choices and visible effort in this area.",
+        "practical_focus": "Explore movement through planned steps, paperwork, savings, and realistic location comparisons."
+      },
+      "primary_factors": [
+        {
+          "kind": "house",
+          "label": "Whole-life relocation structure",
+          "summary": "3rd house in Aries, ruled by Mars placed in the 7th in Leo, occupied by Ketu; the structure is mixed.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              3
+            ],
+            "planets": [
+              "Mars",
+              "Ketu"
+            ]
+          }
+        },
+        {
+          "kind": "chart",
+          "label": "D4 confirmation",
+          "summary": "D4 adds topic detail: the 3rd is Aries and ruled by Mars.",
+          "citations": {
+            "charts": [
+              "D4"
+            ],
+            "houses": [
+              3
+            ],
+            "planets": [
+              "Mars"
+            ]
+          }
+        }
+      ],
+      "timing_factors": [
+        {
+          "type": "dasha",
+          "label": "Current Mahadasha",
+          "summary": "Rahu (Oct 30, 2012 to Oct 31, 2030) sets the broad relocation background.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              3,
+              4,
+              9,
+              12
+            ],
+            "planets": [
+              "Rahu"
+            ]
+          }
+        },
+        {
+          "type": "dasha",
+          "label": "Current Antardasha",
+          "summary": "Saturn (Dec 6, 2017 to Oct 12, 2020) is the sharper current timing layer for relocation.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              3,
+              4,
+              9,
+              12
+            ],
+            "planets": [
+              "Saturn"
+            ]
+          }
+        },
+        {
+          "type": "upcoming",
+          "label": "Next dasha shift",
+          "summary": "Jupiter (Oct 31, 2030 to Oct 31, 2046) is the next timing transition to watch.",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              3,
+              4,
+              9,
+              12
+            ],
+            "planets": [
+              "Jupiter"
+            ]
+          }
+        }
+      ],
+      "supporting_factors": [
+        {
+          "kind": "house",
+          "label": "4th house support",
+          "summary": "4th house in Taurus, ruled by Venus placed in the 4th in Taurus, occupied by Sun, Mercury, and Venus; the structure is supportive.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Venus",
+              "Sun",
+              "Mercury"
+            ]
+          }
+        },
+        {
+          "kind": "house",
+          "label": "9th house support",
+          "summary": "9th house in Libra, ruled by Venus placed in the 4th in Taurus, occupied by Rahu; the structure is supportive.",
+          "citations": {
+            "charts": [
+              "D1",
+              "Bhava"
+            ],
+            "houses": [
+              9
+            ],
+            "planets": [
+              "Venus",
+              "Rahu"
+            ]
+          }
+        },
+        {
+          "kind": "planet",
+          "label": "Venus supports relocation and foreign movement",
+          "summary": "4th lord Venus is in Taurus in the 4th with steady in its own sign. D4 echoes this through Taurus in the 4th. For relocation, this points to comfort, attraction, value, pleasure, art, and relational ease.",
+          "citations": {
+            "charts": [
+              "D1",
+              "D4",
+              "D12"
+            ],
+            "houses": [
+              4
+            ],
+            "planets": [
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Venus in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              3,
+              4,
+              9,
+              12
+            ],
+            "planets": [
+              "Sun",
+              "Venus"
+            ]
+          }
+        },
+        {
+          "kind": "yoga",
+          "label": "Raja Yoga",
+          "summary": "Raja Yoga is detected with medium confidence. Kendra lord Sun conjunct trikona lord Mercury in house 4",
+          "citations": {
+            "charts": [
+              "D1"
+            ],
+            "houses": [
+              3,
+              4,
+              9,
+              12
+            ],
+            "planets": [
+              "Mercury",
+              "Sun"
+            ]
+          }
+        }
+      ],
+      "friction_factors": [],
+      "confidence": {
+        "level": "high",
+        "reasons": [
+          "2 relocation and foreign movement house signal(s) are supportive.",
+          "Birth time confidence is exact."
+        ]
+      },
+      "birth_time_sensitivity": {
+        "level": "low",
+        "note": "Birth time is exact, so Lagna, house weighting, and divisional chart detail are usable for relocation with normal confidence."
+      },
+      "citations": {
+        "charts": [
+          "D1",
+          "Bhava",
+          "D4",
+          "D12"
+        ],
+        "houses": [
+          3,
+          4,
+          9,
+          12
+        ],
+        "planets": [
+          "Mars",
+          "Ketu",
+          "Venus",
+          "Sun",
+          "Mercury",
+          "Rahu",
+          "Saturn",
+          "Jupiter"
+        ]
+      }
+    }
+  },
   "dashboard_summary": {
     "top_themes": [
       "Relocation: Relocation is supported through the 4th house.",

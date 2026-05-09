@@ -10,6 +10,22 @@ describe("computeBundles", () => {
 
     expect(DerivedFeaturePayloadSchema.parse(payload)).toBeTruthy();
     expect(payload.topic_bundles.career.topic).toBe("career");
+    expect(payload.topic_evidence_v1.career?.verdict).toContain("Career");
+    expect(payload.topic_evidence_v1.career?.supporting_factors.length).toBeGreaterThan(0);
+    expect(payload.topic_evidence_v1.career?.citations.charts).toContain("D10");
+    for (const topic of [
+      "wealth",
+      "relationships",
+      "marriage",
+      "family",
+      "health",
+      "education",
+      "spirituality",
+      "relocation",
+    ] as const) {
+      expect(payload.topic_evidence_v1[topic]?.overview.lifelong_pattern).toBeTruthy();
+      expect(payload.topic_evidence_v1[topic]?.primary_factors.length).toBeGreaterThan(0);
+    }
     expect(payload.dashboard_summary.top_themes.length).toBeGreaterThanOrEqual(2);
     expect(JSON.stringify(payload, null, 2)).toMatchSnapshot();
   });

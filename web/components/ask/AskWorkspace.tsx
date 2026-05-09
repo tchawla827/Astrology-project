@@ -49,6 +49,7 @@ export function AskWorkspace({
   initialSessionId,
   initialMessages,
   initialTone,
+  initialDepth,
   initialQuestion,
   dayContextDate,
   starterQuestions,
@@ -59,6 +60,7 @@ export function AskWorkspace({
   initialSessionId?: string;
   initialMessages?: AskThreadMessage[];
   initialTone: ToneMode;
+  initialDepth?: DepthMode;
   initialQuestion?: string;
   dayContextDate?: string;
   starterQuestions: string[];
@@ -71,6 +73,7 @@ export function AskWorkspace({
     initialSessionId,
     initialMessages,
     initialTone,
+    initialDepth,
     dayContextDate,
   });
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, CalendarDays, HeartPulse, LayoutDashboard, MessageSquareText, Sparkles, SunMedium, UserRound } from "lucide-react";
+import { BarChart3, CalendarDays, HeartPulse, LayoutDashboard, LineChart, MessageSquareText, Sparkles, SunMedium, UserRound } from "lucide-react";
 
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { createClient } from "@/lib/supabase/server";
@@ -8,8 +8,9 @@ const navItems = [
   { href: "/dashboard", label: "Observatory", icon: LayoutDashboard },
   { href: "/charts", label: "Charts", icon: BarChart3 },
   { href: "/life-areas", label: "Life Areas", icon: HeartPulse },
+  { href: "/timeline", label: "Timing Graph", icon: LineChart },
   { href: "/ask", label: "Ask AI", icon: MessageSquareText },
-  { href: "/daily", label: "Timeline", icon: CalendarDays },
+  { href: "/daily", label: "Daily", icon: CalendarDays },
   { href: "/panchang", label: "Panchang", icon: SunMedium },
   { href: "/profile", label: "Profile", icon: UserRound },
 ];

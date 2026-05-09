@@ -6,8 +6,10 @@ import {
   type Planet,
   type Topic,
   type TopicBundle,
+  type TopicEvidence,
 } from "@/lib/schemas";
 import { LlmContextError } from "@/lib/llm/errors";
+import { buildTopicEvidence } from "@/lib/derived/topicEvidence";
 import type { AstrologyFactsAskContext } from "@/lib/server/exportAstrologyFacts";
 
 type QueryResult = PromiseLike<{ data: unknown; error: { message: string } | Error | null }>;
@@ -55,6 +57,7 @@ export type AskContextBundle = TopicBundle & {
   birth_time_confidence: "exact" | "approximate" | "unknown";
   profile_summary: ChartSnapshot["summary"];
   time_sensitivity: DerivedFeaturePayload["time_sensitivity"];
+  topic_evidence?: TopicEvidence;
   day_context?: AstrologyFactsAskContext;
   allowed_citations: {
     charts: string[];
@@ -109,22 +112,36 @@ function asChartRow(value: unknown): ChartSnapshotRow | null {
   return null;
 }
 
-function allowedCharts(bundle: TopicBundle, dayContext?: AstrologyFactsAskContext) {
-  const charts = new Set([...bundle.charts_used, ...(dayContext?.allowed_citations.charts ?? [])]);
+function allowedCharts(bundle: TopicBundle, evidence?: TopicEvidence, dayContext?: AstrologyFactsAskContext) {
+  const charts = new Set([
+    ...bundle.charts_used,
+    ...(evidence?.citations.charts ?? []),
+    ...(dayContext?.allowed_citations.charts ?? []),
+  ]);
   if (bundle.timing.current_trigger_notes.length > 0) {
     charts.add("Transit");
   }
   return [...charts];
 }
 
-function allowedHouses(bundle: TopicBundle, dayContext?: AstrologyFactsAskContext) {
-  return [...new Set([...Object.keys(bundle.houses).map(Number), ...(dayContext?.allowed_citations.houses ?? [])])].sort(
-    (left, right) => left - right,
-  );
+function allowedHouses(bundle: TopicBundle, evidence?: TopicEvidence, dayContext?: AstrologyFactsAskContext) {
+  return [
+    ...new Set([
+      ...Object.keys(bundle.houses).map(Number),
+      ...(evidence?.citations.houses ?? []),
+      ...(dayContext?.allowed_citations.houses ?? []),
+    ]),
+  ].sort((left, right) => left - right);
 }
 
-function allowedPlanets(bundle: TopicBundle, dayContext?: AstrologyFactsAskContext) {
-  return [...new Set([...(Object.keys(bundle.planets) as Planet[]), ...(dayContext?.allowed_citations.planets ?? [])])];
+function allowedPlanets(bundle: TopicBundle, evidence?: TopicEvidence, dayContext?: AstrologyFactsAskContext) {
+  return [
+    ...new Set([
+      ...(Object.keys(bundle.planets) as Planet[]),
+      ...(evidence?.citations.planets ?? []),
+      ...(dayContext?.allowed_citations.planets ?? []),
+    ]),
+  ];
 }
 
 export async function buildContextBundle(input: {
@@ -197,8 +214,9 @@ export async function buildContextBundle(input: {
   }
 
   const bundle = parsedDerived.data.topic_bundles[input.topic];
-  const houses = allowedHouses(bundle, input.day_context);
-  const planets = allowedPlanets(bundle, input.day_context);
+  const evidence = parsedDerived.data.topic_evidence_v1[input.topic] ?? buildTopicEvidence(parsedChart.data, bundle, input.topic);
+  const houses = allowedHouses(bundle, evidence, input.day_context);
+  const planets = allowedPlanets(bundle, evidence, input.day_context);
 
   return {
     ...bundle,
@@ -211,9 +229,10 @@ export async function buildContextBundle(input: {
     birth_time_confidence: parsedChart.data.birth_time_confidence ?? profile.birth_time_confidence,
     profile_summary: parsedChart.data.summary,
     time_sensitivity: parsedDerived.data.time_sensitivity,
+    topic_evidence: evidence,
     day_context: input.day_context,
     allowed_citations: {
-      charts: allowedCharts(bundle, input.day_context),
+      charts: allowedCharts(bundle, evidence, input.day_context),
       houses,
       planets,
     },

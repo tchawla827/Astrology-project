@@ -25,6 +25,7 @@ function promptContext(context: AskContextBundle) {
     houses: context.houses,
     planets: context.planets,
     timing: context.timing,
+    topic_evidence: context.topic_evidence,
     confidence_note: context.confidence_note,
     time_sensitivity: context.time_sensitivity,
     allowed_citations: context.allowed_citations,
@@ -46,6 +47,7 @@ Tone guidance: ${toneGuidance[input.tone]}
 Depth: ${input.depth}
 Depth guidance: ${depthGuidance[input.depth]}
 ${dayInstruction}
+Evidence instruction: If topic_evidence is present, treat it as the primary reading. Start from its verdict, use its primary_factors, supporting_factors, friction_factors, timing_factors, confidence, and birth_time_sensitivity. Do not contradict it unless the user asks about a different topic or the evidence is explicitly missing.
 
 Context:
 ${JSON.stringify(promptContext(input.context_bundle), null, 2)}

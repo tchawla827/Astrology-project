@@ -238,6 +238,44 @@ describe("phase 07 LLM orchestration", () => {
     expect(result.answer.technical_basis.charts_used).toContain("D10");
   });
 
+  it("includes career topic evidence in Ask context and allows its citations", async () => {
+    const supabase = new AskSupabaseMock("exact");
+    let promptContent = "";
+    const answer: AskAnswer = {
+      verdict: "Career is supported, but recognition is slower than effort right now.",
+      explanation:
+        "The supplied career evidence points to a real professional opening rather than a dead end. It also shows friction, so the progress is not clean or immediate. The answer should be read through the career evidence instead of broad chart guessing.",
+      advice: ["Use the current phase for visible output and avoid changing direction only from impatience."],
+      why: ["D10 puts Venus in the 10th house, making professional visibility part of the supplied evidence."],
+      timing: { summary: "The current antardasha is the sharper timing layer.", type: ["natal", "dasha"] },
+      confidence: { level: "high", note: "Grounded in the supplied career evidence model." },
+      technical_basis: { charts_used: ["D10"], houses_used: [10], planets_used: ["Venus"] },
+    };
+
+    const result = await generateAnswer({
+      supabase,
+      profile_id: profileId,
+      question: "Why has my career felt blocked lately?",
+      tone: "direct",
+      depth: "technical",
+      providers: [
+        {
+          name: "gemini",
+          defaultModel: "gemini-mock",
+          async generate(args) {
+            promptContent = args.messages.map((message) => message.content).join("\n");
+            return { output: answer, latency_ms: 1 };
+          },
+        },
+      ],
+    });
+
+    expect(promptContent).toContain('"topic_evidence"');
+    expect(promptContent).toContain('"verdict"');
+    expect(result.answer.technical_basis.planets_used).toEqual(["Venus"]);
+    expect(result.answer.technical_basis.charts_used).toEqual(["D10"]);
+  });
+
   it("falls back to OpenRouter when Gemini is rate limited", async () => {
     const supabase = new AskSupabaseMock("exact");
     const result = await generateAnswer({

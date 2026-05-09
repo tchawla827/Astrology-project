@@ -8,11 +8,25 @@ import { HeadlineSignals } from "@/components/life-areas/HeadlineSignals";
 import { HouseBreakdown } from "@/components/life-areas/HouseBreakdown";
 import { LifeAreaHeader } from "@/components/life-areas/LifeAreaHeader";
 import { PlanetBreakdown } from "@/components/life-areas/PlanetBreakdown";
+import { TopicEvidencePanel } from "@/components/life-areas/TopicEvidencePanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { track } from "@/lib/analytics/events";
 import { isSupportedLifeAreaTopic, renderLifeArea } from "@/lib/life-areas/render";
 import { loadLifeAreaContext, type SupabaseLifeAreaClient } from "@/lib/server/loadLifeArea";
 import { createClient } from "@/lib/supabase/server";
+
+const askQuestionPrompts: Record<string, string[]> = {
+  personality: ["What are my strongest traits?", "Where do I self-sabotage?", "How should I work with my temperament?"],
+  career: ["Why does career feel blocked right now?", "What type of work fits this chart?", "When does career pressure ease?"],
+  wealth: ["How should I build money stability?", "Where is financial leakage showing?", "What earning style fits this chart?"],
+  relationships: ["Why do relationships repeat this pattern?", "What should I change in love?", "Where is relationship pressure coming from?"],
+  marriage: ["What kind of marriage pattern is shown?", "When is commitment more supported?", "What should I be careful about in marriage?"],
+  family: ["What is my family pattern?", "How do I improve home stability?", "Where is family pressure coming from?"],
+  health: ["What health pattern needs discipline?", "Where does stress affect recovery?", "What routine is most supportive?"],
+  education: ["What should I study?", "How do I improve focus?", "When is learning more supported?"],
+  spirituality: ["What spiritual practice fits me?", "Where is detachment showing?", "How do I avoid escapism?"],
+  relocation: ["Is relocation supported?", "What should I check before moving?", "When is movement more favorable?"],
+};
 
 export default async function LifeAreaPage({ params }: { params: { topic: string } }) {
   if (!isSupportedLifeAreaTopic(params.topic)) {
@@ -80,8 +94,28 @@ export default async function LifeAreaPage({ params }: { params: { topic: string
     context.derived.topic_bundles[params.topic],
     context.snapshot,
     context.profile.birth_time_confidence,
+    context.derived.topic_evidence_v1[params.topic],
   );
   await track(supabase, "life_area_viewed", { topic: params.topic }, user.id);
+  const confidence = viewModel.evidence
+    ? {
+        level: viewModel.evidence.confidence.level,
+        note: viewModel.evidence.confidence.reasons.join(" "),
+      }
+    : viewModel.confidence;
+  const summaryTiles = viewModel.evidence
+    ? [
+        { label: "Core reads", value: 3, icon: Sparkles },
+        { label: "Houses tracked", value: viewModel.evidence.citations.houses.length, icon: Landmark },
+        { label: "Planets cited", value: viewModel.evidence.citations.planets.length, icon: Orbit },
+        { label: "Timing factors", value: viewModel.evidence.timing_factors.length, icon: CalendarClock },
+      ]
+    : [
+        { label: "Headline signals", value: viewModel.headline_signals.length, icon: Sparkles },
+        { label: "Houses tracked", value: viewModel.houses.length, icon: Landmark },
+        { label: "Planets cited", value: viewModel.planets.length, icon: Orbit },
+        { label: "Timing notes", value: viewModel.timing.notes.length, icon: CalendarClock },
+      ];
 
   return (
     <div className="space-y-8">
@@ -90,19 +124,14 @@ export default async function LifeAreaPage({ params }: { params: { topic: string
         Back to life area atlas
       </Link>
       <LifeAreaHeader
-        confidence={viewModel.confidence}
+        confidence={confidence}
         profileName={context.profile.name}
-        subtitle={viewModel.headline_signals[0] ?? `${viewModel.title} report`}
+        subtitle={viewModel.evidence?.verdict ?? viewModel.headline_signals[0] ?? `${viewModel.title} report`}
         title={viewModel.title}
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {[
-          { label: "Headline signals", value: viewModel.headline_signals.length, icon: Sparkles },
-          { label: "Houses tracked", value: viewModel.houses.length, icon: Landmark },
-          { label: "Planets cited", value: viewModel.planets.length, icon: Orbit },
-          { label: "Timing notes", value: viewModel.timing.notes.length, icon: CalendarClock },
-        ].map((item) => {
+        {summaryTiles.map((item) => {
           const Icon = item.icon;
           return (
             <Card className="ritual-panel" key={item.label}>
@@ -122,13 +151,23 @@ export default async function LifeAreaPage({ params }: { params: { topic: string
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="space-y-6">
-          <HeadlineSignals signals={viewModel.headline_signals} />
+          {viewModel.evidence ? <TopicEvidencePanel evidence={viewModel.evidence} /> : null}
+          {!viewModel.evidence ? <HeadlineSignals signals={viewModel.headline_signals} /> : null}
           <HouseBreakdown houses={viewModel.houses} />
           <PlanetBreakdown planets={viewModel.planets} />
         </div>
         <aside className="space-y-6 xl:sticky xl:top-8 xl:self-start">
           <CurrentTiming timing={viewModel.timing} />
-          <AskThisTopicCta topic={viewModel.topic} tone={context.defaultToneMode} />
+          <AskThisTopicCta
+            depth={viewModel.evidence ? "technical" : "simple"}
+            questions={
+              viewModel.evidence
+                ? (askQuestionPrompts[viewModel.topic] ?? [])
+                : []
+            }
+            topic={viewModel.topic}
+            tone={context.defaultToneMode}
+          />
         </aside>
       </div>
     </div>

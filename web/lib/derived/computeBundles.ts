@@ -13,6 +13,7 @@ import {
 import { buildDerivedDashboardSummary } from "@/lib/derived/dashboardSummary";
 import { ordinal, topicTitles, type TopicBlueprint } from "@/lib/derived/shared";
 import { computeTimeSensitivity } from "@/lib/derived/timeSensitivity";
+import { buildTopicEvidenceCollection } from "@/lib/derived/topicEvidence";
 import { topicBlueprints, topicOrder } from "@/lib/derived/topics";
 
 export const DERIVED_SCHEMA_VERSION = "derived_v1";
@@ -321,6 +322,7 @@ export function computeBundles(snapshot: ChartSnapshot, options: ComputeBundlesO
 
   return DerivedFeaturePayloadSchema.parse({
     topic_bundles: topicBundles,
+    topic_evidence_v1: buildTopicEvidenceCollection(snapshot, topicBundles),
     dashboard_summary: buildDerivedDashboardSummary(snapshot, topicBundles, options.onboardingIntent),
     time_sensitivity: computeTimeSensitivity(topicBundles, snapshot),
   });

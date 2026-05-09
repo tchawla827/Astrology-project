@@ -1,7 +1,19 @@
 import { topicTitles } from "@/lib/derived/shared";
-import type { ChartSnapshot, Planet, Topic, TopicBundle } from "@/lib/schemas";
+import { buildTopicEvidence } from "@/lib/derived/topicEvidence";
+import type { ChartSnapshot, Planet, Topic, TopicBundle, TopicEvidence } from "@/lib/schemas";
 
-export const mvpLifeAreaTopics = ["personality", "career", "wealth", "relationships"] as const;
+export const mvpLifeAreaTopics = [
+  "personality",
+  "career",
+  "wealth",
+  "relationships",
+  "marriage",
+  "family",
+  "health",
+  "education",
+  "spirituality",
+  "relocation",
+] as const;
 
 export type MvpLifeAreaTopic = (typeof mvpLifeAreaTopics)[number];
 
@@ -29,6 +41,7 @@ export type LifeAreaViewModel = {
     antardasha: string;
     notes: string[];
   };
+  evidence?: TopicEvidence;
 };
 
 function isSupportedLifeAreaTopic(topic: string): topic is MvpLifeAreaTopic {
@@ -68,11 +81,13 @@ export function renderLifeArea(
   bundle: TopicBundle,
   snapshot: ChartSnapshot,
   birthTimeConfidence: "exact" | "approximate" | "unknown",
+  evidence?: TopicEvidence,
 ): LifeAreaViewModel {
   const d1 = snapshot.charts.D1;
   if (!d1) {
     throw new Error("ChartSnapshot is missing D1, which life-area rendering requires.");
   }
+  const resolvedEvidence = evidence ?? buildTopicEvidence(snapshot, bundle, topic);
 
   return {
     topic,
@@ -108,6 +123,7 @@ export function renderLifeArea(
       antardasha: parseDashaLabel(bundle.timing.current_antardasha),
       notes: bundle.timing.current_trigger_notes,
     },
+    evidence: resolvedEvidence,
   };
 }
 

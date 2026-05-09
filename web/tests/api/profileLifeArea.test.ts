@@ -15,8 +15,8 @@ describe("/api/profile/[id]/life-areas/[topic]", () => {
     vi.clearAllMocks();
   });
 
-  it("returns 404 for a non-MVP topic", async () => {
-    const response = await GET({} as never, { params: { id: "profile-1", topic: "marriage" } });
+  it("returns 404 for an unsupported topic", async () => {
+    const response = await GET({} as never, { params: { id: "profile-1", topic: "pets" } });
     expect(response.status).toBe(404);
   });
 

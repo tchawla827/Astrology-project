@@ -197,6 +197,83 @@ export const TopicBundleSchema = z.object({
   confidence_note: z.string(),
 });
 
+export const TopicEvidenceCitationSchema = z.object({
+  charts: z.array(z.string()),
+  houses: z.array(z.number().int().min(1).max(12)),
+  planets: z.array(PlanetSchema),
+});
+
+export const TopicEvidenceFactorSchema = z.object({
+  kind: z.enum(["house", "planet", "chart", "yoga", "timing", "transit"]),
+  label: z.string(),
+  summary: z.string(),
+  citations: TopicEvidenceCitationSchema,
+});
+
+export const TopicEvidenceTimingFactorSchema = z.object({
+  type: z.enum(["dasha", "transit", "upcoming"]),
+  label: z.string(),
+  summary: z.string(),
+  citations: TopicEvidenceCitationSchema,
+});
+
+export const TopicEvidenceSchema = z.object({
+  version: z.literal("topic_evidence_v1"),
+  topic: TopicSchema,
+  verdict: z.string().min(1),
+  overview: z.object({
+    lifelong_pattern: z.string().min(1),
+    current_phase: z.string().min(1),
+    practical_focus: z.string().min(1),
+  }),
+  primary_factors: z.array(TopicEvidenceFactorSchema),
+  timing_factors: z.array(TopicEvidenceTimingFactorSchema),
+  supporting_factors: z.array(TopicEvidenceFactorSchema),
+  friction_factors: z.array(TopicEvidenceFactorSchema),
+  confidence: z.object({
+    level: z.enum(["high", "medium", "low"]),
+    reasons: z.array(z.string()).min(1),
+  }),
+  birth_time_sensitivity: z.object({
+    level: z.enum(["low", "medium", "high"]),
+    note: z.string(),
+  }),
+  citations: TopicEvidenceCitationSchema,
+});
+
+export const TopicEvidenceCollectionSchema = z.record(TopicSchema, TopicEvidenceSchema);
+
+export const LifeAreaTimingMetricSchema = z.enum(["support", "pressure", "volatility", "confidence"]);
+
+export const LifeAreaTimingFactorSchema = z.object({
+  source: z.enum(["natal", "dasha", "transit", "varga", "confidence"]),
+  score_kind: LifeAreaTimingMetricSchema,
+  label: z.string().min(1),
+  summary: z.string().min(1),
+  citations: TopicEvidenceCitationSchema,
+});
+
+export const LifeAreaTimingPointSchema = z.object({
+  date: z.string(),
+  granularity: z.enum(["daily", "monthly"]),
+  support: z.number().min(0).max(100),
+  pressure: z.number().min(0).max(100),
+  volatility: z.number().min(0).max(100),
+  confidence: z.number().min(0).max(100),
+  phase: z.enum(["supported", "pressured", "volatile", "mixed", "low_confidence"]),
+  top_factors: z.array(LifeAreaTimingFactorSchema).max(6),
+});
+
+export const LifeAreaTimingSeriesSchema = z.object({
+  version: z.literal("life_area_timing_v1"),
+  topic: TopicSchema,
+  year: z.number().int().min(1900).max(2200),
+  timezone: z.string(),
+  monthly: z.array(LifeAreaTimingPointSchema),
+  daily: z.array(LifeAreaTimingPointSchema).optional(),
+  generated_at: z.string(),
+});
+
 export const FocusCardSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -233,6 +310,7 @@ export const TopicBundleCollectionSchema = z.object({
 
 export const DerivedFeaturePayloadSchema = z.object({
   topic_bundles: TopicBundleCollectionSchema,
+  topic_evidence_v1: TopicEvidenceCollectionSchema.default({}),
   dashboard_summary: DashboardSummarySchema,
   time_sensitivity: TimeSensitivitySchema,
 });
@@ -379,6 +457,15 @@ export type DerivedFeatureSnapshot = z.infer<typeof DerivedFeatureSnapshotSchema
 export type DerivedFeaturePayload = z.infer<typeof DerivedFeaturePayloadSchema>;
 export type TopicBundle = z.infer<typeof TopicBundleSchema>;
 export type TopicBundleCollection = z.infer<typeof TopicBundleCollectionSchema>;
+export type TopicEvidence = z.infer<typeof TopicEvidenceSchema>;
+export type TopicEvidenceCollection = z.infer<typeof TopicEvidenceCollectionSchema>;
+export type TopicEvidenceFactor = z.infer<typeof TopicEvidenceFactorSchema>;
+export type TopicEvidenceTimingFactor = z.infer<typeof TopicEvidenceTimingFactorSchema>;
+export type TopicEvidenceCitation = z.infer<typeof TopicEvidenceCitationSchema>;
+export type LifeAreaTimingMetric = z.infer<typeof LifeAreaTimingMetricSchema>;
+export type LifeAreaTimingFactor = z.infer<typeof LifeAreaTimingFactorSchema>;
+export type LifeAreaTimingPoint = z.infer<typeof LifeAreaTimingPointSchema>;
+export type LifeAreaTimingSeries = z.infer<typeof LifeAreaTimingSeriesSchema>;
 export type DashboardSummary = z.infer<typeof DashboardSummarySchema>;
 export type FocusCard = z.infer<typeof FocusCardSchema>;
 export type TimeSensitivity = z.infer<typeof TimeSensitivitySchema>;

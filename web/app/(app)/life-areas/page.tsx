@@ -1,5 +1,17 @@
 import Link from "next/link";
-import { ArrowRight, BriefcaseBusiness, CircleDollarSign, HeartHandshake, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  BriefcaseBusiness,
+  CircleDollarSign,
+  Compass,
+  GraduationCap,
+  Heart,
+  HeartHandshake,
+  HeartPulse,
+  Home,
+  Plane,
+  Sparkles,
+} from "lucide-react";
 
 import { StrengthBadge } from "@/components/life-areas/shared";
 import { Button } from "@/components/ui/button";
@@ -29,6 +41,36 @@ const topicVisuals: Record<MvpLifeAreaTopic, { icon: typeof Sparkles; label: str
     icon: HeartHandshake,
     label: "Bond dynamics",
     copy: "Attachment patterns, partnership needs, conflict themes, and emotional exchange.",
+  },
+  marriage: {
+    icon: Heart,
+    label: "Commitment pattern",
+    copy: "Marriage promise, partner dynamics, commitment pressure, and long-term compatibility signals.",
+  },
+  family: {
+    icon: Home,
+    label: "Home roots",
+    copy: "Family climate, domestic stability, inherited patterns, and emotional foundations.",
+  },
+  health: {
+    icon: HeartPulse,
+    label: "Recovery pattern",
+    copy: "Vitality, stress load, routine pressure, recovery support, and health-sensitive caveats.",
+  },
+  education: {
+    icon: GraduationCap,
+    label: "Learning path",
+    copy: "Study style, intelligence, higher learning, concentration, and skill-building direction.",
+  },
+  spirituality: {
+    icon: Compass,
+    label: "Inner direction",
+    copy: "Faith, detachment, teachers, practice, solitude, and the chart's spiritual pull.",
+  },
+  relocation: {
+    icon: Plane,
+    label: "Movement axis",
+    copy: "Foreign links, relocation pressure, home displacement, travel, and settlement signals.",
   },
 };
 
