@@ -126,7 +126,7 @@ Phase 12 adds share-as-image. This phase wires the share button placeholder (dis
 1. From `/life-areas/career`, click "Ask about your career" — lands on `/ask?topic=career&tone=direct&question=` with tone and topic prefilled.
 2. Ask "Why has my career felt stuck?" in all three tones. Eyeball that Brutal is blunter than Balanced, grounded in the same chart factors.
 3. Refresh page after a session exists — prior conversation visible.
-4. Kill GEMINI_API_KEY, ask a question — Groq fallback renders the answer (verified via `llm_metadata.provider` in DB).
+4. Kill GEMINI_API_KEY, ask a question — OpenRouter fallback renders the answer (verified via `llm_metadata.provider` in DB).
 
 ## After completing
 

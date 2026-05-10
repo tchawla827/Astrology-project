@@ -25,7 +25,7 @@ One phase file + the layer docs it references is always enough to implement that
 | UI | Tailwind + shadcn/ui |
 | Astro engine | Python FastAPI microservice, `pyswisseph` (Swiss Ephemeris), ayanamsha = Lahiri |
 | Data / auth / storage | Supabase (Postgres + Auth + Storage + RLS) |
-| LLM | Gemini primary, Groq fallback, behind a provider adapter |
+| LLM | Gemini/OpenRouter rotating retry loop, behind a provider adapter |
 | Repo shape | Monorepo: `web/`, `astro-engine/`, `docs/`, `graphify-out/` |
 | Payments | Stripe (phase 13) |
 | Deploy | Vercel (`web/`), Render or Fly.io (`astro-engine/`) |

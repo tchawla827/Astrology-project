@@ -9,9 +9,9 @@ import {
   goldenQuestionCases,
 } from "@/lib/llm/tests/golden-questions";
 import type { AskContextBundle } from "@/lib/llm/buildContext";
-import type { LlmProvider } from "@/lib/llm/providers";
+import { callWithFallback, type LlmProvider } from "@/lib/llm/providers";
 import { PROMPT_VERSIONS } from "@/lib/llm/prompts";
-import type { AskAnswer, Planet, Topic } from "@/lib/schemas";
+import { AskAnswerSchema, type AskAnswer, type Planet, type Topic } from "@/lib/schemas";
 import type { AstrologyFactsAskContext } from "@/lib/server/exportAstrologyFacts";
 import { goldenSnapshot } from "@/tests/derived/goldenSnapshot";
 
@@ -163,7 +163,7 @@ function answerForTopic(topic: Topic): AskAnswer {
   };
 }
 
-function providerReturning(name: "gemini" | "groq" | "openrouter", output: unknown): LlmProvider {
+function providerReturning(name: "gemini" | "openrouter", output: unknown): LlmProvider {
   return {
     name,
     defaultModel: `${name}-mock`,
@@ -214,7 +214,7 @@ describe("phase 07 LLM orchestration", () => {
     }
   });
 
-  it("falls back to Groq when Gemini fails", async () => {
+  it("falls back to OpenRouter when Gemini fails", async () => {
     const supabase = new AskSupabaseMock("exact");
     const result = await generateAnswer({
       supabase,
@@ -230,12 +230,47 @@ describe("phase 07 LLM orchestration", () => {
             throw new LlmProviderError("forced failure", { provider: "gemini", status: 500 });
           },
         },
-        providerReturning("groq", answerForTopic("career")),
+        providerReturning("openrouter", answerForTopic("career")),
       ],
     });
 
-    expect(result.meta.provider).toBe("groq");
+    expect(result.meta.provider).toBe("openrouter");
     expect(result.answer.technical_basis.charts_used).toContain("D10");
+  });
+
+  it("retries LLM provider errors in round-robin order", async () => {
+    const calls: string[] = [];
+
+    const result = await callWithFallback({
+      system: "system",
+      messages: [{ role: "user", content: "question" }],
+      schema: AskAnswerSchema,
+      topic: "career",
+      providers: [
+        {
+          name: "gemini",
+          defaultModel: "gemini-mock",
+          async generate() {
+            calls.push("gemini");
+            throw new Error("temporary network failure");
+          },
+        },
+        {
+          name: "openrouter",
+          defaultModel: "openrouter-mock",
+          async generate() {
+            calls.push("openrouter");
+            if (calls.filter((provider) => provider === "openrouter").length === 1) {
+              throw new Error("temporary network failure");
+            }
+            return { output: answerForTopic("career"), tokens_in: 10, tokens_out: 20, latency_ms: 1 };
+          },
+        },
+      ],
+    });
+
+    expect(calls).toEqual(["gemini", "openrouter", "gemini", "openrouter"]);
+    expect(result.meta.provider).toBe("openrouter");
   });
 
   it("includes career topic evidence in Ask context and allows its citations", async () => {

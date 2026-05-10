@@ -2,13 +2,13 @@ import type { ZodSchema } from "zod";
 
 import { PROMPT_VERSIONS } from "@/lib/llm/prompts";
 import { geminiProvider, type LlmMessage, type LlmProvider } from "@/lib/llm/providers/gemini";
-import { groqProvider } from "@/lib/llm/providers/groq";
 import { openRouterProvider } from "@/lib/llm/providers/openrouter";
 import { LlmProviderError } from "@/lib/llm/errors";
 import type { AskClassification } from "@/lib/llm/classify";
 import type { LlmMetadata, Topic } from "@/lib/schemas";
 
 type ContextBundleType = Topic | "daily";
+const DEFAULT_MAX_ATTEMPTS = 5;
 
 export type { LlmMessage, LlmProvider };
 
@@ -27,6 +27,7 @@ export type CallWithFallbackArgs = {
   answer_schema_version?: string;
   model?: string;
   temperature?: number;
+  max_attempts?: number;
   max_attempts_per_provider?: number;
   providers?: LlmProvider[];
 };
@@ -72,59 +73,65 @@ function logLlmProviderFailure(input: {
 }
 
 export async function callWithFallback(args: CallWithFallbackArgs): Promise<{ output: unknown; meta: LlmMetadata }> {
-  const providers = args.providers ?? [geminiProvider, openRouterProvider, groqProvider];
-  const maxAttempts = Math.max(1, args.max_attempts_per_provider ?? 2);
+  const providers = [...(args.providers ?? [geminiProvider, openRouterProvider])];
+  const maxAttempts = Math.max(1, args.max_attempts ?? args.max_attempts_per_provider ?? DEFAULT_MAX_ATTEMPTS);
   let lastError: unknown;
+  let providerIndex = 0;
 
-  for (const provider of providers) {
-    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-      try {
-        const start = Date.now();
-        const result = await provider.generate({
-          system: args.system,
-          messages: args.messages,
-          schema: args.schema,
-          model: args.model,
-          temperature: args.temperature,
-        });
+  for (let attempt = 1; attempt <= maxAttempts && providers.length > 0; attempt += 1) {
+    const provider = providers[providerIndex % providers.length];
+    if (!provider) {
+      break;
+    }
 
-        const meta: LlmMetadata = {
-          provider: provider.name,
-          model: args.model ?? provider.defaultModel,
-          prompt_version: "ask_v1",
-          prompt_versions: args.prompt_versions,
-          answer_schema_version: args.answer_schema_version ?? PROMPT_VERSIONS.answer_schema,
-          context_bundle_type: args.topic,
-          context_bundle_id: args.context_bundle_id,
-          classification: args.classification,
-          latency_ms: result.latency_ms || Date.now() - start,
-          tokens_in: result.tokens_in,
-          tokens_out: result.tokens_out,
-        };
+    try {
+      const start = Date.now();
+      const result = await provider.generate({
+        system: args.system,
+        messages: args.messages,
+        schema: args.schema,
+        model: args.model,
+        temperature: args.temperature,
+      });
 
-        return {
-          output: result.output,
-          meta,
-        };
-      } catch (error) {
-        lastError = error;
-        const status = error instanceof LlmProviderError ? error.status : undefined;
-        const retryable =
-          error instanceof LlmProviderError && error.retryable !== undefined
-            ? error.retryable
-            : status === undefined || status === 429 || status >= 500;
-        logLlmProviderFailure({
-          error,
-          provider,
-          model: args.model,
-          topic: args.topic,
-          attempt,
-          maxAttempts,
-          retryable,
-        });
-        if (!retryable || attempt === maxAttempts) {
+      const meta: LlmMetadata = {
+        provider: provider.name,
+        model: args.model ?? provider.defaultModel,
+        prompt_version: "ask_v1",
+        prompt_versions: args.prompt_versions,
+        answer_schema_version: args.answer_schema_version ?? PROMPT_VERSIONS.answer_schema,
+        context_bundle_type: args.topic,
+        context_bundle_id: args.context_bundle_id,
+        classification: args.classification,
+        latency_ms: result.latency_ms || Date.now() - start,
+        tokens_in: result.tokens_in,
+        tokens_out: result.tokens_out,
+      };
+
+      return {
+        output: result.output,
+        meta,
+      };
+    } catch (error) {
+      lastError = error;
+      const retryable = !(error instanceof LlmProviderError && error.retryable === false);
+      logLlmProviderFailure({
+        error,
+        provider,
+        model: args.model,
+        topic: args.topic,
+        attempt,
+        maxAttempts,
+        retryable,
+      });
+      if (!retryable) {
+        providers.splice(providerIndex % providers.length, 1);
+        if (providers.length === 0) {
           break;
         }
+        providerIndex %= providers.length;
+      } else {
+        providerIndex = (providerIndex + 1) % providers.length;
       }
     }
   }

@@ -354,7 +354,7 @@ export const AskAnswerSchema = z.object({
 });
 
 export const LlmMetadataSchema = z.object({
-  provider: z.enum(["gemini", "openrouter", "groq"]),
+  provider: z.enum(["gemini", "openrouter"]),
   model: z.string(),
   prompt_version: z.string(),
   prompt_versions: z.object({
@@ -374,7 +374,7 @@ export const LlmMetadataSchema = z.object({
     matched_terms: z.array(z.string()),
     confidence: z.enum(["low", "medium", "high"]),
   }).optional(),
-  repaired_from_provider: z.enum(["gemini", "openrouter", "groq"]).optional(),
+  repaired_from_provider: z.enum(["gemini", "openrouter"]).optional(),
   latency_ms: z.number().int().nonnegative(),
   tokens_in: z.number().int().nonnegative().optional(),
   tokens_out: z.number().int().nonnegative().optional(),

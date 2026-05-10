@@ -244,7 +244,7 @@ export type AskAnswer = {
 };
 
 export type LlmMetadata = {
-  provider: 'gemini' | 'groq';
+  provider: 'gemini' | 'openrouter';
   model: string;
   prompt_version: string;
   answer_schema_version: string;

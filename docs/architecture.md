@@ -12,7 +12,7 @@
 | Database | Supabase Postgres |
 | Auth | Supabase Auth (email + OAuth) |
 | Storage | Supabase Storage (exports, share cards) |
-| LLM | Gemini (primary), Groq (fallback) — behind provider adapter |
+| LLM | Gemini + OpenRouter behind provider adapter |
 | Payments | Stripe (phase 13) |
 | Deploy | Vercel (web), Render or Fly.io (astro-engine) |
 | Telemetry | Vercel Analytics + Supabase logs + custom `analytics_events` table |
@@ -97,8 +97,8 @@ astri-project/
        |  provider adapter
        v
   +----------+
-  | LLM      |  Gemini (primary)
-  | providers|  Groq   (fallback)
+  | LLM      |  Gemini / OpenRouter
+  | providers|  rotating retry loop
   +----------+
 ```
 
@@ -125,7 +125,7 @@ Key rules:
 2. `web/` calls `lib/llm/classify` → returns `{topic, needs_timing, birth_time_sensitive}`.
 3. `web/` calls `lib/llm/buildContext(profile_id, topic)` → loads precomputed topic bundle from Supabase.
 4. `web/` calls `lib/llm/generateAnswer({bundle, question, tone, depth})` via provider adapter.
-5. Adapter tries Gemini, falls back to Groq on failure.
+5. Adapter retries Gemini and OpenRouter in rotating order on failure.
 6. Response is validated against the Zod `AskAnswer` schema. Repair pass on malformed output; reject on second failure.
 7. `ask_messages` row stored with full `llm_metadata`.
 8. UI renders structured answer. Transparency panel reads `technical_basis`.
@@ -161,7 +161,7 @@ SUPABASE_SERVICE_ROLE_KEY=         # server only
 ASTRO_ENGINE_URL=                  # e.g. https://astro-engine.fly.dev
 ASTRO_ENGINE_SECRET=               # shared HMAC for service-to-service auth
 GEMINI_API_KEY=
-GROQ_API_KEY=
+OPENROUTER_API_KEY=
 NOMINATIM_BASE_URL=                # optional, defaults to public Nominatim search endpoint
 NOMINATIM_USER_AGENT=              # identify this app to Nominatim or your hosted provider
 NOMINATIM_EMAIL=                   # optional contact email sent to Nominatim

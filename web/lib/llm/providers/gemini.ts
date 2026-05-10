@@ -22,7 +22,7 @@ export type LlmGenerateResult = {
 };
 
 export type LlmProvider = {
-  name: "gemini" | "groq" | "openrouter";
+  name: "gemini" | "openrouter";
   defaultModel: string;
   generate(args: LlmGenerateArgs): Promise<LlmGenerateResult>;
 };

@@ -60,7 +60,7 @@ Grouped by module. Each feature points at the phase that owns it. The phase file
 | Starter questions | 08 |
 | Question classifier | 07 |
 | Topic bundle selection | 07 |
-| Provider adapter (Gemini primary, Groq fallback) | 07 |
+| Provider adapter (Gemini/OpenRouter rotating retry loop) | 07 |
 | Answer schema validation + repair | 07 |
 | Structured answer card (verdict / why / timing / confidence / advice) | 08 |
 | Tone toggle (Balanced / Direct / Brutal) | 08 |

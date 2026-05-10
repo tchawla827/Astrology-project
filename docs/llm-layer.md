@@ -16,7 +16,7 @@ Located at `web/lib/llm/providers/`. Contract:
 
 ```ts
 export interface LlmProvider {
-  name: 'gemini' | 'groq';
+  name: 'gemini' | 'openrouter';
   generate(args: {
     system: string;
     messages: Array<{ role: 'user' | 'assistant'; content: string }>;
@@ -29,8 +29,8 @@ export interface LlmProvider {
 
 `web/lib/llm/index.ts` exports a single `generateAskAnswer(...)` that:
 
-1. Tries primary (Gemini).
-2. On network or 5xx, falls back to Groq.
+1. Tries Gemini first.
+2. On provider failure, rotates through OpenRouter and Gemini up to the configured attempt limit.
 3. Validates `output` against the `AskAnswer` Zod schema.
 4. If invalid, does a single repair call (`please fix the JSON to match this schema`) against the same provider.
 5. If still invalid, throws `LlmSchemaError` — API returns a graceful error card to the UI.
@@ -207,7 +207,7 @@ Every `ask_messages.llm_metadata` record stores the exact versions used.
 ## Model selection (MVP)
 
 - Primary: `gemini-2.5-flash` (fast, cheap, JSON mode).
-- Fallback: `llama-3.3-70b-versatile` via Groq.
+- Fallback: OpenRouter.
 - Classifier: `gemini-2.5-flash` with short prompt.
 - Do not use different models per topic in MVP. Revisit after launch with real eval data.
 

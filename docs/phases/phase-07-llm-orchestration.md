@@ -12,8 +12,8 @@ The full LLM plumbing behind Ask Astrology: provider adapter, classifier, contex
 ## Deliverables
 
 - `web/lib/llm/providers/gemini.ts` — `LlmProvider` implementing Gemini (Google AI Studio API).
-- `web/lib/llm/providers/groq.ts` — `LlmProvider` implementing Groq.
-- `web/lib/llm/providers/index.ts` — primary/fallback orchestration with retries.
+- `web/lib/llm/providers/openrouter.ts` — `LlmProvider` implementing OpenRouter.
+- `web/lib/llm/providers/index.ts` — Gemini/OpenRouter rotating orchestration with retries.
 - `web/lib/llm/prompts/system_v1.ts` — system prompt.
 - `web/lib/llm/prompts/route/*_v1.ts` — one file per topic route prompt.
 - `web/lib/llm/prompts/user_v1.ts` — user prompt template.
@@ -37,7 +37,7 @@ Key implementation notes:
 ### Provider adapter
 
 ```ts
-const providers: LlmProvider[] = [geminiProvider, groqProvider];
+const providers: LlmProvider[] = [geminiProvider, openRouterProvider];
 
 export async function callWithFallback(args): Promise<{ output: unknown; meta: LlmMetadata }> {
   let lastError;
@@ -133,7 +133,7 @@ Provider is mocked with recorded responses in CI (record-replay pattern). Real c
 ## Acceptance criteria
 
 - [x] `POST /api/ask` returns a valid `AskAnswer` for each topic against the test fixture profile.
-- [x] Provider fallback works: forcing Gemini to 500 results in a Groq-served answer.
+- [x] Provider fallback works: forcing Gemini to 500 results in an OpenRouter-served answer.
 - [x] Citation validator rejects a response that cites a chart not in the context. Repair attempt runs. Final answer is clean.
 - [x] Birth-time consistency downgrade works: question marked `birth_time_sensitive` + non-exact profile → answer's `confidence.level` is never `high`.
 - [x] Golden-question harness passes in CI (mocked providers).
@@ -150,7 +150,7 @@ Provider is mocked with recorded responses in CI (record-replay pattern). Real c
 ## Verification
 
 1. Sign up as a test user with the golden profile. Call `POST /api/ask` from a REST client with a career question. Inspect response shape.
-2. Set `GEMINI_API_KEY=bad` locally. Call same endpoint — still succeeds via Groq.
+2. Set `GEMINI_API_KEY=bad` locally. Call same endpoint — still succeeds via OpenRouter.
 3. Run the golden-question harness: `pnpm test llm/orchestration.test.ts` — all green.
 4. `select content_structured, llm_metadata from ask_messages;` — inspect stored data.
 
