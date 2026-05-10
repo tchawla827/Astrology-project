@@ -27,7 +27,7 @@ import { createClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Astri",
+  title: "Naksha",
   description:
     "Generate a Vedic birth chart, inspect divisional charts, ask grounded astrology questions, and review timing with transparent reasoning.",
   alternates: { canonical: "/" },
@@ -37,7 +37,7 @@ const howItWorks = [
   {
     icon: Compass,
     title: "Birth data becomes a structured chart snapshot",
-    copy: "Astri computes the core Vedic views, divisional charts, dashas, transits, and panchang context before any interpretation is written.",
+    copy: "Naksha computes the core Vedic views, divisional charts, dashas, transits, and panchang context before any interpretation is written.",
   },
   {
     icon: Layers3,
@@ -182,12 +182,12 @@ export default async function HomePage() {
         <div className="star-noise absolute inset-0 opacity-80" aria-hidden="true" />
         <div className="relative mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
           <div className="max-w-3xl">
-            <p className="text-sm font-medium uppercase tracking-[0.24em] text-primary">Vedic astrology intelligence</p>
+            <p className="text-sm font-medium uppercase tracking-[0.24em] text-primary">Naksha means map</p>
             <h1 className="mt-6 font-display text-6xl font-semibold leading-[0.96] text-foreground sm:text-7xl lg:text-8xl">
-              Astri
+              Naksha
             </h1>
             <p className="mt-6 max-w-2xl text-xl leading-8 text-muted-foreground">
-              A private cosmic observatory for chart calculation, divisional analysis, transparent AI counsel, and time-aware prediction.
+              A private Vedic chart room for mapping birth data into divisional analysis, transparent AI counsel, and time-aware prediction.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">
@@ -384,7 +384,7 @@ export default async function HomePage() {
             <Brain className="h-6 w-6 text-primary" aria-hidden="true" />
             <h2 className="mt-5 font-display text-4xl font-semibold sm:text-5xl">Enter with a birth chart. Leave with a working map.</h2>
             <p className="mt-5 text-sm leading-6 text-muted-foreground">
-              Astri is designed for people who want atmosphere, rigor, and practical specificity in the same product.
+              Naksha is designed for people who want atmosphere, rigor, and practical specificity in the same product.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">

@@ -63,17 +63,18 @@ export function renderShareCard({ payload, shareUrl, width, height }: ShareCardP
         backgroundColor: "#100f18",
         color: "#f5edda",
         padding: compact ? "54px 70px" : "78px 86px",
-        fontFamily: "Inter, Arial, sans-serif",
+        fontFamily: "Source Serif 4, Georgia, serif",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ color: "#f5edda", fontSize: compact ? 34 : 42, fontWeight: 900, letterSpacing: 8 }}>ASTRI</div>
+        <div style={{ color: "#f5edda", fontSize: compact ? 34 : 42, fontWeight: 900, letterSpacing: 8 }}>NAKSHA</div>
         <div
           style={{
             width: compact ? 54 : 66,
             height: compact ? 54 : 66,
             border: "2px solid #d9b95f",
-            borderRadius: 999,
+            borderRadius: 8,
+            transform: "rotate(45deg)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -82,7 +83,7 @@ export function renderShareCard({ payload, shareUrl, width, height }: ShareCardP
             fontWeight: 700,
           }}
         >
-          A
+          <div style={{ transform: "rotate(-45deg)" }}>N</div>
         </div>
       </div>
 

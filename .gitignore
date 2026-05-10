@@ -33,3 +33,5 @@ __pycache__/
 .ruff_cache/
 astro-engine/ephe/
 referenc.png
+
+*log

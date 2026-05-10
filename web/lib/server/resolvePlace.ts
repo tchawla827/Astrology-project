@@ -1,7 +1,7 @@
 import { resolveTimezoneFromCoordinates } from "@/lib/server/profileIntake";
 
 const DEFAULT_NOMINATIM_BASE_URL = "https://nominatim.openstreetmap.org/search";
-const DEFAULT_NOMINATIM_USER_AGENT = "Astri/0.1 place-search";
+const DEFAULT_NOMINATIM_USER_AGENT = "Naksha/0.1 place-search";
 const NOMINATIM_CACHE_TTL_MS = 60 * 60 * 1000;
 const NOMINATIM_MIN_REQUEST_INTERVAL_MS = 1100;
 

@@ -38,7 +38,7 @@ class PanchangSupabaseMock implements SupabasePanchangClient {
   profile = {
     id: "00000000-0000-4000-8000-000000000001",
     user_id: "user-1",
-    name: "Astri User",
+    name: "Naksha User",
     birth_place_text: "Panipat, Haryana, India",
     latitude: 29.3909,
     longitude: 76.9635,

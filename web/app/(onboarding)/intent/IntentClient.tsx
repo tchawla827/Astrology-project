@@ -28,7 +28,7 @@ export function IntentClient({ replaceMode }: { replaceMode: boolean }) {
   const router = useRouter();
 
   function choose(intent: string) {
-    window.localStorage.setItem("astri:onboarding_intent", intent);
+    window.localStorage.setItem("naksha:onboarding_intent", intent);
     router.push(withReplaceMode("/confidence", replaceMode));
   }
 
@@ -40,7 +40,7 @@ export function IntentClient({ replaceMode }: { replaceMode: boolean }) {
         <div className="celestial-grid absolute inset-0 opacity-25" aria-hidden="true" />
         <div className="relative">
           <p className="text-sm uppercase tracking-[0.24em] text-primary">Step 1</p>
-          <h1 className="mt-4 font-display text-5xl font-semibold leading-tight text-glow">What should Astri prioritize?</h1>
+          <h1 className="mt-4 font-display text-5xl font-semibold leading-tight text-glow">What should Naksha prioritize?</h1>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
             Pick the room you want the chart to open toward first. You can still inspect the full system later.
           </p>

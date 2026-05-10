@@ -19,7 +19,7 @@ describe("schemas", () => {
     const profile = BirthProfileSchema.parse({
       id: "00000000-0000-4000-8000-000000000001",
       user_id: "00000000-0000-4000-8000-000000000002",
-      name: "Astri Test",
+      name: "Naksha Test",
       birth_date: "1990-01-01",
       birth_time: "12:00:00",
       birth_time_confidence: "exact",

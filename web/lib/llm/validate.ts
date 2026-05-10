@@ -7,14 +7,6 @@ type AnswerValidationOptions = {
   depth?: DepthMode;
 };
 
-const SIMPLE_EXPLANATION_ASTROLOGY_PATTERNS = [
-  /\bD(?:1|2|3|4|5|6|7|8|9|10|11|12|16|20|24|27|30|40|45|60)\b/i,
-  /\b(?:lagna|navamsa|vimshottari|mahadasha|antardasha|pratyantardasha|dasha|bhava|nakshatra|pada|rashi|varga|yoga|yogas|transit|transits|aspect|aspects|house|houses|chart|charts|planet|planets|placement|placements|lord|lords|ascendant)\b/i,
-  /\b(?:sun|moon|mars|mercury|jupiter|venus|saturn|rahu|ketu)\b/i,
-  /\b(?:aries|taurus|gemini|cancer|leo|virgo|libra|scorpio|sagittarius|capricorn|aquarius|pisces)\b/i,
-  /\b(?:exalted|debilitated|retrograde|combust|benefic|malefic|conjunction|opposition|trine|square|graha|drishti|panchang|tithi|karana|vaara|muhurta|ayanamsha)\b/i,
-];
-
 function missingValues<T>(used: T[], allowed: T[]) {
   return used.filter((value) => !allowed.includes(value));
 }
@@ -188,12 +180,6 @@ export function validateAnswer(output: unknown, context: AskContextBundle, optio
   const explanationSentences = sentenceCount(answer.explanation);
   if (explanationSentences < 3 || explanationSentences > 5) {
     throw new LlmSchemaError("AskAnswer.explanation must explain the verdict in 3-5 short sentences.");
-  }
-  if (
-    options.depth === "simple" &&
-    SIMPLE_EXPLANATION_ASTROLOGY_PATTERNS.some((pattern) => pattern.test(answer.explanation))
-  ) {
-    throw new LlmSchemaError("Simple AskAnswer.explanation must elaborate the verdict in everyday language without astrology terms.");
   }
 
   const missingCharts = missingValues(answer.technical_basis.charts_used, context.allowed_citations.charts);

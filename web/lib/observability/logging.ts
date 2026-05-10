@@ -18,7 +18,7 @@ function write(level: LogLevel, message: string, fields: LogFields = {}, error?:
   const payload = {
     level,
     message,
-    service: "astri-web",
+    service: "naksha-web",
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV ?? "development",
     ...fields,

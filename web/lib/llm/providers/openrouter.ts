@@ -48,7 +48,7 @@ export const openRouterProvider: LlmProvider = {
         authorization: `Bearer ${apiKey}`,
         "content-type": "application/json",
         "http-referer": serverEnv("NEXT_PUBLIC_APP_URL") || "http://localhost:3000",
-        "x-title": "Astri",
+        "x-title": "Naksha",
       },
       body: JSON.stringify({
         model,

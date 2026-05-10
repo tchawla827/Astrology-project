@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BarChart3, CalendarDays, HeartPulse, LayoutDashboard, LineChart, MessageSquareText, Sparkles, SunMedium, UserRound } from "lucide-react";
 
 import { LogoutButton } from "@/components/auth/LogoutButton";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { createClient } from "@/lib/supabase/server";
 
 const navItems = [
@@ -28,9 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <div className="star-noise pointer-events-none fixed inset-0 opacity-35" aria-hidden="true" />
 
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-primary/20 bg-background/75 p-5 shadow-bronze backdrop-blur-xl lg:flex">
-        <Link className="font-display text-4xl font-semibold text-primary text-glow" href="/dashboard">
-          Astri
-        </Link>
+        <BrandLogo href="/dashboard" markClassName="h-11 w-11" textClassName="text-4xl" />
         <p className="mt-2 text-xs uppercase tracking-[0.22em] text-muted-foreground">Private observatory</p>
 
         <nav aria-label="Primary app navigation" className="mt-9 grid gap-2">
@@ -65,9 +64,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <div className="relative z-10 lg:pl-72">
         <header className="sticky top-0 z-20 border-b border-primary/20 bg-background/80 backdrop-blur-xl lg:hidden">
           <div className="flex items-center justify-between gap-4 px-4 py-4">
-            <Link className="font-display text-3xl font-semibold text-primary text-glow" href="/dashboard">
-              Astri
-            </Link>
+            <BrandLogo href="/dashboard" markClassName="h-9 w-9" textClassName="text-3xl" />
             {user ? <LogoutButton /> : null}
           </div>
           <nav aria-label="Mobile app navigation" className="flex gap-2 overflow-x-auto px-4 pb-4 text-sm text-muted-foreground">

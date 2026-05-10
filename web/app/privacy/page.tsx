@@ -7,7 +7,7 @@ export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "How Astri handles account, birth profile, astrology, and deletion data.",
+  description: "How Naksha handles account, birth profile, astrology, and deletion data.",
   alternates: { canonical: "/privacy" },
 };
 
@@ -24,13 +24,13 @@ export default function PrivacyPage() {
         <div className="luxury-panel mt-6 rounded-lg p-6 text-sm leading-7 text-muted-foreground sm:p-8">
           <div className="space-y-6">
           <p>
-            Astri stores account details, birth data, generated chart snapshots, Ask sessions, analytics events, subscription status, exports, and share-card tokens so the product can generate and preserve your astrology workspace.
+            Naksha stores account details, birth data, generated chart snapshots, Ask sessions, analytics events, subscription status, exports, and share-card tokens so the product can generate and preserve your astrology workspace.
           </p>
           <p>
             Birth data can include name, birth date, birth time, birth-time confidence, place text, latitude, longitude, time zone, ayanamsha, and derived chart output. This data is used to calculate charts, timing, daily predictions, and answers.
           </p>
           <p>
-            Payments are not required for current product features. If paid plans return later, card processing would be handled by a payment provider rather than stored by Astri.
+            Payments are not required for current product features. If paid plans return later, card processing would be handled by a payment provider rather than stored by Naksha.
           </p>
           <p>
             You can delete your account from the app. Deletion removes profile data tied to your account, including generated chart records, Ask history, exports, analytics events, and share tokens according to database cascade rules.

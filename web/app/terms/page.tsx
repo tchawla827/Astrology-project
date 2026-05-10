@@ -7,7 +7,7 @@ export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "Terms of Service",
-  description: "Terms for using Astri.",
+  description: "Terms for using Naksha.",
   alternates: { canonical: "/terms" },
 };
 
@@ -24,13 +24,13 @@ export default function TermsPage() {
         <div className="luxury-panel mt-6 rounded-lg p-6 text-sm leading-7 text-muted-foreground sm:p-8">
           <div className="space-y-6">
           <p>
-            Astri provides astrology calculations, interpretations, and AI-assisted explanations for reflection and planning. It is not medical, legal, financial, or mental-health advice.
+            Naksha provides astrology calculations, interpretations, and AI-assisted explanations for reflection and planning. It is not medical, legal, financial, or mental-health advice.
           </p>
           <p>
-            You are responsible for the accuracy of the birth details you enter and for decisions you make after reading Astri output. Generated interpretations may be incomplete or incorrect.
+            You are responsible for the accuracy of the birth details you enter and for decisions you make after reading Naksha output. Generated interpretations may be incomplete or incorrect.
           </p>
           <p>
-            Astri currently provides all available product features on the free plan. Future paid plans, prices, features, and limits may change with reasonable notice.
+            Naksha currently provides all available product features on the free plan. Future paid plans, prices, features, and limits may change with reasonable notice.
           </p>
           <p>
             Do not misuse the service, attempt to access another user&apos;s data, reverse engineer private APIs, or upload content that violates applicable law.

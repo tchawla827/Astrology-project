@@ -35,7 +35,7 @@ describe("resolvePlace", () => {
     const places = await resolvePlace("Panipat", {
       endpoint: "https://nominatim.test/search-resolve-place",
       fetcher,
-      userAgent: "Astri test",
+      userAgent: "Naksha test",
     });
 
     expect(places).toEqual([

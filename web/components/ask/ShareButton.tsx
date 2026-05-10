@@ -78,7 +78,7 @@ export function ShareButton({ askMessageId }: { askMessageId?: string }) {
     const objectUrl = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = objectUrl;
-    link.download = `astri-${nextShare.token}.png`;
+    link.download = `naksha-${nextShare.token}.png`;
     document.body.appendChild(link);
     link.click();
     link.remove();

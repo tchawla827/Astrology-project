@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { LockKeyhole } from "lucide-react";
 
 import { AuthForm } from "@/components/auth/AuthForm";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolvePostAuthPath, type SupabaseAccountRoutingClient } from "@/lib/accountRouting";
 import { createClient } from "@/lib/supabase/server";
@@ -42,9 +43,7 @@ export default async function LoginPage({
       <div className="star-noise absolute inset-0 opacity-70" aria-hidden="true" />
       <div className="relative grid w-full max-w-6xl gap-8 lg:grid-cols-[1fr_28rem] lg:items-center">
         <section className="hidden max-w-2xl lg:block">
-          <Link className="font-display text-4xl font-semibold text-primary" href="/">
-            Astri
-          </Link>
+          <BrandLogo markClassName="h-11 w-11" textClassName="text-4xl" />
           <p className="mt-6 text-sm uppercase tracking-[0.24em] text-primary">Private observatory</p>
           <h1 className="mt-5 font-display text-6xl font-semibold leading-tight text-glow">Return to your chart room.</h1>
           <p className="mt-5 text-sm leading-6 text-muted-foreground">
@@ -58,7 +57,7 @@ export default async function LoginPage({
               <LockKeyhole className="h-5 w-5" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-primary">Astri</p>
+              <p className="text-sm uppercase tracking-[0.2em] text-primary">Naksha</p>
               <CardTitle className="mt-2 text-3xl">Log in</CardTitle>
               <p className="mt-2 text-sm text-muted-foreground">Continue to your chart workspace.</p>
             </div>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { BRAND_NAME, BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
@@ -16,9 +17,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
       <div className="cosmic-veil pointer-events-none fixed inset-0" aria-hidden="true" />
       <header className="fixed left-0 right-0 top-0 z-40 px-4 pt-4">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-lg border border-primary/20 bg-background/75 px-4 py-3 shadow-bronze backdrop-blur-xl sm:px-5">
-          <Link className="font-display text-3xl font-semibold text-primary text-glow" href="/">
-            Astri
-          </Link>
+          <BrandLogo markClassName="h-9 w-9" textClassName="text-2xl sm:text-3xl" />
           <nav aria-label="Public navigation" className="flex items-center gap-3 text-sm text-muted-foreground sm:gap-5">
             {navItems.map((item) => (
               <Link className="hidden transition-colors hover:text-foreground md:inline" href={item.href} key={item.href}>
@@ -34,7 +33,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
       <main className="relative z-10">{children}</main>
       <footer className="relative z-10 border-t border-primary/15 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; 2026 Astri. All rights reserved.</p>
+          <p>&copy; 2026 {BRAND_NAME}. All rights reserved.</p>
           <nav aria-label="Legal navigation" className="flex flex-wrap gap-4">
             <Link className="transition-colors hover:text-foreground" href="/privacy">
               Privacy

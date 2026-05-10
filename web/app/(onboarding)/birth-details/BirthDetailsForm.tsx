@@ -26,7 +26,9 @@ export function BirthDetailsForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const storedConfidence = window.localStorage.getItem("astri:birth_time_confidence");
+    const storedConfidence =
+      window.localStorage.getItem("naksha:birth_time_confidence") ??
+      window.localStorage.getItem("astri:birth_time_confidence");
     if (storedConfidence === "exact" || storedConfidence === "approximate" || storedConfidence === "unknown") {
       setConfidence(storedConfidence);
     }
@@ -51,7 +53,10 @@ export function BirthDetailsForm() {
           longitude: place?.longitude,
           timezone: place?.timezone,
           ayanamsha,
-          onboarding_intent: window.localStorage.getItem("astri:onboarding_intent") ?? "full-chart",
+          onboarding_intent:
+            window.localStorage.getItem("naksha:onboarding_intent") ??
+            window.localStorage.getItem("astri:onboarding_intent") ??
+            "full-chart",
         }),
       });
 

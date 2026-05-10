@@ -3,24 +3,24 @@
 @tailwind utilities;
 
 :root {
-  --background: 235 34% 4%;
-  --foreground: 42 48% 94%;
-  --card: 238 26% 8%;
-  --card-foreground: 42 45% 93%;
-  --primary: 39 72% 63%;
-  --primary-foreground: 236 36% 7%;
-  --secondary: 254 31% 25%;
-  --secondary-foreground: 42 45% 93%;
-  --muted: 236 22% 13%;
-  --muted-foreground: 38 22% 76%;
-  --accent: 15 64% 57%;
-  --accent-foreground: 45 38% 94%;
+  --background: 35 38% 5%;
+  --foreground: 43 54% 92%;
+  --card: 31 30% 9%;
+  --card-foreground: 43 50% 92%;
+  --primary: 42 83% 61%;
+  --primary-foreground: 34 44% 7%;
+  --secondary: 158 24% 22%;
+  --secondary-foreground: 43 50% 92%;
+  --muted: 33 22% 13%;
+  --muted-foreground: 42 20% 74%;
+  --accent: 8 73% 56%;
+  --accent-foreground: 44 45% 94%;
   --destructive: 0 72% 51%;
-  --destructive-foreground: 45 38% 94%;
-  --border: 36 32% 24%;
-  --input: 236 18% 18%;
-  --ring: 39 72% 63%;
-  --font-display: "Cormorant Garamond", "Bodoni 72", "Georgia", serif;
+  --destructive-foreground: 44 45% 94%;
+  --border: 38 32% 23%;
+  --input: 33 22% 17%;
+  --ring: 42 83% 61%;
+  --font-display: "Fraunces", "Iowan Old Style", "Georgia", serif;
 }
 
 * {
@@ -30,9 +30,9 @@
 body {
   min-height: 100vh;
   background:
-    linear-gradient(180deg, rgba(5, 6, 16, 0.68), rgba(5, 6, 16, 0.96)),
-    radial-gradient(circle at 50% -10%, rgba(228, 174, 92, 0.16), transparent 34rem),
-    radial-gradient(circle at 0% 35%, rgba(130, 85, 180, 0.12), transparent 28rem),
+    linear-gradient(180deg, rgba(25, 17, 9, 0.58), rgba(13, 9, 5, 0.96)),
+    repeating-linear-gradient(90deg, rgba(232, 181, 70, 0.045) 0 1px, transparent 1px 6rem),
+    repeating-linear-gradient(0deg, rgba(232, 181, 70, 0.035) 0 1px, transparent 1px 6rem),
     hsl(var(--background));
   color: hsl(var(--foreground));
   text-rendering: optimizeLegibility;
@@ -54,9 +54,8 @@ html {
 
   .cosmic-surface {
     background:
-      linear-gradient(180deg, rgba(13, 15, 32, 0.72), rgba(8, 9, 20, 0.96)),
-      radial-gradient(circle at 70% 16%, rgba(228, 174, 92, 0.16), transparent 22rem),
-      radial-gradient(circle at 15% 82%, rgba(205, 95, 62, 0.12), transparent 20rem),
+      linear-gradient(180deg, rgba(24, 16, 8, 0.55), rgba(12, 8, 4, 0.96)),
+      linear-gradient(110deg, rgba(12, 8, 4, 0.92), rgba(12, 8, 4, 0.38), rgba(12, 8, 4, 0.86)),
       url("/bg.png");
     background-position: center;
     background-size: cover;
@@ -64,14 +63,14 @@ html {
 
   .cosmic-veil {
     background:
-      linear-gradient(180deg, rgba(4, 5, 13, 0.18), rgba(4, 5, 13, 0.94) 78%),
-      linear-gradient(90deg, rgba(4, 5, 13, 0.92), rgba(4, 5, 13, 0.42), rgba(4, 5, 13, 0.9));
+      linear-gradient(180deg, rgba(13, 8, 4, 0.16), rgba(13, 8, 4, 0.94) 78%),
+      linear-gradient(90deg, rgba(13, 8, 4, 0.92), rgba(13, 8, 4, 0.42), rgba(13, 8, 4, 0.9));
   }
 
   .cinematic-scene {
     background:
-      linear-gradient(180deg, rgba(5, 6, 16, 0.6), rgba(5, 6, 16, 0.98)),
-      radial-gradient(circle at 50% -12%, rgba(228, 174, 92, 0.18), transparent 32rem),
+      linear-gradient(180deg, rgba(20, 13, 6, 0.58), rgba(12, 8, 4, 0.98)),
+      repeating-linear-gradient(90deg, rgba(232, 181, 70, 0.04) 0 1px, transparent 1px 5.5rem),
       url("/bg.png");
     background-position: center;
     background-size: cover;
@@ -83,8 +82,8 @@ html {
     border: 1px solid hsl(var(--primary) / 0.22);
     border-radius: 0.5rem;
     background:
-      linear-gradient(135deg, rgba(9, 10, 26, 0.58), rgba(10, 8, 20, 0.94)),
-      radial-gradient(circle at 78% 8%, rgba(228, 174, 92, 0.16), transparent 22rem),
+      linear-gradient(135deg, rgba(25, 17, 9, 0.52), rgba(14, 9, 5, 0.94)),
+      repeating-linear-gradient(90deg, rgba(232, 181, 70, 0.045) 0 1px, transparent 1px 4.5rem),
       url("/bg.png");
     background-position: center;
     background-size: cover;
@@ -96,8 +95,8 @@ html {
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(180deg, rgba(4, 5, 13, 0.16), rgba(4, 5, 13, 0.9)),
-      linear-gradient(90deg, rgba(4, 5, 13, 0.88), rgba(4, 5, 13, 0.34), rgba(4, 5, 13, 0.88));
+      linear-gradient(180deg, rgba(13, 8, 4, 0.16), rgba(13, 8, 4, 0.9)),
+      linear-gradient(90deg, rgba(13, 8, 4, 0.88), rgba(13, 8, 4, 0.34), rgba(13, 8, 4, 0.88));
     pointer-events: none;
   }
 
@@ -117,9 +116,9 @@ html {
   .luxury-panel {
     border: 1px solid hsl(var(--primary) / 0.18);
     background:
-      linear-gradient(145deg, hsl(var(--card) / 0.94), hsl(248 28% 9% / 0.76)),
+      linear-gradient(145deg, hsl(var(--card) / 0.94), hsl(156 22% 10% / 0.72)),
       linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent),
-      radial-gradient(circle at 100% 0%, rgba(228, 174, 92, 0.08), transparent 18rem);
+      repeating-linear-gradient(135deg, rgba(232, 181, 70, 0.035) 0 1px, transparent 1px 2.75rem);
     box-shadow: 0 24px 86px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(18px);
   }
@@ -128,7 +127,7 @@ html {
     border: 1px solid hsl(var(--primary) / 0.16);
     background:
       linear-gradient(180deg, hsl(var(--background) / 0.72), hsl(var(--card) / 0.84)),
-      radial-gradient(circle at 0% 0%, rgba(228, 174, 92, 0.07), transparent 16rem);
+      repeating-linear-gradient(90deg, rgba(232, 181, 70, 0.035) 0 1px, transparent 1px 3rem);
     box-shadow: 0 18px 70px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(14px);
   }

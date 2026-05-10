@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Badge } from "@/components/ui/badge";
 import { getSiteUrl, loadPublicSharePayload, makeShareUrl, type SupabaseShareClient } from "@/lib/sharing/tokens";
 import { createClient } from "@/lib/supabase/server";
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
   const payload = await loadShare(params.id).catch(() => null);
   if (!payload) {
     return {
-      title: "Shared Astri answer not found",
+      title: "Shared Naksha answer not found",
     };
   }
 
@@ -41,20 +42,20 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
   const imageUrl = `${getSiteUrl()}/api/og/ask/${payload.token}`;
 
   return {
-    title: `${payload.answer.verdict} | Astri`,
+    title: `${payload.answer.verdict} | Naksha`,
     description: payload.answer.timing.summary,
     alternates: { canonical: shareUrl },
     openGraph: {
-      title: "Astri shared answer",
+      title: "Naksha shared answer",
       description: payload.answer.verdict,
       url: shareUrl,
-      siteName: "Astri",
+      siteName: "Naksha",
       type: "article",
-      images: [{ url: imageUrl, width: 1200, height: 630, alt: "Astri shared answer card" }],
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: "Naksha shared answer card" }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Astri shared answer",
+      title: "Naksha shared answer",
       description: payload.answer.verdict,
       images: [imageUrl],
     },
@@ -74,7 +75,7 @@ export default async function SharePage({ params }: SharePageProps) {
       <article className="luxury-panel relative mx-auto max-w-3xl space-y-8 rounded-lg p-6 sm:p-8">
         <header className="space-y-5 border-b border-primary/15 pb-6">
           <div className="flex items-center justify-between gap-4">
-            <p className="font-display text-3xl font-semibold text-primary text-glow">Astri</p>
+            <BrandLogo markClassName="h-9 w-9" textClassName="text-3xl" />
             <div className="flex flex-wrap justify-end gap-2">
               <Badge className="capitalize text-muted-foreground">{payload.topic}</Badge>
               <Badge className="capitalize text-muted-foreground">{payload.tone_mode}</Badge>

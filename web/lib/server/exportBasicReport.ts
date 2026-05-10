@@ -142,7 +142,7 @@ function buildReportLines(data: BasicReportData) {
   ]);
 
   const lines: string[] = [
-    "ASTRI BASIC PROFILE REPORT",
+    "NAKSHA BASIC PROFILE REPORT",
     "",
     `Name: ${data.profile.name}`,
     `Birth: ${data.profile.birth_date} ${data.profile.birth_time} (${data.profile.timezone})`,

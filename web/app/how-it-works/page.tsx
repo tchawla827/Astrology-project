@@ -10,7 +10,7 @@ export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "How it works",
-  description: "How Astri turns birth details into a chart, life-area context, daily timing, and transparent answers.",
+  description: "How Naksha turns birth details into a chart, life-area context, daily timing, and transparent answers.",
   alternates: { canonical: "/how-it-works" },
 };
 
@@ -18,7 +18,7 @@ const steps = [
   {
     icon: Database,
     title: "Enter birth details",
-    copy: "Astri normalizes your place, time zone, ayanamsha, and birth-time confidence before generating the profile.",
+    copy: "Naksha normalizes your place, time zone, ayanamsha, and birth-time confidence before generating the profile.",
   },
   {
     icon: Orbit,
@@ -46,7 +46,7 @@ export default function HowItWorksPage() {
           <p className="text-sm font-medium uppercase tracking-[0.22em] text-primary">How it works</p>
           <h1 className="mt-4 max-w-4xl font-display text-5xl font-semibold leading-tight text-glow sm:text-6xl">A chart-first workflow for astrology answers that can be inspected.</h1>
           <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Astri separates calculation, context building, and answer generation so every user-facing insight starts from structured chart data.
+            Naksha means map. The product separates calculation, context building, and answer generation so every user-facing insight starts from structured chart data.
           </p>
         </div>
       </section>

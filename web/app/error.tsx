@@ -9,5 +9,5 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  return <ErrorFallback error={error} reset={reset} title="Astri hit an unexpected error" />;
+  return <ErrorFallback error={error} reset={reset} title="Naksha hit an unexpected error" />;
 }

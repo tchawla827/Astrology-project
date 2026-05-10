@@ -4,7 +4,7 @@ import { normalizeProfileSubmission, resolveTimezoneFromCoordinates } from "@/li
 
 describe("profile intake normalization", () => {
   const base = {
-    name: "Astri Test",
+    name: "Naksha Test",
     birth_date: "1995-05-16",
     birth_time: "06:20:00",
     birth_time_confidence: "exact",

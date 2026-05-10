@@ -577,18 +577,13 @@ describe("phase 07 LLM orchestration", () => {
     });
   });
 
-  it("repairs simple explanations that include astrology terms", async () => {
+  it("accepts simple explanations that include astrology terms without repair", async () => {
     const supabase = new AskSupabaseMock("exact");
     let calls = 0;
-    const invalid = {
+    const answer = {
       ...answerForTopic("career"),
       explanation:
         "Saturn in D10 shows the pressure is real. The 10th house keeps work exposed. This dasha needs patience.",
-    };
-    const repaired = {
-      ...answerForTopic("career"),
-      explanation:
-        "The pressure is real, but it has structure. You need steady effort rather than a dramatic escape. Treat this as a period for building consistency.",
     };
 
     const result = await generateAnswer({
@@ -603,14 +598,14 @@ describe("phase 07 LLM orchestration", () => {
           defaultModel: "gemini-mock",
           async generate() {
             calls += 1;
-            return { output: calls === 1 ? invalid : repaired, latency_ms: 1 };
+            return { output: answer, latency_ms: 1 };
           },
         },
       ],
     });
 
-    expect(calls).toBe(2);
-    expect(result.meta.repaired_from_provider).toBe("gemini");
-    expect(result.answer.explanation).not.toMatch(/\b(?:Saturn|D10|house|dasha)\b/i);
+    expect(calls).toBe(1);
+    expect(result.meta.repaired_from_provider).toBeUndefined();
+    expect(result.answer.explanation).toMatch(/\b(?:Saturn|D10|house|dasha)\b/i);
   });
 });

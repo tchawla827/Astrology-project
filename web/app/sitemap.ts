@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://astri.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://naksha.app";
 
 const publicRoutes = ["", "/how-it-works", "/pricing", "/privacy", "/terms", "/contact"];
 

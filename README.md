@@ -1,6 +1,6 @@
-# Astri Project
+# Naksha Project
 
-Astri is a Vedic astrology web app backed by a stateless FastAPI astrology engine.
+Naksha is a Vedic astrology web app backed by a stateless FastAPI astrology engine.
 
 ## Local Development
 

@@ -46,7 +46,7 @@ describe("/api/profile routes", () => {
     normalizeProfileSubmission.mockReturnValueOnce({
       success: true,
       data: {
-        name: "Astri User",
+        name: "Naksha User",
         birth_date: "1995-06-07",
         birth_time: "23:54:00",
         birth_time_confidence: "exact",

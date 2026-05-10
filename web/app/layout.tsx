@@ -1,42 +1,47 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Fraunces, Source_Serif_4 } from "next/font/google";
 
+import { BRAND_NAME } from "@/components/brand/BrandLogo";
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/toast";
 import "./globals.css";
 
-const inter = Inter({
+const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
   display: "swap",
 });
 
-const cormorant = Cormorant_Garamond({
+const fraunces = Fraunces({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-display",
-  weight: ["400", "500", "600", "700"],
+  weight: ["500", "600", "700", "800"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://astri.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://naksha.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Astri",
-    template: "%s | Astri",
+    default: BRAND_NAME,
+    template: `%s | ${BRAND_NAME}`,
   },
   description: "Structured Vedic astrology insights built from your birth chart, timing, and transparent reasoning.",
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    shortcut: ["/favicon.svg"],
+  },
   openGraph: {
-    title: "Astri",
+    title: BRAND_NAME,
     description: "Structured Vedic astrology insights built from your birth chart, timing, and transparent reasoning.",
     url: siteUrl,
-    siteName: "Astri",
-    images: [{ url: "/bg.png", width: 1200, height: 630, alt: "Astri astrology workspace" }],
+    siteName: BRAND_NAME,
+    images: [{ url: "/bg.png", width: 1200, height: 630, alt: "Naksha astrology workspace" }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Astri",
+    title: BRAND_NAME,
     description: "Structured Vedic astrology insights built from your birth chart, timing, and transparent reasoning.",
     images: ["/bg.png"],
   },
@@ -49,7 +54,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} ${cormorant.variable}`}>
+      <body className={`${sourceSerif.className} ${fraunces.variable}`}>
         <Providers>{children}</Providers>
         <Toaster />
       </body>

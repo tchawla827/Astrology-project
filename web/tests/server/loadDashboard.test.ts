@@ -65,7 +65,7 @@ const snapshot: ChartSnapshot = {
 
 const profile = {
   id: "00000000-0000-4000-8000-000000000001",
-  name: "Astri User",
+  name: "Naksha User",
   status: "ready" as const,
   birth_date: "1995-06-07",
   birth_time: "23:54:00",

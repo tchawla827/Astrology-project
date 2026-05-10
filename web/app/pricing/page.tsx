@@ -11,7 +11,7 @@ export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "Free Plan",
-  description: "Astri currently includes all available features on the free plan.",
+  description: "Naksha currently includes all available features on the free plan.",
   alternates: { canonical: "/pricing" },
 };
 
@@ -31,7 +31,7 @@ export default function PricingPage() {
           <p className="text-sm font-medium uppercase tracking-[0.22em] text-primary">Free plan</p>
           <h1 className="mt-4 max-w-3xl font-display text-5xl font-semibold leading-tight text-glow sm:text-6xl">Everything is included for $0</h1>
           <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Astri is currently free while the product is being developed. No current feature requires payment.
+            Naksha is currently free while the product is being developed. No current feature requires payment.
           </p>
         </div>
 

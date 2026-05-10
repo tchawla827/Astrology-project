@@ -42,7 +42,7 @@ describe("/api/profile/[id]/life-areas/[topic]", () => {
                                   data: {
                                     id: "profile-1",
                                     user_id: "user-1",
-                                    name: "Astri User",
+                                    name: "Naksha User",
                                     status: "ready",
                                     birth_time_confidence: "approximate",
                                     created_at: "2026-04-24T00:00:00Z",

@@ -39,10 +39,10 @@ export default async function WelcomePage({
             <div className="flex h-12 w-12 items-center justify-center rounded-md border border-primary/25 bg-primary/10 text-primary">
               <Compass className="h-5 w-5" aria-hidden="true" />
             </div>
-            <p className="mt-6 text-sm uppercase tracking-[0.24em] text-primary">Astri onboarding</p>
+            <p className="mt-6 text-sm uppercase tracking-[0.24em] text-primary">Naksha onboarding</p>
             <h1 className="mt-4 font-display text-5xl font-semibold leading-tight text-glow sm:text-6xl">Start with your birth profile.</h1>
             <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Add your birth details once. Astri computes the chart snapshot and keeps the rest of the observatory fast.
+              Add your birth details once. Naksha computes the chart snapshot and keeps the rest of the observatory fast.
             </p>
           </div>
           <div className="rounded-lg border border-primary/15 bg-background/55 p-5">

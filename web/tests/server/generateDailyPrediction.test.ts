@@ -152,7 +152,7 @@ class DailySupabaseMock implements SupabaseDailyClient {
   profile = {
     id: profileId,
     user_id: "00000000-0000-4000-8000-000000000002",
-    name: "Astri User",
+    name: "Naksha User",
     birth_date: "1995-06-07",
     birth_time: "23:54:00",
     birth_time_confidence: "approximate" as const,
