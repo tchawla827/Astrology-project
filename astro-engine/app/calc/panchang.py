@@ -370,6 +370,26 @@ def compute_panchang(
     )
 
 
+def compute_sunrise_time(
+    date_str: str,
+    latitude: float,
+    longitude: float,
+    timezone_name: str,
+) -> str:
+    ephemeris.init_ephemeris()
+    year, month, day = (int(p) for p in date_str.split("-"))
+    local_midnight = datetime(year, month, day, 0, 0, 0, tzinfo=ZoneInfo(timezone_name))
+    utc_midnight = local_midnight.astimezone(UTC)
+    jd_midnight = swe.julday(
+        utc_midnight.year,
+        utc_midnight.month,
+        utc_midnight.day,
+        utc_midnight.hour + utc_midnight.minute / 60,
+    )
+    rise_jd, _ = _sunrise_sunset(jd_midnight, latitude, longitude)
+    return _jd_to_local_datetime(rise_jd, timezone_name).strftime("%H:%M:%S")
+
+
 def nakshatra_name_fraction_done(moon_lon: float) -> float:
     from .nakshatra import nakshatra_progress
 

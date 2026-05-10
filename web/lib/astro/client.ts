@@ -5,6 +5,7 @@ import {
   ChartSnapshotSchema,
   DashaTimelineSchema,
   PanchangSchema,
+  TimelineYearSchema,
   TransitSummarySchema,
 } from "@/lib/schemas";
 import type {
@@ -13,6 +14,7 @@ import type {
   DashaTimeline,
   Panchang as PanchangResponse,
   PlanetPlacement,
+  TimelineYear,
   TransitSummary,
 } from "@/lib/schemas";
 
@@ -42,6 +44,14 @@ export interface DashaRequest extends BirthProfile {
 
 export interface TransitRequest extends BirthProfile {
   at: string;
+  natal?: {
+    lagna_sign: string;
+    planetary_positions: PlanetPlacement[];
+  };
+}
+
+export interface TimelineYearRequest extends BirthProfile {
+  year: number;
   natal?: {
     lagna_sign: string;
     planetary_positions: PlanetPlacement[];
@@ -148,6 +158,10 @@ export async function getDasha(body: DashaRequest, opts?: CallOptions) {
 
 export async function getTransits(body: TransitRequest, opts?: CallOptions) {
   return callAstroEngine<TransitSummary>("/transits", body, TransitSummarySchema, opts);
+}
+
+export async function getTimelineYear(body: TimelineYearRequest, opts?: CallOptions) {
+  return callAstroEngine<TimelineYear>("/timeline/year", body, TimelineYearSchema, opts);
 }
 
 export async function getPanchang(body: PanchangRequest, opts?: CallOptions) {

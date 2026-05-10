@@ -3,7 +3,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.observability import configure_logging, request_log_middleware
-from app.routes import charts, dasha, health, panchang, profile, transits
+from app.routes import charts, dasha, health, panchang, profile, timeline, transits
 from app.versioning import ENGINE_VERSION
 
 configure_logging()
@@ -16,6 +16,7 @@ app.include_router(charts.router)
 app.include_router(dasha.router)
 app.include_router(transits.router)
 app.include_router(panchang.router)
+app.include_router(timeline.router)
 
 
 @app.exception_handler(RequestValidationError)

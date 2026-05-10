@@ -157,6 +157,19 @@ export const TransitSummarySchema = z.object({
   overlay: TransitOverlaySchema.nullable().optional(),
 });
 
+export const TimelineYearSchema = z.object({
+  year: z.number().int().min(1900).max(2200),
+  timezone: z.string(),
+  dasha: DashaTimelineSchema,
+  days: z.array(
+    z.object({
+      date: z.string(),
+      scoring_instant: z.string(),
+      transits: TransitSummarySchema,
+    })
+  ),
+});
+
 const ChartCollectionSchema = z.record(z.string(), ChartSchema);
 
 export const ChartSnapshotSchema = z.object({
@@ -510,6 +523,7 @@ export type DashaTimeline = z.infer<typeof DashaTimelineSchema>;
 export type DashaPeriod = z.infer<typeof DashaPeriodSchema>;
 export type TransitOverlay = z.infer<typeof TransitOverlaySchema>;
 export type TransitSummary = z.infer<typeof TransitSummarySchema>;
+export type TimelineYear = z.infer<typeof TimelineYearSchema>;
 export type DerivedFeatureSnapshot = z.infer<typeof DerivedFeatureSnapshotSchema>;
 export type DerivedFeaturePayload = z.infer<typeof DerivedFeaturePayloadSchema>;
 export type TopicBundle = z.infer<typeof TopicBundleSchema>;

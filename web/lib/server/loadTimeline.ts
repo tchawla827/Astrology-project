@@ -1,6 +1,5 @@
-import { getDasha, getPanchang, getTransits } from "@/lib/astro/client";
-import { readTransitCache, writeTransitCache, type SupabaseDailyCacheClient } from "@/lib/daily/cache";
-import { buildTransitOverlay, timeOnDateInTimezoneIso } from "@/lib/server/generateDailyPrediction";
+import { getTimelineYear } from "@/lib/astro/client";
+import { buildTransitOverlay } from "@/lib/server/generateDailyPrediction";
 import {
   ChartSnapshotSchema,
   DerivedFeaturePayloadSchema,
@@ -32,7 +31,7 @@ type SupabaseQuery = {
   maybeSingle(): QueryResult;
 };
 
-export type SupabaseTimelineClient = SupabaseDailyCacheClient & {
+export type SupabaseTimelineClient = {
   from(table: string): {
     select(columns: string): SupabaseQuery;
     upsert(payload: unknown, options?: { onConflict?: string }): MutationResult;
@@ -138,23 +137,6 @@ function asUserProfile(value: unknown): UserProfileRow | null {
   return value as UserProfileRow;
 }
 
-function plusDays(date: string, days: number) {
-  const next = new Date(`${date}T00:00:00Z`);
-  next.setUTCDate(next.getUTCDate() + days);
-  return next.toISOString().slice(0, 10);
-}
-
-function dateListForYear(year: number) {
-  const dates: string[] = [];
-  let current = `${year}-01-01`;
-  const end = `${year + 1}-01-01`;
-  while (current < end) {
-    dates.push(current);
-    current = plusDays(current, 1);
-  }
-  return dates;
-}
-
 function selectedMonthDates(dates: string[], selectedMonth?: number) {
   if (!selectedMonth) {
     return [];
@@ -186,79 +168,6 @@ function dashaTimingForDate(timeline: DashaTimeline, instantIso: string): LifeAr
     active_antardasha: activePeriod(timeline, "antardasha", instantIso),
     active_pratyantardasha: activePeriod(timeline, "pratyantardasha", instantIso),
   };
-}
-
-async function mapLimit<TInput, TOutput>(
-  values: TInput[],
-  limit: number,
-  mapper: (value: TInput, index: number) => Promise<TOutput>,
-) {
-  const results: TOutput[] = new Array(values.length);
-  let nextIndex = 0;
-
-  async function worker() {
-    while (nextIndex < values.length) {
-      const index = nextIndex;
-      nextIndex += 1;
-      results[index] = await mapper(values[index] as TInput, index);
-    }
-  }
-
-  await Promise.all(Array.from({ length: Math.min(limit, values.length) }, () => worker()));
-  return results;
-}
-
-async function loadTransitSummary(input: {
-  supabase: SupabaseTimelineClient;
-  profile: TimelineProfile;
-  date: string;
-  at: string;
-}) {
-  const cached = await readTransitCache({
-    supabase: input.supabase,
-    date: input.date,
-    latitude: input.profile.latitude,
-    longitude: input.profile.longitude,
-    timezone: input.profile.timezone,
-    ayanamsha: input.profile.ayanamsha,
-    expected_as_of: input.at,
-  });
-  if (cached) {
-    return { transits: cached.transits, cache: "hit" as const };
-  }
-
-  const transits = await getTransits({
-    birth_date: input.profile.birth_date,
-    birth_time: input.profile.birth_time,
-    latitude: input.profile.latitude,
-    longitude: input.profile.longitude,
-    timezone: input.profile.timezone,
-    ayanamsha: input.profile.ayanamsha,
-    at: input.at,
-  });
-
-  await writeTransitCache({
-    supabase: input.supabase,
-    date: input.date,
-    latitude: input.profile.latitude,
-    longitude: input.profile.longitude,
-    timezone: input.profile.timezone,
-    ayanamsha: input.profile.ayanamsha,
-    transits,
-  });
-
-  return { transits, cache: "miss" as const };
-}
-
-async function loadScoringInstant(input: { profile: TimelineProfile; date: string }) {
-  const panchang = await getPanchang({
-    date: input.date,
-    latitude: input.profile.latitude,
-    longitude: input.profile.longitude,
-    timezone: input.profile.timezone,
-    ayanamsha: input.profile.ayanamsha,
-  });
-  return timeOnDateInTimezoneIso(input.date, panchang.sunrise || "06:00:00", input.profile.timezone);
 }
 
 function overlayTransits(transits: TransitSummary, snapshot: ChartSnapshot) {
@@ -340,50 +249,42 @@ export async function loadTimelineContext(input: {
   }
 
   try {
-    const dates = dateListForYear(input.year);
-    const dasha = await getDasha({
+    const timeline = await getTimelineYear({
       birth_date: profile.birth_date,
       birth_time: profile.birth_time,
       latitude: profile.latitude,
       longitude: profile.longitude,
       timezone: profile.timezone,
       ayanamsha: profile.ayanamsha,
-      depth: "pratyantardasha",
-      from: `${input.year}-01-01`,
-      to: `${input.year + 1}-01-01`,
+      year: input.year,
+      natal: {
+        lagna_sign: parsedSnapshot.data.summary.lagna,
+        planetary_positions: parsedSnapshot.data.planetary_positions,
+      },
     });
-    let transitsHit = 0;
-    let transitsMiss = 0;
     const timingBundle = timingBundleForTopic({
       snapshot: parsedSnapshot.data,
       derived: parsedDerived.data,
       topic: input.topic,
     });
 
-    const dailyPoints = await mapLimit(dates, 8, async (date) => {
-      const scoringInstant = await loadScoringInstant({ profile, date });
-      const transitResult = await loadTransitSummary({ supabase: input.supabase, profile, date, at: scoringInstant });
-      if (transitResult.cache === "hit") {
-        transitsHit += 1;
-      } else {
-        transitsMiss += 1;
-      }
-
-      return scoreLifeAreaTimingPoint({
+    const dailyPoints = timeline.days.map((day) =>
+      scoreLifeAreaTimingPoint({
         snapshot: parsedSnapshot.data,
         bundle: timingBundle,
         topic: input.topic,
-        date,
-        transits: overlayTransits(transitResult.transits, parsedSnapshot.data),
-        dashaTiming: dashaTimingForDate(dasha, scoringInstant),
+        date: day.date,
+        transits: overlayTransits(day.transits, parsedSnapshot.data),
+        dashaTiming: dashaTimingForDate(timeline.dasha, day.scoring_instant),
         birthTimeConfidence: parsedSnapshot.data.birth_time_confidence ?? profile.birth_time_confidence,
-      });
-    });
+      }),
+    );
 
     const monthly = Array.from({ length: 12 }, (_, index) => {
       const month = String(index + 1).padStart(2, "0");
       return aggregateMonthlyTimingPoint(dailyPoints.filter((point) => point.date.slice(5, 7) === month));
     });
+    const dates = timeline.days.map((day) => day.date);
     const selectedDaily = selectedMonthDates(dates, input.selectedMonth);
     const selectedDailyPoints =
       selectedDaily.length > 0 ? dailyPoints.filter((point) => selectedDaily.includes(point.date)) : undefined;
@@ -402,7 +303,7 @@ export async function loadTimelineContext(input: {
       derived: parsedDerived.data,
       defaultToneMode: asUserProfile(userProfileData)?.default_tone_mode ?? "direct",
       series,
-      cache: { transitsHit, transitsMiss },
+      cache: { transitsHit: 0, transitsMiss: timeline.days.length },
     };
   } catch (error) {
     return {

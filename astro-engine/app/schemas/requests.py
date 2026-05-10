@@ -38,6 +38,11 @@ class TransitRequest(BaseModel):
     natal: NatalOverlayInput | None = None
 
 
+class TimelineYearRequest(BirthProfileInput):
+    year: int = Field(ge=1900, le=2200)
+    natal: NatalOverlayInput | None = None
+
+
 class PanchangRequest(BaseModel):
     date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
     latitude: float = Field(ge=-90, le=90)

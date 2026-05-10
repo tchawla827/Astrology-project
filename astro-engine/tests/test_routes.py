@@ -101,6 +101,60 @@ def test_panchang_endpoint(monkeypatch: MonkeyPatch) -> None:
     }
 
 
+def test_timeline_year_endpoint_returns_exact_daily_transits(monkeypatch: MonkeyPatch) -> None:
+    monkeypatch.setenv("ASTRO_ENGINE_SECRET", SECRET)
+    client = TestClient(app)
+    natal_snapshot = build_snapshot(
+        BirthInput(
+            birth_date=PROFILE["birth_date"],
+            birth_time=PROFILE["birth_time"],
+            timezone=PROFILE["timezone"],
+            latitude=PROFILE["latitude"],
+            longitude=PROFILE["longitude"],
+            ayanamsha=PROFILE["ayanamsha"],
+        )
+    )
+    timeline_resp = client.post(
+        "/timeline/year",
+        headers={"X-Astro-Secret": SECRET},
+        json={
+            **PROFILE,
+            "year": 2026,
+            "natal": {
+                "lagna_sign": natal_snapshot["summary"]["lagna"],
+                "planetary_positions": natal_snapshot["planetary_positions"],
+            },
+        },
+    )
+    assert timeline_resp.status_code == 200
+    timeline = timeline_resp.json()
+    assert timeline["year"] == 2026
+    assert len(timeline["days"]) == 365
+    assert {p["level"] for p in timeline["dasha"]["periods"]} == {
+        "mahadasha",
+        "antardasha",
+        "pratyantardasha",
+    }
+
+    first_day = timeline["days"][0]
+    transit_resp = client.post(
+        "/transits",
+        headers={"X-Astro-Secret": SECRET},
+        json={
+            "at": first_day["scoring_instant"],
+            "latitude": PROFILE["latitude"],
+            "longitude": PROFILE["longitude"],
+            "ayanamsha": "lahiri",
+            "natal": {
+                "lagna_sign": natal_snapshot["summary"]["lagna"],
+                "planetary_positions": natal_snapshot["planetary_positions"],
+            },
+        },
+    )
+    assert transit_resp.status_code == 200
+    assert first_day["transits"]["positions"] == transit_resp.json()["positions"]
+
+
 def test_invalid_input_returns_400(monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setenv("ASTRO_ENGINE_SECRET", SECRET)
     client = TestClient(app)
