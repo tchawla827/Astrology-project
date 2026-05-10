@@ -1,6 +1,6 @@
 import { DailyPredictionSchema, TransitSummarySchema, type DailyPrediction, type TransitSummary } from "@/lib/schemas";
 
-const DAILY_SCHEMA_VERSION = "daily_v3_jyotish_scoring_100" as const;
+const DAILY_SCHEMA_VERSION = "daily_v2_scoring_v4_sunrise" as const;
 
 type DbError = { message: string } | Error;
 type QueryResult = PromiseLike<{ data: unknown; error: DbError | null }>;
@@ -116,6 +116,7 @@ export async function readTransitCache(input: {
   longitude: number;
   timezone: string;
   ayanamsha: string;
+  expected_as_of?: string;
 }) {
   const { data, error } = await input.supabase
     .from("daily_transit_cache")
@@ -139,6 +140,9 @@ export async function readTransitCache(input: {
 
   const parsed = TransitSummarySchema.safeParse(row.payload);
   if (!parsed.success) {
+    return null;
+  }
+  if (input.expected_as_of && Date.parse(parsed.data.as_of) !== Date.parse(input.expected_as_of)) {
     return null;
   }
 

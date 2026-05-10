@@ -3120,7 +3120,7 @@ exports[`computeBundles > produces a stable payload for the golden chart snapsho
   },
   "time_sensitivity": {
     "overall": "high",
-    "note": "59% of bundles lean on lagna/cardinal-house factors; birth time is exact, so the sensitivity reads high."
+    "note": "59% of bundles lean on lagna/cardinal-house factors; birth time is exact, so timing precision risk reads high."
   }
 }"
 `;

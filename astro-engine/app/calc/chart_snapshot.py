@@ -133,23 +133,27 @@ def _dasha_summary(
     )
     idx = next((i for i, p in enumerate(upcoming_maha) if p.lord == maha.lord), 0)
     upcoming = upcoming_maha[idx + 1 : idx + 4]
+
+    def fmt(dt: datetime) -> str:
+        return dt.isoformat().replace("+00:00", "Z")
+
     return {
         "system": "vimshottari",
         "current_mahadasha": {
             "lord": maha.lord,
-            "start": maha.start.date().isoformat(),
-            "end": maha.end.date().isoformat(),
+            "start": fmt(maha.start),
+            "end": fmt(maha.end),
         },
         "current_antardasha": {
             "lord": antar.lord,
-            "start": antar.start.date().isoformat(),
-            "end": antar.end.date().isoformat(),
+            "start": fmt(antar.start),
+            "end": fmt(antar.end),
         },
         "upcoming": [
             {
                 "lord": p.lord,
-                "start": p.start.date().isoformat(),
-                "end": p.end.date().isoformat(),
+                "start": fmt(p.start),
+                "end": fmt(p.end),
             }
             for p in upcoming
         ],

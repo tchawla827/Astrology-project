@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from typing import Callable
 from zoneinfo import ZoneInfo
 
 import swisseph as swe
@@ -96,7 +97,7 @@ class PanchangResult:
 
 def _tithi(sun_lon: float, moon_lon: float) -> tuple[str, float]:
     diff = (moon_lon - sun_lon) % 360.0
-    idx = int(diff // 12.0)  # 0..29
+    idx = _tithi_index(sun_lon, moon_lon)
     portion_left = 1.0 - ((diff - idx * 12.0) / 12.0)
     if idx < 15:
         name = "Shukla " + TITHI_NAMES_SUKLA[idx]
@@ -108,14 +109,14 @@ def _tithi(sun_lon: float, moon_lon: float) -> tuple[str, float]:
 def _yoga(sun_lon: float, moon_lon: float) -> tuple[str, float]:
     total = (sun_lon + moon_lon) % 360.0
     arc = 360.0 / 27.0
-    idx = int(total // arc)
+    idx = _yoga_index(sun_lon, moon_lon)
     left = 1.0 - ((total - idx * arc) / arc)
     return YOGA_NAMES[idx], left
 
 
 def _karana(sun_lon: float, moon_lon: float) -> tuple[str, float]:
     diff = (moon_lon - sun_lon) % 360.0
-    idx = int(diff // 6.0)  # 0..59
+    idx = _karana_index(sun_lon, moon_lon)
     left = 1.0 - ((diff - idx * 6.0) / 6.0)
     # First karana = Kimstughna (fixed); next 56 = 8 cycles of 7 moveable; last 3 = fixed.
     if idx == 0:
@@ -127,13 +128,72 @@ def _karana(sun_lon: float, moon_lon: float) -> tuple[str, float]:
     return name, left
 
 
+def _tithi_index(sun_lon: float, moon_lon: float) -> int:
+    return int(((moon_lon - sun_lon) % 360.0) // 12.0)
+
+
+def _yoga_index(sun_lon: float, moon_lon: float) -> int:
+    return int(((sun_lon + moon_lon) % 360.0) // (360.0 / 27.0))
+
+
+def _karana_index(sun_lon: float, moon_lon: float) -> int:
+    return int(((moon_lon - sun_lon) % 360.0) // 6.0)
+
+
+def _nakshatra_index(moon_lon: float) -> int:
+    return int((moon_lon % 360.0) // (360.0 / 27.0))
+
+
+def _sun_moon_longitudes(jd_ut: float, flags: int) -> tuple[float, float]:
+    sun_lon = float(swe.calc_ut(jd_ut, swe.SUN, flags)[0][0])
+    moon_lon = float(swe.calc_ut(jd_ut, swe.MOON, flags)[0][0])
+    return sun_lon, moon_lon
+
+
+def _find_transition_jd(
+    start_jd: float,
+    current_index: int,
+    index_at: Callable[[float], int],
+    max_days: float = 3.0,
+) -> float:
+    step = 1.0 / 24.0
+    low = start_jd
+    high = start_jd + step
+    end = start_jd + max_days
+    while high <= end and index_at(high) == current_index:
+        low = high
+        high += step
+    if high > end:
+        return end
+    for _ in range(36):
+        mid = (low + high) / 2.0
+        if index_at(mid) == current_index:
+            low = mid
+        else:
+            high = mid
+    return high
+
+
+def _segment_payload(
+    name: str,
+    fraction_left: float,
+    end_jd: float,
+    timezone_name: str,
+) -> dict[str, str | float]:
+    return {
+        "name": name,
+        "fraction_left": fraction_left,
+        "end_time": _jd_to_local_datetime(end_jd, timezone_name).isoformat(),
+    }
+
+
 def _sunrise_sunset(jd_ut_start: float, latitude: float, longitude: float) -> tuple[float, float]:
     geopos = (longitude, latitude, 0.0)
     _, rise_arr = swe.rise_trans(
-        jd_ut_start, swe.SUN, swe.CALC_RISE | swe.BIT_DISC_CENTER, geopos
+        jd_ut_start, swe.SUN, swe.CALC_RISE, geopos
     )
     _, set_arr = swe.rise_trans(
-        jd_ut_start, swe.SUN, swe.CALC_SET | swe.BIT_DISC_CENTER, geopos
+        jd_ut_start, swe.SUN, swe.CALC_SET, geopos
     )
     return float(rise_arr[0]), float(set_arr[0])
 
@@ -239,12 +299,36 @@ def compute_panchang(
     rise_jd, set_jd = _sunrise_sunset(jd_midnight, latitude, longitude)
     ayanamsha.apply(ayan)
     flags = swe.FLG_SWIEPH | swe.FLG_SIDEREAL
-    sun_lon = float(swe.calc_ut(rise_jd, swe.SUN, flags)[0][0])
-    moon_lon = float(swe.calc_ut(rise_jd, swe.MOON, flags)[0][0])
+    sun_lon, moon_lon = _sun_moon_longitudes(rise_jd, flags)
     tithi_name, tithi_left = _tithi(sun_lon, moon_lon)
     yoga_name, yoga_left = _yoga(sun_lon, moon_lon)
     karana_name, karana_left = _karana(sun_lon, moon_lon)
     nak_name = nakshatra_name(moon_lon)
+    tithi_idx = _tithi_index(sun_lon, moon_lon)
+    yoga_idx = _yoga_index(sun_lon, moon_lon)
+    karana_idx = _karana_index(sun_lon, moon_lon)
+    nakshatra_idx = _nakshatra_index(moon_lon)
+    tithi_end = _find_transition_jd(
+        rise_jd,
+        tithi_idx,
+        lambda jd: _tithi_index(*_sun_moon_longitudes(jd, flags)),
+    )
+    yoga_end = _find_transition_jd(
+        rise_jd,
+        yoga_idx,
+        lambda jd: _yoga_index(*_sun_moon_longitudes(jd, flags)),
+    )
+    karana_end = _find_transition_jd(
+        rise_jd,
+        karana_idx,
+        lambda jd: _karana_index(*_sun_moon_longitudes(jd, flags)),
+        max_days=1.5,
+    )
+    nakshatra_end = _find_transition_jd(
+        rise_jd,
+        nakshatra_idx,
+        lambda jd: _nakshatra_index(_sun_moon_longitudes(jd, flags)[1]),
+    )
     weekday_idx = local_midnight.weekday()  # Mon=0..Sun=6
     python_to_vedic = (1, 2, 3, 4, 5, 6, 0)  # Mon→Moon(1) ... Sun→Sun(0)
     vedic_idx = python_to_vedic[weekday_idx]
@@ -268,10 +352,15 @@ def compute_panchang(
         date=date_str,
         latitude=latitude,
         longitude=longitude,
-        tithi={"name": tithi_name, "fraction_left": tithi_left},
-        nakshatra={"name": nak_name, "fraction_left": 1.0 - nakshatra_name_fraction_done(moon_lon)},
-        yoga={"name": yoga_name, "fraction_left": yoga_left},
-        karana={"name": karana_name, "fraction_left": karana_left},
+        tithi=_segment_payload(tithi_name, tithi_left, tithi_end, timezone_name),
+        nakshatra=_segment_payload(
+            nak_name,
+            1.0 - nakshatra_name_fraction_done(moon_lon),
+            nakshatra_end,
+            timezone_name,
+        ),
+        yoga=_segment_payload(yoga_name, yoga_left, yoga_end, timezone_name),
+        karana=_segment_payload(karana_name, karana_left, karana_end, timezone_name),
         vaara=vaara,
         sunrise=rise_local.strftime("%H:%M:%S"),
         sunset=set_local.strftime("%H:%M:%S"),

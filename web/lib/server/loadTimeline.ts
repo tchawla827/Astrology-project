@@ -1,6 +1,6 @@
-import { getDasha, getTransits } from "@/lib/astro/client";
+import { getDasha, getPanchang, getTransits } from "@/lib/astro/client";
 import { readTransitCache, writeTransitCache, type SupabaseDailyCacheClient } from "@/lib/daily/cache";
-import { buildTransitOverlay, startOfDayInTimezoneIso } from "@/lib/server/generateDailyPrediction";
+import { buildTransitOverlay, timeOnDateInTimezoneIso } from "@/lib/server/generateDailyPrediction";
 import {
   ChartSnapshotSchema,
   DerivedFeaturePayloadSchema,
@@ -163,16 +163,28 @@ function selectedMonthDates(dates: string[], selectedMonth?: number) {
   return dates.filter((date) => date.slice(5, 7) === monthText);
 }
 
-function activePeriod(timeline: DashaTimeline, level: DashaTimeline["periods"][number]["level"], date: string) {
-  return timeline.periods.find((period) => period.level === level && period.start <= date && period.end > date);
+function periodBoundaryMs(value: string) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return Date.parse(`${value}T00:00:00Z`);
+  }
+  return Date.parse(value);
 }
 
-function dashaTimingForDate(timeline: DashaTimeline, date: string): LifeAreaDashaTiming {
+function activePeriod(timeline: DashaTimeline, level: DashaTimeline["periods"][number]["level"], instantIso: string) {
+  const at = Date.parse(instantIso);
+  return timeline.periods.find((period) => {
+    const start = periodBoundaryMs(period.start);
+    const end = periodBoundaryMs(period.end);
+    return period.level === level && start <= at && end > at;
+  });
+}
+
+function dashaTimingForDate(timeline: DashaTimeline, instantIso: string): LifeAreaDashaTiming {
   return {
     system: timeline.system,
-    active_mahadasha: activePeriod(timeline, "mahadasha", date),
-    active_antardasha: activePeriod(timeline, "antardasha", date),
-    active_pratyantardasha: activePeriod(timeline, "pratyantardasha", date),
+    active_mahadasha: activePeriod(timeline, "mahadasha", instantIso),
+    active_antardasha: activePeriod(timeline, "antardasha", instantIso),
+    active_pratyantardasha: activePeriod(timeline, "pratyantardasha", instantIso),
   };
 }
 
@@ -200,6 +212,7 @@ async function loadTransitSummary(input: {
   supabase: SupabaseTimelineClient;
   profile: TimelineProfile;
   date: string;
+  at: string;
 }) {
   const cached = await readTransitCache({
     supabase: input.supabase,
@@ -208,6 +221,7 @@ async function loadTransitSummary(input: {
     longitude: input.profile.longitude,
     timezone: input.profile.timezone,
     ayanamsha: input.profile.ayanamsha,
+    expected_as_of: input.at,
   });
   if (cached) {
     return { transits: cached.transits, cache: "hit" as const };
@@ -220,7 +234,7 @@ async function loadTransitSummary(input: {
     longitude: input.profile.longitude,
     timezone: input.profile.timezone,
     ayanamsha: input.profile.ayanamsha,
-    at: startOfDayInTimezoneIso(input.date, input.profile.timezone),
+    at: input.at,
   });
 
   await writeTransitCache({
@@ -234,6 +248,17 @@ async function loadTransitSummary(input: {
   });
 
   return { transits, cache: "miss" as const };
+}
+
+async function loadScoringInstant(input: { profile: TimelineProfile; date: string }) {
+  const panchang = await getPanchang({
+    date: input.date,
+    latitude: input.profile.latitude,
+    longitude: input.profile.longitude,
+    timezone: input.profile.timezone,
+    ayanamsha: input.profile.ayanamsha,
+  });
+  return timeOnDateInTimezoneIso(input.date, panchang.sunrise || "06:00:00", input.profile.timezone);
 }
 
 function overlayTransits(transits: TransitSummary, snapshot: ChartSnapshot) {
@@ -336,7 +361,8 @@ export async function loadTimelineContext(input: {
     });
 
     const dailyPoints = await mapLimit(dates, 8, async (date) => {
-      const transitResult = await loadTransitSummary({ supabase: input.supabase, profile, date });
+      const scoringInstant = await loadScoringInstant({ profile, date });
+      const transitResult = await loadTransitSummary({ supabase: input.supabase, profile, date, at: scoringInstant });
       if (transitResult.cache === "hit") {
         transitsHit += 1;
       } else {
@@ -349,7 +375,7 @@ export async function loadTimelineContext(input: {
         topic: input.topic,
         date,
         transits: overlayTransits(transitResult.transits, parsedSnapshot.data),
-        dashaTiming: dashaTimingForDate(dasha, date),
+        dashaTiming: dashaTimingForDate(dasha, scoringInstant),
         birthTimeConfidence: parsedSnapshot.data.birth_time_confidence ?? profile.birth_time_confidence,
       });
     });

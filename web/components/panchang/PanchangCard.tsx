@@ -7,10 +7,14 @@ import type { Panchang } from "@/lib/schemas";
 type ElementValue = Panchang["tithi"];
 
 function endLabel(value: ElementValue) {
-  if ("end_time" in value) {
+  if (value.end_time) {
+    const parsed = new Date(value.end_time);
+    if (!Number.isNaN(parsed.getTime())) {
+      return `until ${parsed.toLocaleString("en", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}`;
+    }
     return `until ${value.end_time.slice(0, 5)}`;
   }
-  if ("fraction_left" in value) {
+  if (typeof value.fraction_left === "number") {
     return `${Math.round(value.fraction_left * 100)}% remaining`;
   }
   return "";

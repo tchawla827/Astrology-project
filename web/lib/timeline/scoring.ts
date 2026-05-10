@@ -468,6 +468,7 @@ function factorWithoutImpact(factor: InternalTimingFactor): LifeAreaTimingFactor
     label: factor.label,
     summary: factor.summary,
     citations: factor.citations,
+    impact: round(factor.impact),
   };
 }
 
@@ -793,6 +794,16 @@ export function scoreLifeAreaTimingPoint(input: ScoreLifeAreaTimingInput): LifeA
     });
   }
 
+  if (input.birthTimeConfidence !== "exact") {
+    const scale = input.birthTimeConfidence === "approximate" ? 0.72 : 0.42;
+    const volatilityScale = input.birthTimeConfidence === "approximate" ? 0.82 : 0.58;
+    support = 36 + (support - 36) * scale;
+    pressure = 16 + (pressure - 16) * scale;
+    volatility = 12 + (volatility - 12) * volatilityScale;
+    support = Math.min(support, input.birthTimeConfidence === "approximate" ? 78 : 58);
+    pressure = Math.min(pressure, input.birthTimeConfidence === "approximate" ? 82 : 70);
+  }
+
   const rounded = {
     support: round(clamp(support - pressure * 0.12, 0, 100)),
     pressure: round(clamp(pressure - support * 0.04, 0, 100)),
@@ -814,19 +825,27 @@ export function aggregateMonthlyTimingPoint(points: LifeAreaTimingPoint[]): Life
     throw new Error("Cannot aggregate an empty month.");
   }
 
-  const factorCounts = new Map<string, { factor: LifeAreaTimingFactor; count: number }>();
+  const factorCounts = new Map<string, { factor: LifeAreaTimingFactor; count: number; totalImpact: number }>();
   for (const point of points) {
     for (const factor of point.top_factors) {
       const key = `${factor.source}:${factor.label}`;
       const current = factorCounts.get(key);
-      factorCounts.set(key, current ? { factor: current.factor, count: current.count + 1 } : { factor, count: 1 });
+      const impact = factor.impact ?? 1;
+      factorCounts.set(
+        key,
+        current
+          ? { factor: current.factor, count: current.count + 1, totalImpact: current.totalImpact + impact }
+          : { factor, count: 1, totalImpact: impact },
+      );
     }
   }
+  const averageVolatility = average(points.map((point) => point.volatility));
+  const maxVolatility = Math.max(...points.map((point) => point.volatility));
 
   const rounded = {
     support: round(average(points.map((point) => point.support))),
     pressure: round(average(points.map((point) => point.pressure))),
-    volatility: round(average(points.map((point) => point.volatility))),
+    volatility: round(averageVolatility * 0.65 + maxVolatility * 0.35),
     confidence: round(average(points.map((point) => point.confidence))),
   };
 
@@ -836,9 +855,9 @@ export function aggregateMonthlyTimingPoint(points: LifeAreaTimingPoint[]): Life
     ...rounded,
     phase: scorePhase(rounded),
     top_factors: [...factorCounts.values()]
-      .sort((left, right) => right.count - left.count)
+      .sort((left, right) => right.totalImpact - left.totalImpact || right.count - left.count)
       .slice(0, 6)
-      .map((entry) => entry.factor),
+      .map((entry) => ({ ...entry.factor, impact: round(entry.totalImpact) })),
   });
 }
 

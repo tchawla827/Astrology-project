@@ -25,8 +25,8 @@ _GRAHA_DRISHTI_OFFSETS: dict[Planet, tuple[int, ...]] = {
     "Jupiter": (5, 7, 9),
     "Venus": (7,),
     "Saturn": (3, 7, 10),
-    "Rahu": (7,),
-    "Ketu": (7,),
+    "Rahu": (5, 7, 9),
+    "Ketu": (5, 7, 9),
 }
 
 _KIND_ORDER = {
@@ -63,6 +63,14 @@ def _planetary_aspects(positions: Mapping[Planet, AspectPosition]) -> list[dict[
                     {
                         "from": left.planet,
                         "to": right.planet,
+                        "kind": kind,
+                        "orb_deg": round(orb, 6),
+                    }
+                )
+                aspects.append(
+                    {
+                        "from": right.planet,
+                        "to": left.planet,
                         "kind": kind,
                         "orb_deg": round(orb, 6),
                     }

@@ -137,4 +137,16 @@ describe("daily Jyotish scoring V3", () => {
     expect(Math.abs(approximateCareer?.components.varga_support ?? 0)).toBeLessThan(Math.abs(exactCareer?.components.varga_support ?? 0));
     expect(approximateCareer?.notes.join(" ")).toContain("birth time confidence is approximate");
   });
+
+  it("caps strong daily scores when birth time is unknown", () => {
+    const unknown = scoreDailyAspectsV3({
+      snapshot: { ...goldenSnapshot, birth_time_confidence: "unknown" },
+      transits: transitWithSaturnDistanceFromMoon(8),
+      dashaTiming,
+      birthTimeConfidence: "unknown",
+    });
+
+    expect(Math.max(...unknown.aspect_scores.map((score) => score.score))).toBeLessThanOrEqual(60);
+    expect(unknown.score_breakdown.some((score) => score.notes.join(" ").includes("unknown"))).toBe(true);
+  });
 });

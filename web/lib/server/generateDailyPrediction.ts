@@ -78,11 +78,13 @@ export type TransitRuleHit = {
   planet: Planet;
   note: string;
   house?: number;
+  kind?: "major" | "minor";
 };
 
 export type DailyContextBundle = {
   context_id: string;
   date: string;
+  scoring_instant: string;
   tone: ToneMode;
   profile_summary: ChartSnapshot["summary"];
   birth_time_confidence: BirthProfileRow["birth_time_confidence"];
@@ -264,37 +266,68 @@ export function startOfDayInTimezoneIso(date: string, timezone: string) {
   return secondGuess.toISOString();
 }
 
+export function timeOnDateInTimezoneIso(date: string, time: string, timezone: string) {
+  assertIsoDate(date);
+  const match = /^(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(time);
+  if (!match) {
+    const parsed = Date.parse(time);
+    if (!Number.isNaN(parsed)) {
+      return new Date(parsed).toISOString();
+    }
+  }
+  const hour = Number(match?.[1] ?? "6");
+  const minute = Number(match?.[2] ?? "0");
+  const second = Number(match?.[3] ?? "0");
+  const [year, month, day] = date.split("-").map(Number);
+  const localAsUtc = new Date(Date.UTC(year ?? 0, (month ?? 1) - 1, day ?? 1, hour, minute, second));
+  const firstGuess = new Date(localAsUtc.getTime() - timezoneOffsetMs(localAsUtc, timezone));
+  const secondGuess = new Date(localAsUtc.getTime() - timezoneOffsetMs(firstGuess, timezone));
+  return secondGuess.toISOString();
+}
+
 function panchangValueName(value: Panchang["tithi"]) {
   return value.name;
 }
 
-function activePeriod(timeline: DashaTimeline, level: DashaTimeline["periods"][number]["level"], date: string) {
-  return timeline.periods.find((period) => period.level === level && period.start <= date && period.end > date);
+function periodBoundaryMs(value: string) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return Date.parse(`${value}T00:00:00Z`);
+  }
+  return Date.parse(value);
+}
+
+function activePeriod(timeline: DashaTimeline, level: DashaTimeline["periods"][number]["level"], instantIso: string) {
+  const at = Date.parse(instantIso);
+  return timeline.periods.find((period) => {
+    const start = periodBoundaryMs(period.start);
+    const end = periodBoundaryMs(period.end);
+    return period.level === level && start <= at && end > at;
+  });
 }
 
 async function loadDateWiseAstroContext(input: { profile: BirthProfileRow; date: string }) {
-  const [panchang, dasha] = await Promise.all([
-    getPanchang({
-      date: input.date,
-      latitude: input.profile.latitude,
-      longitude: input.profile.longitude,
-      timezone: input.profile.timezone,
-      ayanamsha: input.profile.ayanamsha,
-    }),
-    getDasha({
-      birth_date: input.profile.birth_date,
-      birth_time: input.profile.birth_time,
-      latitude: input.profile.latitude,
-      longitude: input.profile.longitude,
-      timezone: input.profile.timezone,
-      ayanamsha: input.profile.ayanamsha,
-      depth: "pratyantardasha",
-      from: input.date,
-      to: plusDays(input.date, 1),
-    }),
-  ]);
+  const panchang = await getPanchang({
+    date: input.date,
+    latitude: input.profile.latitude,
+    longitude: input.profile.longitude,
+    timezone: input.profile.timezone,
+    ayanamsha: input.profile.ayanamsha,
+  });
+  const scoringInstant = timeOnDateInTimezoneIso(input.date, panchang.sunrise || "06:00:00", input.profile.timezone);
+  const dasha = await getDasha({
+    birth_date: input.profile.birth_date,
+    birth_time: input.profile.birth_time,
+    latitude: input.profile.latitude,
+    longitude: input.profile.longitude,
+    timezone: input.profile.timezone,
+    ayanamsha: input.profile.ayanamsha,
+    depth: "pratyantardasha",
+    from: scoringInstant,
+    to: plusDays(input.date, 1),
+  });
 
   return {
+    scoring_instant: scoringInstant,
     panchang: {
       vaara: panchang.vaara,
       tithi: panchangValueName(panchang.tithi),
@@ -307,9 +340,9 @@ async function loadDateWiseAstroContext(input: { profile: BirthProfileRow; date:
     },
     dasha_timing: {
       system: dasha.system,
-      active_mahadasha: activePeriod(dasha, "mahadasha", input.date),
-      active_antardasha: activePeriod(dasha, "antardasha", input.date),
-      active_pratyantardasha: activePeriod(dasha, "pratyantardasha", input.date),
+      active_mahadasha: activePeriod(dasha, "mahadasha", scoringInstant),
+      active_antardasha: activePeriod(dasha, "antardasha", scoringInstant),
+      active_pratyantardasha: activePeriod(dasha, "pratyantardasha", scoringInstant),
     },
   };
 }
@@ -367,8 +400,13 @@ export function buildTransitOverlay(input: {
 
   const rahu = transitByPlanet.get("Rahu");
   const natalMoon = natalByPlanet.get("Moon");
-  if (rahu && natalMoon && rahu.house === natalMoon.house) {
-    hits.push({ rule: "rahu_moon_house_conjunction", planet: "Rahu", house: rahu.house, note: "Rahu-Moon conjunction in transit" });
+  if (rahu && natalMoon && circularDiff(rahu.longitude_deg, natalMoon.longitude_deg) <= 3) {
+    hits.push({
+      rule: "rahu_moon_conjunction",
+      planet: "Rahu",
+      house: natalMoon.house,
+      note: "Rahu within 3 deg of natal Moon",
+    });
   }
 
   for (const malefic of malefics) {
@@ -382,6 +420,7 @@ export function buildTransitOverlay(input: {
         hits.push({
           rule: `${malefic.toLowerCase()}_near_natal_${luminary.toLowerCase()}`,
           planet: malefic,
+          house: natal.house,
           note: `${malefic} within 3 deg of natal ${luminary}`,
         });
       }
@@ -394,11 +433,14 @@ export function buildTransitOverlay(input: {
       rule: "moon_daily_house_focus",
       planet: "Moon",
       house: moon.house,
+      kind: "minor",
       note: `Moon daily focus through house ${moon.house}`,
     });
   }
 
-  const triggeredHouses = [...new Set(hits.flatMap((hit) => (hit.house ? [hit.house] : [])))].sort((a, b) => a - b);
+  const triggeredHouses = [...new Set(hits.flatMap((hit) => (hit.kind !== "minor" && hit.house ? [hit.house] : [])))].sort(
+    (a, b) => a - b,
+  );
   const planetToHouse = Object.fromEntries(positions.map((position) => [position.planet, position.house])) as Record<Planet, number>;
 
   return {
@@ -504,6 +546,7 @@ function buildDailyContext(input: {
   return {
     context_id: input.chart_snapshot_id,
     date: input.date,
+    scoring_instant: input.dateWiseAstro.scoring_instant,
     tone: input.tone,
     profile_summary: input.snapshot.summary,
     birth_time_confidence: input.birth_time_confidence,
@@ -753,6 +796,7 @@ async function loadTransitSummary(input: {
   supabase: SupabaseDailyClient;
   profile: BirthProfileRow;
   date: string;
+  at: string;
 }) {
   const cached = await readTransitCache({
     supabase: input.supabase,
@@ -761,6 +805,7 @@ async function loadTransitSummary(input: {
     longitude: input.profile.longitude,
     timezone: input.profile.timezone,
     ayanamsha: input.profile.ayanamsha,
+    expected_as_of: input.at,
   });
   if (cached) {
     return { transits: cached.transits, cache: "hit" as const };
@@ -773,7 +818,7 @@ async function loadTransitSummary(input: {
     longitude: input.profile.longitude,
     timezone: input.profile.timezone,
     ayanamsha: input.profile.ayanamsha,
-    at: startOfDayInTimezoneIso(input.date, input.profile.timezone),
+    at: input.at,
   });
 
   await writeTransitCache({
@@ -847,7 +892,7 @@ function fallbackPrediction(context: DailyContextBundle): DailyPrediction {
 }
 
 async function generateWithLlm(input: { context: DailyContextBundle; providers?: LlmProvider[] }) {
-  if (input.context.transit_rules.length === 0) {
+  if (input.context.transit_rules.every((hit) => hit.kind === "minor")) {
     return fallbackPrediction(input.context);
   }
 
@@ -897,10 +942,13 @@ export async function generateDailyPrediction(input: GenerateDailyPredictionInpu
   });
 
   const { chartRow, snapshot, derived } = await loadContextRows(input.supabase, profile.id);
-  const [transitResult, dateWiseAstro] = await Promise.all([
-    loadTransitSummary({ supabase: input.supabase, profile, date }),
-    loadDateWiseAstroContext({ profile, date }),
-  ]);
+  const dateWiseAstro = await loadDateWiseAstroContext({ profile, date });
+  const transitResult = await loadTransitSummary({
+    supabase: input.supabase,
+    profile,
+    date,
+    at: dateWiseAstro.scoring_instant,
+  });
   const overlay = buildTransitOverlay({
     transits: transitResult.transits,
     natalPositions: snapshot.planetary_positions,

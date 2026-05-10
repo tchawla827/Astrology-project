@@ -39,12 +39,19 @@ def overlay(
         )
     rahu_h = transit_house.get("Rahu")
     moon_h = natal_planet_house.get("Moon")
-    if rahu_h is not None and moon_h is not None and rahu_h == moon_h:
+    rahu_lon = transit_longitude.get("Rahu") if transit_longitude else None
+    moon_lon = natal_planet_longitude.get("Moon") if natal_planet_longitude else None
+    rahu_moon_orb = (
+        abs((rahu_lon - moon_lon + 180.0) % 360.0 - 180.0)
+        if rahu_lon is not None and moon_lon is not None
+        else None
+    )
+    if rahu_h is not None and moon_h is not None and rahu_moon_orb is not None and rahu_moon_orb <= 3.0:
         highlights.append(
             TransitHighlight(
                 planet="Rahu",
                 note="Rahu-Moon conjunction in transit",
-                house=rahu_h,
+                house=moon_h,
             )
         )
     if natal_planet_longitude and transit_longitude:
@@ -63,6 +70,7 @@ def overlay(
                     highlights.append(
                         TransitHighlight(
                             planet=m,
+                            house=natal_planet_house.get(lum),
                             note=f"{m} within 3° of natal {lum}",
                         )
                     )

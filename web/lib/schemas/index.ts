@@ -263,6 +263,7 @@ export const LifeAreaTimingFactorSchema = z.object({
   label: z.string().min(1),
   summary: z.string().min(1),
   citations: TopicEvidenceCitationSchema,
+  impact: z.number().optional(),
 });
 
 export const LifeAreaTimingPointSchema = z.object({
@@ -461,26 +462,20 @@ export const AssistantAskMessageSchema = z.object({
 
 export const AskMessageSchema = z.discriminatedUnion("role", [UserAskMessageSchema, AssistantAskMessageSchema]);
 
+const PanchangElementSchema = z.object({
+  name: z.string(),
+  end_time: z.string().optional(),
+  fraction_left: z.number().optional(),
+});
+
 export const PanchangSchema = z.object({
   date: z.string(),
   latitude: z.number(),
   longitude: z.number(),
-  tithi: z.union([
-    z.object({ name: z.string(), end_time: z.string() }),
-    z.object({ name: z.string(), fraction_left: z.number() }),
-  ]),
-  nakshatra: z.union([
-    z.object({ name: z.string(), end_time: z.string() }),
-    z.object({ name: z.string(), fraction_left: z.number() }),
-  ]),
-  yoga: z.union([
-    z.object({ name: z.string(), end_time: z.string() }),
-    z.object({ name: z.string(), fraction_left: z.number() }),
-  ]),
-  karana: z.union([
-    z.object({ name: z.string(), end_time: z.string() }),
-    z.object({ name: z.string(), fraction_left: z.number() }),
-  ]),
+  tithi: PanchangElementSchema,
+  nakshatra: PanchangElementSchema,
+  yoga: PanchangElementSchema,
+  karana: PanchangElementSchema,
   vaara: z.string(),
   sunrise: z.string(),
   sunset: z.string(),

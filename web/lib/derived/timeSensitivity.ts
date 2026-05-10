@@ -3,9 +3,9 @@ import { lordOfHouse } from "@/lib/derived/shared";
 
 const cardinalHouses = new Set([1, 4, 7, 10]);
 const confidenceFactor: Record<NonNullable<ChartSnapshot["birth_time_confidence"]>, number> = {
-  exact: 1,
-  approximate: 0.65,
-  unknown: 0.35,
+  exact: 0.85,
+  approximate: 1.15,
+  unknown: 1.55,
 };
 
 export function computeTimeSensitivity(topicBundles: TopicBundleCollection, snapshot: ChartSnapshot): TimeSensitivity {
@@ -32,7 +32,7 @@ export function computeTimeSensitivity(topicBundles: TopicBundleCollection, snap
   const weightedShare = rawShare * confidenceFactor[birthTimeConfidence];
 
   const overall = weightedShare >= 0.42 ? "high" : weightedShare >= 0.2 ? "medium" : "low";
-  const note = `${Math.round(rawShare * 100)}% of bundles lean on lagna/cardinal-house factors; birth time is ${birthTimeConfidence}, so the sensitivity reads ${overall}.`;
+  const note = `${Math.round(rawShare * 100)}% of bundles lean on lagna/cardinal-house factors; birth time is ${birthTimeConfidence}, so timing precision risk reads ${overall}.`;
 
   return TimeSensitivitySchema.parse({ overall, note });
 }

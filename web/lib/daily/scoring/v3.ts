@@ -169,12 +169,119 @@ const upachayaHouses = new Set([3, 6, 10, 11]);
 const dusthanaHouses = new Set([6, 8, 12]);
 const marakaHouses = new Set([2, 7]);
 
+const functionalNatureOverrides: Partial<Record<string, Partial<Record<Planet, FunctionalNature>>>> = {
+  Aries: {
+    Sun: "benefic",
+    Moon: "mixed",
+    Mars: "mixed",
+    Mercury: "malefic",
+    Jupiter: "benefic",
+    Venus: "malefic",
+    Saturn: "malefic",
+  },
+  Taurus: {
+    Moon: "mixed",
+    Mars: "malefic",
+    Mercury: "benefic",
+    Jupiter: "malefic",
+    Saturn: "yogakaraka",
+  },
+  Gemini: {
+    Sun: "mixed",
+    Moon: "malefic",
+    Mars: "malefic",
+    Mercury: "benefic",
+    Jupiter: "malefic",
+    Venus: "yogakaraka",
+    Saturn: "benefic",
+  },
+  Cancer: {
+    Sun: "benefic",
+    Mars: "yogakaraka",
+    Mercury: "malefic",
+    Jupiter: "benefic",
+    Venus: "malefic",
+    Saturn: "malefic",
+  },
+  Leo: {
+    Moon: "mixed",
+    Mars: "yogakaraka",
+    Mercury: "malefic",
+    Jupiter: "benefic",
+    Venus: "malefic",
+    Saturn: "malefic",
+  },
+  Virgo: {
+    Sun: "malefic",
+    Moon: "malefic",
+    Mars: "malefic",
+    Mercury: "benefic",
+    Jupiter: "malefic",
+    Venus: "benefic",
+    Saturn: "mixed",
+  },
+  Libra: {
+    Sun: "malefic",
+    Moon: "mixed",
+    Mars: "malefic",
+    Mercury: "benefic",
+    Jupiter: "malefic",
+    Venus: "benefic",
+    Saturn: "yogakaraka",
+  },
+  Scorpio: {
+    Sun: "benefic",
+    Moon: "benefic",
+    Mars: "mixed",
+    Mercury: "malefic",
+    Jupiter: "benefic",
+    Venus: "malefic",
+    Saturn: "malefic",
+  },
+  Sagittarius: {
+    Sun: "benefic",
+    Moon: "malefic",
+    Mars: "mixed",
+    Mercury: "malefic",
+    Jupiter: "benefic",
+    Venus: "malefic",
+    Saturn: "malefic",
+  },
+  Capricorn: {
+    Sun: "malefic",
+    Moon: "malefic",
+    Mars: "malefic",
+    Mercury: "benefic",
+    Jupiter: "malefic",
+    Venus: "yogakaraka",
+    Saturn: "benefic",
+  },
+  Aquarius: {
+    Sun: "malefic",
+    Moon: "malefic",
+    Mars: "malefic",
+    Mercury: "benefic",
+    Jupiter: "malefic",
+    Venus: "yogakaraka",
+    Saturn: "benefic",
+  },
+  Pisces: {
+    Sun: "mixed",
+    Moon: "benefic",
+    Mars: "benefic",
+    Mercury: "malefic",
+    Jupiter: "benefic",
+    Venus: "malefic",
+    Saturn: "malefic",
+  },
+};
+
 const nakshatras = [
   "Ashwini",
   "Bharani",
   "Krittika",
   "Rohini",
-  "Mrigashirsha",
+  "Mrigashira",
   "Ardra",
   "Punarvasu",
   "Pushya",
@@ -220,6 +327,10 @@ function functionalNature(snapshot: ChartSnapshot, planet: Planet): FunctionalNa
     return "malefic";
   }
   const lagna = ascendantSign(snapshot, "D1");
+  const override = functionalNatureOverrides[lagna]?.[planet];
+  if (override) {
+    return override;
+  }
   const ownershipChart = chart(snapshot, "D1") ?? chart(snapshot, "Bhava");
   const ownedHouses = ownershipChart?.houses.filter((entry) => entry.lord === planet).map((entry) => entry.house) ?? [];
   if (ownedHouses.length === 0) {
@@ -232,24 +343,6 @@ function functionalNature(snapshot: ChartSnapshot, planet: Planet): FunctionalNa
 
   if (ownsKendra && ownsTrikona && !ownsDusthana) {
     return "yogakaraka";
-  }
-
-  // High-value lagna-specific correction. For Taurus lagna, Saturn owns 9th and 10th and should not
-  // be treated as a simple hard malefic in career/focus scoring.
-  if (lagna === "Taurus" && planet === "Saturn") {
-    return "yogakaraka";
-  }
-  if (lagna === "Taurus" && planet === "Mercury") {
-    return "benefic";
-  }
-  if (lagna === "Taurus" && planet === "Jupiter") {
-    return "malefic";
-  }
-  if (lagna === "Taurus" && planet === "Mars") {
-    return "malefic";
-  }
-  if (lagna === "Taurus" && planet === "Moon") {
-    return "mixed";
   }
 
   if (ownsDusthana && !ownsTrikona) {
@@ -306,7 +399,11 @@ function nakshatraIndex(name?: string) {
   if (!name) {
     return -1;
   }
-  return nakshatras.findIndex((nakshatra) => nakshatra.toLowerCase() === name.toLowerCase());
+  const normalized = name.toLowerCase();
+  const aliases: Record<string, string> = {
+    mrigashirsha: "mrigashira",
+  };
+  return nakshatras.findIndex((nakshatra) => nakshatra.toLowerCase() === (aliases[normalized] ?? normalized));
 }
 
 function taraBalaDelta(natalNakshatra?: string, transitNakshatra?: string) {
@@ -747,7 +844,17 @@ function influenceOnPlanet(snapshot: ChartSnapshot, planet: Planet) {
   );
 }
 
-function natalPromiseScore(aspect: DailyAspect, snapshot: ChartSnapshot): ComponentResult {
+function birthTimeNatalScale(confidence: BirthTimeConfidence) {
+  if (confidence === "exact") {
+    return 1;
+  }
+  if (confidence === "approximate") {
+    return 0.72;
+  }
+  return 0.38;
+}
+
+function natalPromiseScore(aspect: DailyAspect, snapshot: ChartSnapshot, confidence: BirthTimeConfidence): ComponentResult {
   const notes: string[] = [];
   let normalized = 0;
 
@@ -791,7 +898,11 @@ function natalPromiseScore(aspect: DailyAspect, snapshot: ChartSnapshot): Compon
     notes.push("Focus natal promise uses Mercury, Moon, effort/intelligence/problem-solving houses, and D24.");
   }
 
-  return { score: round1(clamp(normalized * 12, -12, 12)), notes };
+  const scaled = normalized * 12 * birthTimeNatalScale(confidence);
+  if (confidence !== "exact") {
+    notes.push(`Natal house promise was reduced because birth time confidence is ${confidence}.`);
+  }
+  return { score: round1(clamp(scaled, -12, 12)), notes };
 }
 
 function birthTimeVargaScale(confidence: BirthTimeConfidence) {
@@ -799,9 +910,9 @@ function birthTimeVargaScale(confidence: BirthTimeConfidence) {
     return 1;
   }
   if (confidence === "approximate") {
-    return 0.78;
+    return 0.65;
   }
-  return 0.55;
+  return 0.3;
 }
 
 function chartSupportScore(aspect: DailyAspect, snapshot: ChartSnapshot, chartKey: string) {
@@ -917,7 +1028,22 @@ function dashaLordScore(aspect: DailyAspect, snapshot: ChartSnapshot, lord: Plan
   return clamp((positive - negative) * 18, -18, 18);
 }
 
-function dashaActivationScore(aspect: DailyAspect, snapshot: ChartSnapshot, dashaTiming: DailyScoringDashaTiming): ComponentResult {
+function birthTimeDashaScale(confidence: BirthTimeConfidence) {
+  if (confidence === "exact") {
+    return 1;
+  }
+  if (confidence === "approximate") {
+    return 0.85;
+  }
+  return 0.45;
+}
+
+function dashaActivationScore(
+  aspect: DailyAspect,
+  snapshot: ChartSnapshot,
+  dashaTiming: DailyScoringDashaTiming,
+  confidence: BirthTimeConfidence,
+): ComponentResult {
   const levels: Array<[DashaTimeline["periods"][number] | undefined, number, string]> = [
     [dashaTiming.active_mahadasha, 0.3, "mahadasha"],
     [dashaTiming.active_antardasha, 0.45, "antardasha"],
@@ -933,7 +1059,11 @@ function dashaActivationScore(aspect: DailyAspect, snapshot: ChartSnapshot, dash
     score += lordScore * weight;
     notes.push(`${period.lord} ${label} contributes ${round1(lordScore * weight)} to ${aspect}.`);
   }
-  return { score: round1(clamp(score, -18, 18)), notes };
+  const scaled = score * birthTimeDashaScale(confidence);
+  if (confidence !== "exact") {
+    notes.push(`Dasha activation was reduced because birth time confidence is ${confidence}.`);
+  }
+  return { score: round1(clamp(scaled, -18, 18)), notes };
 }
 
 function nodesInfluencePlanet(snapshot: ChartSnapshot, planet: Planet) {
@@ -1305,6 +1435,7 @@ function applyHardCaps(
   varga: ComponentResult,
   raw: number,
   dashaTiming: DailyScoringDashaTiming,
+  confidence: BirthTimeConfidence,
 ): ComponentResult {
   let capped = raw;
   const notes: string[] = [];
@@ -1363,6 +1494,14 @@ function applyHardCaps(
     notes.push("Career cap applied: visible career progress needs dasha activation, not transit alone.");
   }
 
+  if (confidence === "unknown" && raw > 60) {
+    capped = Math.min(capped, 60);
+    notes.push("Birth-time cap applied: unknown birth time limits house, varga, and dasha precision.");
+  } else if (confidence === "approximate" && raw > 78) {
+    capped = Math.min(capped, 78);
+    notes.push("Birth-time cap applied: approximate birth time limits very strong daily scores.");
+  }
+
   return { score: round1(clamp(capped, 0, 100)), notes };
 }
 
@@ -1395,8 +1534,8 @@ function realityVector(
 }
 
 function scoreAspect(aspect: DailyAspect, input: DailyScoringInput): ScoredAspect {
-  const natal = natalPromiseScore(aspect, input.snapshot);
-  const dasha = dashaActivationScore(aspect, input.snapshot, input.dashaTiming);
+  const natal = natalPromiseScore(aspect, input.snapshot, input.birthTimeConfidence);
+  const dasha = dashaActivationScore(aspect, input.snapshot, input.dashaTiming, input.birthTimeConfidence);
   const varga = vargaSupportScore(aspect, input.snapshot, input.birthTimeConfidence);
   const transit = transitTriggerScore(aspect, input.snapshot, input.transits);
   const moon = dailyMoonScore(aspect, input.snapshot, input.transits);
@@ -1407,7 +1546,17 @@ function scoreAspect(aspect: DailyAspect, input: DailyScoringInput): ScoredAspec
     0,
     100,
   );
-  const capped = applyHardCaps(aspect, input.snapshot, input.transits, dasha, natal, varga, baseRaw, input.dashaTiming);
+  const capped = applyHardCaps(
+    aspect,
+    input.snapshot,
+    input.transits,
+    dasha,
+    natal,
+    varga,
+    baseRaw,
+    input.dashaTiming,
+    input.birthTimeConfidence,
+  );
   const raw = capped.score;
   const reality = realityVector(aspect, natal, dasha, varga, transit, moon, yoga, volatility, capped);
   const score = clamp(Math.round(raw), 1, 100);

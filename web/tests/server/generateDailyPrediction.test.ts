@@ -292,7 +292,7 @@ function provider(): LlmProvider {
           favorable: ["Plan through the Jupiter trine."],
           caution: ["Respect the Saturn kendra pressure."],
           technical_basis: {
-            triggered_houses: [4, 5, 10],
+            triggered_houses: [5, 10],
             planets_used: ["Saturn", "Jupiter", "Moon"],
             transit_rules: ["saturn_kendra_pressure", "jupiter_trine_support", "moon_daily_house_focus"],
           },
@@ -340,13 +340,14 @@ describe("generateDailyPrediction", () => {
       lagnaSign: "Aquarius",
     });
 
-    expect(overlay.triggeredHouses).toEqual([4, 5, 10]);
+    expect(overlay.triggeredHouses).toEqual([5, 10]);
     expect(overlay.hits.map((hit) => hit.rule)).toEqual([
       "saturn_kendra_pressure",
       "jupiter_trine_support",
       "moon_daily_house_focus",
     ]);
-    expect(overlay.transits.overlay?.triggered_houses).toEqual([4, 5, 10]);
+    expect(overlay.hits.find((hit) => hit.rule === "moon_daily_house_focus")?.kind).toBe("minor");
+    expect(overlay.transits.overlay?.triggered_houses).toEqual([5, 10]);
   });
 
   it("writes and reuses the per-profile daily prediction cache by tone", async () => {
@@ -419,7 +420,7 @@ describe("generateDailyPrediction", () => {
     expect(result.prediction.felt_sense).toBeTruthy();
     expect(result.prediction.aspect_scores.map((score) => score.aspect)).toEqual(["love", "emotional", "career", "focus"]);
     expect(result.prediction.favorable).toEqual(["Abhijit supports focused work."]);
-    expect(result.prediction.technical_basis.triggered_houses).toEqual([4, 5, 10]);
+    expect(result.prediction.technical_basis.triggered_houses).toEqual([5, 10]);
     expect(result.prediction.technical_basis.planets_used).toEqual(expect.arrayContaining(["Saturn", "Jupiter", "Moon", "Mercury"]));
     expect(result.prediction.technical_basis.transit_rules).toEqual(expect.arrayContaining([
       "saturn_kendra_pressure",

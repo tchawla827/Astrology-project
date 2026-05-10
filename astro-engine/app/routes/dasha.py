@@ -22,6 +22,10 @@ def _parse_iso_date(text: str) -> datetime:
     return dt
 
 
+def _format_period_dt(dt: datetime) -> str:
+    return dt.isoformat().replace("+00:00", "Z")
+
+
 @router.post("/dasha", dependencies=[Depends(require_hmac)])
 def compute_dasha(req: DashaRequest) -> dict[str, Any]:
     birth = BirthInput(
@@ -48,8 +52,8 @@ def compute_dasha(req: DashaRequest) -> dict[str, Any]:
             {
                 "level": "mahadasha",
                 "lord": maha.lord,
-                "start": maha.start.date().isoformat(),
-                "end": maha.end.date().isoformat(),
+                "start": _format_period_dt(maha.start),
+                "end": _format_period_dt(maha.end),
             }
         )
         if req.depth in ("antardasha", "pratyantardasha"):
@@ -60,8 +64,8 @@ def compute_dasha(req: DashaRequest) -> dict[str, Any]:
                     {
                         "level": "antardasha",
                         "lord": antar.lord,
-                        "start": antar.start.date().isoformat(),
-                        "end": antar.end.date().isoformat(),
+                        "start": _format_period_dt(antar.start),
+                        "end": _format_period_dt(antar.end),
                     }
                 )
                 if req.depth == "pratyantardasha":
@@ -72,8 +76,8 @@ def compute_dasha(req: DashaRequest) -> dict[str, Any]:
                             {
                                 "level": "pratyantardasha",
                                 "lord": praty.lord,
-                                "start": praty.start.date().isoformat(),
-                                "end": praty.end.date().isoformat(),
+                                "start": _format_period_dt(praty.start),
+                                "end": _format_period_dt(praty.end),
                             }
                         )
     return {"system": "vimshottari", "periods": periods}

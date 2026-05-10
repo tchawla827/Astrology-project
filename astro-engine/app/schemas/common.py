@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
@@ -22,6 +23,15 @@ class BirthProfileInput(BaseModel):
     latitude: float = Field(ge=-90, le=90)
     longitude: float = Field(ge=-180, le=180)
     ayanamsha: Ayanamsha = "lahiri"
+
+    @field_validator("birth_date")
+    @classmethod
+    def validate_birth_date(cls, value: str) -> str:
+        try:
+            date.fromisoformat(value)
+        except ValueError as exc:
+            raise ValueError("birth_date must be a valid calendar date") from exc
+        return value
 
     @field_validator("birth_time")
     @classmethod
