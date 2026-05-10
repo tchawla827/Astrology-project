@@ -11,7 +11,9 @@ _EPHE_INITIALISED = False
 
 
 def ephe_dir() -> Path:
-    override = os.environ.get("ASTRO_ENGINE_EPHE_PATH")
+    override = os.environ.get("ASTRO_ENGINE_EPHE_PATH") or os.environ.get(
+        "SWISS_EPHEMERIS_PATH"
+    )
     if override:
         return Path(override)
     return Path(__file__).resolve().parents[2] / "ephe"

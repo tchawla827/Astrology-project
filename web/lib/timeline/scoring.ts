@@ -2,10 +2,12 @@ import {
   LifeAreaTimingPointSchema,
   LifeAreaTimingSeriesSchema,
   type ChartSnapshot,
+  type DerivedFeaturePayload,
   type DashaTimeline,
   type LifeAreaTimingFactor,
   type LifeAreaTimingPoint,
   type LifeAreaTimingSeries,
+  type LifeAreaTimingTopic as SchemaLifeAreaTimingTopic,
   type Planet,
   type PlanetPlacement,
   type Topic,
@@ -13,10 +15,18 @@ import {
   type TopicEvidenceCitation,
   type TransitSummary,
 } from "@/lib/schemas";
-import { lordOfHouse, ordinal, topicTitles } from "@/lib/derived/shared";
+import {
+  houseLordRule,
+  lagnaLordRule,
+  lordOfHouse,
+  namedPlanet,
+  ordinal,
+  topicTitles,
+  type TopicBlueprint,
+} from "@/lib/derived/shared";
 import { topicBlueprints } from "@/lib/derived/topics";
 
-export const lifeAreaTimingTopics = [
+const standardLifeAreaTimingTopics = [
   "career",
   "wealth",
   "relationships",
@@ -28,7 +38,15 @@ export const lifeAreaTimingTopics = [
   "relocation",
 ] as const satisfies readonly Topic[];
 
-export type LifeAreaTimingTopic = (typeof lifeAreaTimingTopics)[number];
+export const lifeAreaTimingTopics = [
+  ...standardLifeAreaTimingTopics,
+  "emotional",
+] as const satisfies readonly SchemaLifeAreaTimingTopic[];
+
+export type LifeAreaTimingTopic = SchemaLifeAreaTimingTopic;
+type StandardLifeAreaTimingTopic = (typeof standardLifeAreaTimingTopics)[number];
+type TimingTopicBundle = Pick<TopicBundle, "charts_used" | "headline_signals" | "houses" | "planets" | "timing" | "confidence_note">;
+type TimingBlueprint = Pick<TopicBlueprint, "chartsUsed" | "housesUsed" | "planetRules">;
 
 export type LifeAreaDashaTiming = {
   system: "vimshottari";
@@ -39,7 +57,7 @@ export type LifeAreaDashaTiming = {
 
 export type ScoreLifeAreaTimingInput = {
   snapshot: ChartSnapshot;
-  bundle: TopicBundle;
+  bundle: TimingTopicBundle;
   topic: LifeAreaTimingTopic;
   date: string;
   transits: TransitSummary;
@@ -55,6 +73,45 @@ const strongDignities = new Set<PlanetPlacement["dignity"]>(["exalted", "moolatr
 const weakDignities = new Set<PlanetPlacement["dignity"]>(["enemy", "debilitated"]);
 const difficultHouses = new Set([6, 8, 12]);
 const upachayaHouses = new Set([3, 6, 10, 11]);
+
+const emotionalTimingBlueprint: TimingBlueprint = {
+  chartsUsed: ["D1", "Moon", "D4", "D30"],
+  housesUsed: [1, 4, 5, 8, 12],
+  planetRules: [
+    lagnaLordRule("Self ruler"),
+    houseLordRule(4, "Inner-base lord"),
+    houseLordRule(5, "Emotional expression lord"),
+    namedPlanet("Moon", "Felt sense"),
+    namedPlanet("Venus", "Comfort"),
+    namedPlanet("Mercury", "Mental processing"),
+  ],
+};
+
+const timingBlueprints: Record<LifeAreaTimingTopic, TimingBlueprint> = {
+  career: topicBlueprints.career,
+  wealth: topicBlueprints.wealth,
+  relationships: topicBlueprints.relationships,
+  marriage: topicBlueprints.marriage,
+  family: topicBlueprints.family,
+  health: topicBlueprints.health,
+  education: topicBlueprints.education,
+  spirituality: topicBlueprints.spirituality,
+  relocation: topicBlueprints.relocation,
+  emotional: emotionalTimingBlueprint,
+};
+
+export const lifeAreaTimingTopicTitles: Record<LifeAreaTimingTopic, string> = {
+  career: topicTitles.career,
+  wealth: topicTitles.wealth,
+  relationships: topicTitles.relationships,
+  marriage: topicTitles.marriage,
+  family: topicTitles.family,
+  health: topicTitles.health,
+  education: topicTitles.education,
+  spirituality: topicTitles.spirituality,
+  relocation: topicTitles.relocation,
+  emotional: "Emotional",
+};
 
 const topicTimingCopy: Record<LifeAreaTimingTopic, { noun: string; action: string; caution: string }> = {
   career: {
@@ -102,10 +159,19 @@ const topicTimingCopy: Record<LifeAreaTimingTopic, { noun: string; action: strin
     action: "movement, planning, and foreign links",
     caution: "displacement pressure or unsettled foundations",
   },
+  emotional: {
+    noun: "emotional state",
+    action: "self-regulation, comfort, and recovery",
+    caution: "emotional heaviness, restlessness, or sensitivity",
+  },
 };
 
 export function isLifeAreaTimingTopic(topic: string): topic is LifeAreaTimingTopic {
   return lifeAreaTimingTopics.includes(topic as LifeAreaTimingTopic);
+}
+
+function isStandardLifeAreaTimingTopic(topic: LifeAreaTimingTopic): topic is StandardLifeAreaTimingTopic {
+  return standardLifeAreaTimingTopics.includes(topic as StandardLifeAreaTimingTopic);
 }
 
 function unique<T>(values: T[]) {
@@ -150,6 +216,197 @@ function natalPlacement(snapshot: ChartSnapshot, planet: Planet) {
   return snapshot.planetary_positions.find((entry) => entry.planet === planet);
 }
 
+function d1House(snapshot: ChartSnapshot, house: number) {
+  return snapshot.charts.D1?.houses.find((entry) => entry.house === house);
+}
+
+function d1Occupants(snapshot: ChartSnapshot, house: number) {
+  return snapshot.charts.D1?.planets.filter((entry) => entry.house === house).map((entry) => entry.planet) ?? [];
+}
+
+function formatList(values: string[]) {
+  if (values.length === 0) {
+    return "";
+  }
+  if (values.length === 1) {
+    return values[0] ?? "";
+  }
+  if (values.length === 2) {
+    return `${values[0]} and ${values[1]}`;
+  }
+  return `${values.slice(0, -1).join(", ")}, and ${values[values.length - 1]}`;
+}
+
+function dignityText(dignity: PlanetPlacement["dignity"]) {
+  switch (dignity) {
+    case "exalted":
+      return "exalted";
+    case "moolatrikona":
+      return "in moolatrikona";
+    case "own":
+      return "in its own sign";
+    case "friendly":
+      return "in a friendly sign";
+    case "neutral":
+      return "in neutral dignity";
+    case "enemy":
+      return "in an enemy sign";
+    case "debilitated":
+      return "debilitated";
+  }
+}
+
+function hasHardAspectToHouse(snapshot: ChartSnapshot, house: number, occupants: Planet[]) {
+  return snapshot.aspects.some((aspect) => {
+    if (!hardMalefics.has(aspect.from)) {
+      return false;
+    }
+    return typeof aspect.to === "number" ? aspect.to === house : occupants.includes(aspect.to);
+  });
+}
+
+function timingHouseStrength(snapshot: ChartSnapshot, house: number) {
+  const houseEntry = d1House(snapshot, house);
+  const lordPlacement = houseEntry ? natalPlacement(snapshot, houseEntry.lord) : undefined;
+  const occupants = d1Occupants(snapshot, house);
+  const hasBeneficOccupant = occupants.some((planet) => benefics.has(planet));
+  const hasMaleficOccupant = occupants.some((planet) => hardMalefics.has(planet));
+  const hasHardAspect = hasHardAspectToHouse(snapshot, house, occupants);
+  const lordStrong = lordPlacement ? strongDignities.has(lordPlacement.dignity) && !lordPlacement.combust : false;
+  const lordWeak = lordPlacement
+    ? weakDignities.has(lordPlacement.dignity) || difficultHouses.has(lordPlacement.house) || lordPlacement.combust
+    : true;
+
+  if ((hasBeneficOccupant || lordStrong) && !hasHardAspect && !lordWeak) {
+    return "high" as const;
+  }
+  if ((hasMaleficOccupant || hasHardAspect || difficultHouses.has(house)) && lordWeak) {
+    return "low" as const;
+  }
+  return "medium" as const;
+}
+
+const emotionalHouseThemes: Record<number, string> = {
+  1: "self-state and body-mind baseline",
+  4: "inner peace, safety, and comfort",
+  5: "emotional expression and joy",
+  8: "intensity, vulnerability, and emotional churn",
+  12: "rest, release, sleep, and private processing",
+};
+
+function emotionalHouseSummary(snapshot: ChartSnapshot, house: number, strength: "low" | "medium" | "high") {
+  const houseEntry = d1House(snapshot, house);
+  const lordPlacement = houseEntry ? natalPlacement(snapshot, houseEntry.lord) : undefined;
+  const occupants = d1Occupants(snapshot, house);
+  const theme = emotionalHouseThemes[house] ?? "emotional context";
+  const occupantText = occupants.length > 0 ? `occupied by ${formatList(occupants)}` : "without direct planetary occupation";
+  const strengthText =
+    strength === "high" ? "supportive" : strength === "low" ? "under strain" : "mixed and situational";
+
+  if (!houseEntry || !lordPlacement) {
+    return `${ordinal(house)} house (${theme}) is part of the emotional timing read, but its D1 lord placement is unavailable.`;
+  }
+
+  return `${ordinal(house)} house (${theme}) is ${houseEntry.sign}, ruled by ${houseEntry.lord} placed in the ${ordinal(lordPlacement.house)} house in ${lordPlacement.sign}, ${occupantText}; the emotional signal is ${strengthText}.`;
+}
+
+function resolveTimingPlanetRules(snapshot: ChartSnapshot, blueprint: TimingBlueprint) {
+  const roles = new Map<Planet, string[]>();
+  for (const rule of blueprint.planetRules) {
+    const planet = "planet" in rule ? rule.planet : rule.resolve(snapshot);
+    const labels = roles.get(planet) ?? [];
+    if (!labels.includes(rule.label)) {
+      labels.push(rule.label);
+    }
+    roles.set(planet, labels);
+  }
+  return roles;
+}
+
+function emotionalPlanetSummary(snapshot: ChartSnapshot, planet: Planet, roleLabels: string[]) {
+  const placement = natalPlacement(snapshot, planet);
+  const roleText = roleLabels.length > 0 ? roleLabels.join(" / ") : planet;
+  if (!placement) {
+    return `${roleText} uses ${planet}, but the natal placement is unavailable.`;
+  }
+  const modifiers = [placement.retrograde ? "retrograde" : "", placement.combust ? "combust" : ""].filter(Boolean);
+  const modifierText = modifiers.length > 0 ? `, ${formatList(modifiers)}` : "";
+  return `${roleText} ${planet} is in ${placement.sign} in the ${ordinal(placement.house)} house with ${dignityText(placement.dignity)}${modifierText}.`;
+}
+
+function matchesTimingHighlight(note: string, housesUsed: number[], planetsUsed: Planet[]) {
+  const mentionsHouse = housesUsed.some((house) => new RegExp(`\\b${house}(?:st|nd|rd|th)?\\s+house\\b`, "i").test(note));
+  const mentionsPlanet = planetsUsed.some((planet) => new RegExp(`\\b${planet}\\b`, "i").test(note));
+  return mentionsHouse || mentionsPlanet;
+}
+
+export function buildEmotionalTimingBundle(snapshot: ChartSnapshot): TimingTopicBundle {
+  const blueprint = emotionalTimingBlueprint;
+  const houses = blueprint.housesUsed.reduce<TopicBundle["houses"]>((result, house) => {
+    const strength = timingHouseStrength(snapshot, house);
+    result[house] = {
+      strength,
+      summary: emotionalHouseSummary(snapshot, house, strength),
+    };
+    return result;
+  }, {});
+  const resolvedRoles = resolveTimingPlanetRules(snapshot, blueprint);
+  const planets = Array.from(resolvedRoles.entries()).reduce<TopicBundle["planets"]>((result, [planet, roleLabels]) => {
+    result[planet] = {
+      role: roleLabels.join(" / "),
+      summary: emotionalPlanetSummary(snapshot, planet, roleLabels),
+    };
+    return result;
+  }, {});
+  const planetKeys = Object.keys(planets) as Planet[];
+  const currentTriggerNotes = snapshot.transits.highlights
+    .filter((note) => matchesTimingHighlight(note, blueprint.housesUsed, planetKeys))
+    .slice(0, 3);
+  const houseEntries = Object.entries(houses)
+    .map(([house, value]) => ({ house: Number(house), ...value }))
+    .sort((left, right) => {
+      const score = { high: 2, medium: 1, low: 0 };
+      return score[right.strength] - score[left.strength];
+    });
+  const strongestHouse = houseEntries.find((entry) => entry.strength === "high") ?? houseEntries[0];
+  const stressedHouse = houseEntries.find((entry) => entry.strength === "low");
+
+  return {
+    charts_used: blueprint.chartsUsed,
+    headline_signals: [
+      strongestHouse ? `Emotional steadiness is read first through the ${ordinal(strongestHouse.house)} house.` : "",
+      stressedHouse ? `${ordinal(stressedHouse.house)}-house pressure can make feelings less settled.` : "",
+      "Moon, Lagna, and the 4th house anchor this self-focused timing read.",
+      currentTriggerNotes[0] ?? "",
+    ].filter((value, index, values) => Boolean(value) && values.indexOf(value) === index),
+    houses,
+    planets,
+    timing: {
+      current_mahadasha: `${snapshot.dasha.current_mahadasha.lord} (${snapshot.dasha.current_mahadasha.start} -> ${snapshot.dasha.current_mahadasha.end})`,
+      current_antardasha: `${snapshot.dasha.current_antardasha.lord} (${snapshot.dasha.current_antardasha.start} -> ${snapshot.dasha.current_antardasha.end})`,
+      current_trigger_notes: currentTriggerNotes,
+    },
+    confidence_note:
+      snapshot.birth_time_confidence === "exact"
+        ? "Birth time is exact, so Lagna and house-based emotional timing are usable with normal confidence."
+        : "Birth time is not exact, so emotional timing should lean more on Moon, dasha, and broad transit contact than precise house changes.",
+  };
+}
+
+export function timingBundleForTopic(input: {
+  snapshot: ChartSnapshot;
+  derived: DerivedFeaturePayload;
+  topic: LifeAreaTimingTopic;
+}): TimingTopicBundle {
+  if (input.topic === "emotional") {
+    return buildEmotionalTimingBundle(input.snapshot);
+  }
+  if (isStandardLifeAreaTimingTopic(input.topic)) {
+    return input.derived.topic_bundles[input.topic];
+  }
+  return input.derived.topic_bundles.career;
+}
+
 function housesOwnedBy(snapshot: ChartSnapshot, planet: Planet) {
   return snapshot.charts.D1?.houses.filter((entry) => entry.lord === planet).map((entry) => entry.house) ?? [];
 }
@@ -182,9 +439,9 @@ function daysUntil(periodEnd: string, date: string) {
   return Math.round((end.getTime() - current.getTime()) / (24 * 60 * 60 * 1000));
 }
 
-function relevantPlanetList(snapshot: ChartSnapshot, bundle: TopicBundle, topic: LifeAreaTimingTopic) {
+function relevantPlanetList(snapshot: ChartSnapshot, bundle: TimingTopicBundle, topic: LifeAreaTimingTopic) {
   const planets = Object.keys(bundle.planets) as Planet[];
-  const houseLords = topicBlueprints[topic].housesUsed.map((house) => lordOfHouse(snapshot, house));
+  const houseLords = timingBlueprints[topic].housesUsed.map((house) => lordOfHouse(snapshot, house));
   return unique([...planets, ...houseLords]);
 }
 
@@ -232,11 +489,11 @@ function topFactors(factors: InternalTimingFactor[]) {
 }
 
 export function scoreLifeAreaTimingPoint(input: ScoreLifeAreaTimingInput): LifeAreaTimingPoint {
-  const blueprint = topicBlueprints[input.topic];
+  const blueprint = timingBlueprints[input.topic];
   const relevantHouses = unique(Object.keys(input.bundle.houses).map(Number));
   const relevantPlanets = relevantPlanetList(input.snapshot, input.bundle, input.topic);
   const topicCopy = topicTimingCopy[input.topic];
-  const topicTitle = topicTitles[input.topic];
+  const topicTitle = lifeAreaTimingTopicTitles[input.topic];
   const factors: InternalTimingFactor[] = [];
   let support = 36;
   let pressure = 16;
@@ -413,6 +670,18 @@ export function scoreLifeAreaTimingPoint(input: ScoreLifeAreaTimingInput): LifeA
           label: `Jupiter activates house ${contactHouse}`,
           summary: `Jupiter supports ${topicCopy.action} through house ${contactHouse}.`,
           citations: citations({ charts: ["Transit"], houses: [contactHouse], planets: ["Jupiter"] }),
+        });
+      } else if (input.topic === "emotional" && transit.planet === "Moon" && difficultHouses.has(contactHouse)) {
+        const delta = 5 * contactWeight;
+        pressure += delta;
+        volatility += delta;
+        addFactor(factors, {
+          source: "transit",
+          score_kind: "volatility",
+          impact: delta,
+          label: `Moon stirs house ${contactHouse}`,
+          summary: `Moon moving through house ${contactHouse} can make the felt sense more private, reactive, or unsettled.`,
+          citations: citations({ charts: ["Transit"], houses: [contactHouse], planets: ["Moon"] }),
         });
       } else if (transit.planet === "Venus" || transit.planet === "Mercury" || transit.planet === "Moon") {
         const delta = (transit.planet === "Moon" ? 3 : 5) * contactWeight;

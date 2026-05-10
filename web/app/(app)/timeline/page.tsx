@@ -5,10 +5,14 @@ import { LifeAreaTimingGraph, TimingMonthDrilldown } from "@/components/timeline
 import { TimelinePendingShell } from "@/components/timeline/TimelinePendingShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { topicTitles } from "@/lib/derived/shared";
 import { loadTimelineContext, type SupabaseTimelineClient } from "@/lib/server/loadTimeline";
 import { createClient } from "@/lib/supabase/server";
-import { isLifeAreaTimingTopic, lifeAreaTimingTopics, type LifeAreaTimingTopic } from "@/lib/timeline/scoring";
+import {
+  isLifeAreaTimingTopic,
+  lifeAreaTimingTopicTitles,
+  lifeAreaTimingTopics,
+  type LifeAreaTimingTopic,
+} from "@/lib/timeline/scoring";
 import { cn } from "@/lib/utils";
 
 type TimelineSearchParams = {
@@ -118,10 +122,10 @@ export default async function TimelinePage({ searchParams }: { searchParams: Tim
           <div>
             <div className="flex items-center gap-3 text-primary">
               <LineChart className="h-5 w-5" aria-hidden="true" />
-              <p className="text-sm uppercase tracking-[0.22em]">Life area timing</p>
+              <p className="text-sm uppercase tracking-[0.22em]">Timing graph</p>
             </div>
             <h1 className="mt-4 font-display text-5xl font-semibold leading-tight text-glow sm:text-6xl">
-              {topicTitles[topic]} timing graph
+              {lifeAreaTimingTopicTitles[topic]} timing graph
             </h1>
             <p className="mt-4 max-w-3xl text-sm leading-6 text-muted-foreground">
               {context.profile.name} · {year} · daily sampled monthly aggregate
@@ -144,7 +148,7 @@ export default async function TimelinePage({ searchParams }: { searchParams: Tim
         </div>
       </section>
 
-      <section className="grid gap-3 md:grid-cols-3 xl:grid-cols-9">
+      <section className="grid gap-3 md:grid-cols-3 xl:grid-cols-10">
         {lifeAreaTimingTopics.map((area) => (
           <Link
             className={cn(
@@ -156,7 +160,7 @@ export default async function TimelinePage({ searchParams }: { searchParams: Tim
             href={hrefFor(area, year, selectedMonth)}
             key={area}
           >
-            {topicTitles[area]}
+            {lifeAreaTimingTopicTitles[area]}
           </Link>
         ))}
       </section>

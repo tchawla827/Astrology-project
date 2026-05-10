@@ -3,7 +3,7 @@
 ## Understanding Summary
 
 - Build a deterministic timing dashboard for life areas.
-- Cover career, wealth, relationships, marriage, family, health, education, spirituality, and relocation.
+- Cover career, wealth, relationships, marriage, family, health, education, spirituality, relocation, and a self-focused Emotional timing aspect.
 - Show a monthly year overview first, with daily drilldown for a selected month.
 - Plot support, pressure, volatility, and confidence as separate 0-100 lines.
 - Monthly values must aggregate deterministic daily values.
@@ -46,6 +46,6 @@ The UI should show one life area by default, allow metric toggles, and let the u
 - Chosen approach: deterministic life-area timing engine.
 - Rejected approach: LLM-generated graph scores.
 - Resolution: monthly year overview plus daily month drilldown.
-- Scope: nine life areas, excluding personality from the first graph.
+- Scope: nine life areas plus a timeline-only Emotional aspect; personality remains excluded as a broad natal topic.
 - Accuracy rule: every high support/pressure/volatility score needs deterministic top factors.
 - UX rule: label the graph as timing conditions, not guaranteed outcomes.

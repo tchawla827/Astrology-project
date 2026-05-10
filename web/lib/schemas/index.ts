@@ -244,6 +244,18 @@ export const TopicEvidenceSchema = z.object({
 export const TopicEvidenceCollectionSchema = z.record(TopicSchema, TopicEvidenceSchema);
 
 export const LifeAreaTimingMetricSchema = z.enum(["support", "pressure", "volatility", "confidence"]);
+export const LifeAreaTimingTopicSchema = z.enum([
+  "career",
+  "wealth",
+  "relationships",
+  "marriage",
+  "family",
+  "health",
+  "education",
+  "spirituality",
+  "relocation",
+  "emotional",
+]);
 
 export const LifeAreaTimingFactorSchema = z.object({
   source: z.enum(["natal", "dasha", "transit", "varga", "confidence"]),
@@ -266,7 +278,7 @@ export const LifeAreaTimingPointSchema = z.object({
 
 export const LifeAreaTimingSeriesSchema = z.object({
   version: z.literal("life_area_timing_v1"),
-  topic: TopicSchema,
+  topic: LifeAreaTimingTopicSchema,
   year: z.number().int().min(1900).max(2200),
   timezone: z.string(),
   monthly: z.array(LifeAreaTimingPointSchema),
@@ -513,6 +525,7 @@ export type TopicEvidenceFactor = z.infer<typeof TopicEvidenceFactorSchema>;
 export type TopicEvidenceTimingFactor = z.infer<typeof TopicEvidenceTimingFactorSchema>;
 export type TopicEvidenceCitation = z.infer<typeof TopicEvidenceCitationSchema>;
 export type LifeAreaTimingMetric = z.infer<typeof LifeAreaTimingMetricSchema>;
+export type LifeAreaTimingTopic = z.infer<typeof LifeAreaTimingTopicSchema>;
 export type LifeAreaTimingFactor = z.infer<typeof LifeAreaTimingFactorSchema>;
 export type LifeAreaTimingPoint = z.infer<typeof LifeAreaTimingPointSchema>;
 export type LifeAreaTimingSeries = z.infer<typeof LifeAreaTimingSeriesSchema>;

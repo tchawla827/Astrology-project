@@ -1,8 +1,8 @@
 import { Activity, AlertTriangle, BadgeCheck, Gauge } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { topicTitles } from "@/lib/derived/shared";
 import type { LifeAreaTimingPoint, LifeAreaTimingSeries } from "@/lib/schemas";
+import { lifeAreaTimingTopicTitles } from "@/lib/timeline/scoring";
 import { cn } from "@/lib/utils";
 
 const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -84,7 +84,7 @@ export function LifeAreaTimingGraph({
       <CardHeader className="space-y-4">
         <div>
           <p className="text-xs uppercase tracking-[0.18em] text-primary">Deterministic timing graph</p>
-          <CardTitle className="mt-2 text-3xl">{topicTitles[series.topic]} through {series.year}</CardTitle>
+          <CardTitle className="mt-2 text-3xl">{lifeAreaTimingTopicTitles[series.topic]} through {series.year}</CardTitle>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {Object.entries(metricStyles).map(([metric, style]) => {
@@ -104,7 +104,7 @@ export function LifeAreaTimingGraph({
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="overflow-x-auto">
-          <svg aria-label={`${topicTitles[series.topic]} timing graph`} className="min-h-[18rem] min-w-[48rem] w-full" viewBox="0 0 720 260" role="img">
+          <svg aria-label={`${lifeAreaTimingTopicTitles[series.topic]} timing graph`} className="min-h-[18rem] min-w-[48rem] w-full" viewBox="0 0 720 260" role="img">
             {[0, 25, 50, 75, 100].map((tick) => {
               const y = 20 + 206 - (tick / 100) * 206;
               return (

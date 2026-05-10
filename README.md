@@ -58,6 +58,8 @@ pytest -q
 
 Copy `.env.example` to the relevant local env files before running services.
 
+Deployment setup is documented in [`docs/deployment.md`](docs/deployment.md).
+
 ## Supabase
 
 Use a hosted Supabase project for database, auth, and storage verification.

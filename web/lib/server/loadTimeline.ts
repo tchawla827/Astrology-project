@@ -15,6 +15,7 @@ import {
   aggregateMonthlyTimingPoint,
   buildLifeAreaTimingSeries,
   scoreLifeAreaTimingPoint,
+  timingBundleForTopic,
   type LifeAreaDashaTiming,
   type LifeAreaTimingTopic,
 } from "@/lib/timeline/scoring";
@@ -328,6 +329,11 @@ export async function loadTimelineContext(input: {
     });
     let transitsHit = 0;
     let transitsMiss = 0;
+    const timingBundle = timingBundleForTopic({
+      snapshot: parsedSnapshot.data,
+      derived: parsedDerived.data,
+      topic: input.topic,
+    });
 
     const dailyPoints = await mapLimit(dates, 8, async (date) => {
       const transitResult = await loadTransitSummary({ supabase: input.supabase, profile, date });
@@ -339,7 +345,7 @@ export async function loadTimelineContext(input: {
 
       return scoreLifeAreaTimingPoint({
         snapshot: parsedSnapshot.data,
-        bundle: parsedDerived.data.topic_bundles[input.topic],
+        bundle: timingBundle,
         topic: input.topic,
         date,
         transits: overlayTransits(transitResult.transits, parsedSnapshot.data),

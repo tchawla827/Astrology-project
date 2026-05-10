@@ -4,6 +4,7 @@ import { computeBundles } from "@/lib/derived/computeBundles";
 import { LifeAreaTimingPointSchema, LifeAreaTimingSeriesSchema, type DashaTimeline, type Planet, type TransitSummary } from "@/lib/schemas";
 import {
   aggregateMonthlyTimingPoint,
+  buildEmotionalTimingBundle,
   buildLifeAreaTimingSeries,
   scoreLifeAreaTimingPoint,
 } from "@/lib/timeline/scoring";
@@ -108,5 +109,29 @@ describe("life-area timing scoring", () => {
     expect(monthly.date).toBe("2026-01-01");
     expect(monthly.support).toBe(Math.round((first.support + second.support) / 2));
     expect(LifeAreaTimingSeriesSchema.parse(series)).toBeTruthy();
+  });
+
+  it("scores emotional timing as a self-focused graph aspect", () => {
+    const bundle = buildEmotionalTimingBundle(goldenSnapshot);
+    const point = scoreLifeAreaTimingPoint({
+      snapshot: goldenSnapshot,
+      bundle,
+      topic: "emotional",
+      date: "2026-01-15",
+      transits,
+      dashaTiming,
+      birthTimeConfidence: "exact",
+    });
+    const series = buildLifeAreaTimingSeries({
+      topic: "emotional",
+      year: 2026,
+      timezone: "Asia/Kolkata",
+      monthly: [aggregateMonthlyTimingPoint([point])],
+      daily: [point],
+    });
+
+    expect(bundle.headline_signals.join(" ")).toContain("Moon");
+    expect(point.top_factors.some((factor) => `${factor.label} ${factor.summary}`.includes("emotional"))).toBe(true);
+    expect(LifeAreaTimingSeriesSchema.parse(series).topic).toBe("emotional");
   });
 });

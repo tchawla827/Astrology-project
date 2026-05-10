@@ -31,7 +31,9 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-astro-engine/ephe/
+astro-engine/ephe/*
+!astro-engine/ephe/.gitkeep
+!astro-engine/ephe/*.se1
 referenc.png
 
 *log
