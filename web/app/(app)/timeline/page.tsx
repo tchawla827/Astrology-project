@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarDays, ChevronLeft, ChevronRight, LineChart } from "lucide-react";
 
 import { LifeAreaTimingGraph, TimingMonthDrilldown } from "@/components/timeline/LifeAreaTimingGraph";
+import { TimelinePendingShell } from "@/components/timeline/TimelinePendingShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { topicTitles } from "@/lib/derived/shared";
@@ -110,7 +111,7 @@ export default async function TimelinePage({ searchParams }: { searchParams: Tim
   }
 
   return (
-    <div className="space-y-8">
+    <TimelinePendingShell routeKey={`${topic}:${year}:${selectedMonth}`}>
       <section className="cinematic-hero p-6 sm:p-8 lg:p-10">
         <div className="star-noise absolute inset-0 opacity-70" aria-hidden="true" />
         <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
@@ -204,6 +205,6 @@ export default async function TimelinePage({ searchParams }: { searchParams: Tim
           </Card>
         </aside>
       </div>
-    </div>
+    </TimelinePendingShell>
   );
 }
