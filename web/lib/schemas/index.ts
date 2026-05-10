@@ -145,9 +145,21 @@ export const DashaTimelineSchema = z.object({
   ),
 });
 
+export const TransitRuleHitSchema = z.object({
+  rule: z.string().min(1),
+  planet: PlanetSchema,
+  house: z.number().int().min(1).max(12).nullable().optional(),
+  kind: z.enum(["major", "minor"]).default("major").optional(),
+  severity: z.enum(["low", "medium", "high"]).optional(),
+  score_delta: z.number().optional(),
+  orb_deg: z.number().nullable().optional(),
+  note: z.string().min(1),
+});
+
 export const TransitOverlaySchema = z.object({
   triggered_houses: z.array(z.number().int().min(1).max(12)),
   planet_to_house: z.record(PlanetSchema, z.number().int().min(1).max(12)),
+  hits: z.array(TransitRuleHitSchema).optional(),
 });
 
 export const TransitSummarySchema = z.object({
@@ -292,6 +304,9 @@ export const LifeAreaTimingPointSchema = z.object({
 
 export const LifeAreaTimingSeriesSchema = z.object({
   version: z.literal("life_area_timing_v1"),
+  scoring_version: z.string().min(1),
+  engine_version: z.string().optional(),
+  derived_schema_version: z.string().optional(),
   topic: LifeAreaTimingTopicSchema,
   year: z.number().int().min(1900).max(2200),
   timezone: z.string(),
@@ -533,6 +548,7 @@ export type TopicEvidenceCollection = z.infer<typeof TopicEvidenceCollectionSche
 export type TopicEvidenceFactor = z.infer<typeof TopicEvidenceFactorSchema>;
 export type TopicEvidenceTimingFactor = z.infer<typeof TopicEvidenceTimingFactorSchema>;
 export type TopicEvidenceCitation = z.infer<typeof TopicEvidenceCitationSchema>;
+export type TransitRuleHit = z.infer<typeof TransitRuleHitSchema>;
 export type LifeAreaTimingMetric = z.infer<typeof LifeAreaTimingMetricSchema>;
 export type LifeAreaTimingTopic = z.infer<typeof LifeAreaTimingTopicSchema>;
 export type LifeAreaTimingFactor = z.infer<typeof LifeAreaTimingFactorSchema>;

@@ -111,6 +111,7 @@ describe("life-area timing scoring", () => {
     expect(monthly.volatility).toBe(Math.round(((first.volatility + second.volatility) / 2) * 0.65 + Math.max(first.volatility, second.volatility) * 0.35));
     expect(monthly.top_factors.every((factor) => typeof factor.impact === "number")).toBe(true);
     expect(LifeAreaTimingSeriesSchema.parse(series)).toBeTruthy();
+    expect(series.scoring_version).toBe("life_area_timing_v2_structured_rules");
   });
 
   it("scores emotional timing as a self-focused graph aspect", () => {

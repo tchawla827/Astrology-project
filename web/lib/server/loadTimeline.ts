@@ -78,6 +78,7 @@ type ChartSnapshotRow = {
 
 type DerivedSnapshotRow = {
   id: string;
+  schema_version?: string;
   payload: unknown;
 };
 
@@ -221,7 +222,7 @@ export async function loadTimelineContext(input: {
         .maybeSingle(),
       input.supabase
         .from("derived_feature_snapshots")
-        .select("id,payload")
+        .select("id,schema_version,payload")
         .eq("birth_profile_id", profile.id)
         .order("computed_at", { ascending: false })
         .limit(1)
@@ -294,6 +295,8 @@ export async function loadTimelineContext(input: {
       timezone: profile.timezone,
       monthly,
       daily: selectedDailyPoints,
+      engineVersion: profile.engine_version,
+      derivedSchemaVersion: derivedRow.schema_version,
     });
 
     return {

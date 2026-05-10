@@ -79,6 +79,9 @@ export type TransitRuleHit = {
   note: string;
   house?: number;
   kind?: "major" | "minor";
+  severity?: "low" | "medium" | "high";
+  score_delta?: number;
+  orb_deg?: number;
 };
 
 export type DailyContextBundle = {
@@ -387,42 +390,59 @@ export function buildTransitOverlay(input: {
   }));
   const transitByPlanet = new Map(positions.map((position) => [position.planet, position]));
   const hits: TransitRuleHit[] = [];
+  const engineHits =
+    input.transits.overlay?.hits
+      ?.filter((hit) => hit.rule && hit.note)
+      .map((hit) => ({
+        rule: hit.rule,
+        planet: hit.planet,
+        house: typeof hit.house === "number" ? hit.house : undefined,
+        kind: hit.kind ?? "major",
+        severity: hit.severity,
+        score_delta: hit.score_delta,
+        orb_deg: typeof hit.orb_deg === "number" ? hit.orb_deg : undefined,
+        note: hit.note,
+      })) ?? [];
 
-  const saturn = transitByPlanet.get("Saturn");
-  if (saturn && [1, 4, 7, 10].includes(saturn.house)) {
-    hits.push({ rule: "saturn_kendra_pressure", planet: "Saturn", house: saturn.house, note: `Saturn pressure on kendra ${saturn.house}` });
-  }
-
-  const jupiter = transitByPlanet.get("Jupiter");
-  if (jupiter && [1, 5, 9].includes(jupiter.house)) {
-    hits.push({ rule: "jupiter_trine_support", planet: "Jupiter", house: jupiter.house, note: `Jupiter support on trine ${jupiter.house}` });
-  }
-
-  const rahu = transitByPlanet.get("Rahu");
-  const natalMoon = natalByPlanet.get("Moon");
-  if (rahu && natalMoon && circularDiff(rahu.longitude_deg, natalMoon.longitude_deg) <= 3) {
-    hits.push({
-      rule: "rahu_moon_conjunction",
-      planet: "Rahu",
-      house: natalMoon.house,
-      note: "Rahu within 3 deg of natal Moon",
-    });
-  }
-
-  for (const malefic of malefics) {
-    const transit = transitByPlanet.get(malefic);
-    if (!transit) {
-      continue;
+  if (engineHits.length > 0) {
+    hits.push(...engineHits);
+  } else {
+    const saturn = transitByPlanet.get("Saturn");
+    if (saturn && [1, 4, 7, 10].includes(saturn.house)) {
+      hits.push({ rule: "saturn_kendra_pressure", planet: "Saturn", house: saturn.house, note: `Saturn pressure on kendra ${saturn.house}` });
     }
-    for (const luminary of luminaries) {
-      const natal = natalByPlanet.get(luminary);
-      if (natal && circularDiff(transit.longitude_deg, natal.longitude_deg) <= 3) {
-        hits.push({
-          rule: `${malefic.toLowerCase()}_near_natal_${luminary.toLowerCase()}`,
-          planet: malefic,
-          house: natal.house,
-          note: `${malefic} within 3 deg of natal ${luminary}`,
-        });
+
+    const jupiter = transitByPlanet.get("Jupiter");
+    if (jupiter && [1, 5, 9].includes(jupiter.house)) {
+      hits.push({ rule: "jupiter_trine_support", planet: "Jupiter", house: jupiter.house, note: `Jupiter support on trine ${jupiter.house}` });
+    }
+
+    const rahu = transitByPlanet.get("Rahu");
+    const natalMoon = natalByPlanet.get("Moon");
+    if (rahu && natalMoon && circularDiff(rahu.longitude_deg, natalMoon.longitude_deg) <= 3) {
+      hits.push({
+        rule: "rahu_moon_conjunction",
+        planet: "Rahu",
+        house: natalMoon.house,
+        note: "Rahu within 3 deg of natal Moon",
+      });
+    }
+
+    for (const malefic of malefics) {
+      const transit = transitByPlanet.get(malefic);
+      if (!transit) {
+        continue;
+      }
+      for (const luminary of luminaries) {
+        const natal = natalByPlanet.get(luminary);
+        if (natal && circularDiff(transit.longitude_deg, natal.longitude_deg) <= 3) {
+          hits.push({
+            rule: `${malefic.toLowerCase()}_near_natal_${luminary.toLowerCase()}`,
+            planet: malefic,
+            house: natal.house,
+            note: `${malefic} within 3 deg of natal ${luminary}`,
+          });
+        }
       }
     }
   }
@@ -451,6 +471,7 @@ export function buildTransitOverlay(input: {
       overlay: {
         triggered_houses: triggeredHouses,
         planet_to_house: planetToHouse,
+        hits,
       },
     },
     hits,
@@ -539,6 +560,8 @@ function buildDailyContext(input: {
     transits: input.transits,
     dashaTiming: input.dateWiseAstro.dasha_timing,
     birthTimeConfidence: input.birth_time_confidence,
+    scoringInstant: input.dateWiseAstro.scoring_instant,
+    panchang: input.dateWiseAstro.panchang,
   });
   const planets = unique([...scoring.basis.planets, ...input.hits.map((hit) => hit.planet), ...dashaPlanets]);
   const transitRules = unique([...input.hits.map((hit) => hit.rule), ...scoring.basis.transit_rules]);

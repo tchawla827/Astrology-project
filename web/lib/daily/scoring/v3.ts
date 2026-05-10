@@ -4,6 +4,7 @@ import type {
   DashaTimeline,
   Planet,
   PlanetPlacement,
+  TransitRuleHit,
   TransitSummary,
   Yoga,
 } from "@/lib/schemas";
@@ -64,6 +65,15 @@ export type DailyScoringInput = {
   transits: TransitSummary;
   dashaTiming: DailyScoringDashaTiming;
   birthTimeConfidence: BirthTimeConfidence;
+  scoringInstant?: string;
+  panchang?: {
+    vaara?: string;
+    tithi?: string;
+    nakshatra?: string;
+    yoga?: string;
+    karana?: string;
+    muhurta_windows?: Array<{ name: string; kind: string }>;
+  };
 };
 
 export type DailyScoringResult = {
@@ -1066,6 +1076,99 @@ function dashaActivationScore(
   return { score: round1(clamp(scaled, -18, 18)), notes };
 }
 
+function periodBoundaryMs(value: string) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return Date.parse(`${value}T00:00:00Z`);
+  }
+  return Date.parse(value);
+}
+
+function dashaTransitionScore(dashaTiming: DailyScoringDashaTiming, scoringInstant?: string): ComponentResult {
+  if (!scoringInstant) {
+    return { score: 0, notes: [] };
+  }
+  const at = Date.parse(scoringInstant);
+  if (!Number.isFinite(at)) {
+    return { score: 0, notes: [] };
+  }
+  const levels: Array<[DashaTimeline["periods"][number] | undefined, number, string]> = [
+    [dashaTiming.active_mahadasha, 1, "mahadasha"],
+    [dashaTiming.active_antardasha, 0.75, "antardasha"],
+    [dashaTiming.active_pratyantardasha, 0.45, "pratyantardasha"],
+  ];
+  let score = 0;
+  const notes: string[] = [];
+  for (const [period, weight, label] of levels) {
+    if (!period) {
+      continue;
+    }
+    const end = periodBoundaryMs(period.end);
+    if (!Number.isFinite(end)) {
+      continue;
+    }
+    const days = Math.ceil((end - at) / (24 * 60 * 60 * 1000));
+    if (days < 0 || days > 30) {
+      continue;
+    }
+    const base = days <= 1 ? -5 : days <= 7 ? -3.5 : -1.5;
+    const delta = base * weight;
+    score += delta;
+    notes.push(`${period.lord} ${label} ends in ${Math.max(0, days)} day(s), adding transition volatility.`);
+  }
+  return { score: round1(clamp(score, -8, 0)), notes };
+}
+
+const challengingTithis = new Set(["Chaturthi", "Navami", "Chaturdashi", "Amavasya"]);
+const supportiveTithis = new Set(["Dvitiya", "Tritiya", "Panchami", "Saptami", "Dashami", "Ekadashi", "Trayodashi"]);
+const sattvicNakshatras = new Set(["Rohini", "Mrigashira", "Punarvasu", "Pushya", "Hasta", "Anuradha", "Revati"]);
+const sharpNakshatras = new Set(["Ardra", "Ashlesha", "Jyeshtha", "Mula", "Shatabhisha"]);
+const supportiveYogas = new Set(["Siddhi", "Shubha", "Brahma", "Indra", "Saubhagya", "Dhriti"]);
+const challengingYogas = new Set(["Vyatipata", "Vaidhriti", "Ganda", "Atiganda", "Vajra", "Shoola"]);
+
+function panchangQualityScore(aspect: DailyAspect, panchang?: DailyScoringInput["panchang"]): ComponentResult {
+  if (!panchang) {
+    return { score: 0, notes: [] };
+  }
+  let score = 0;
+  const notes: string[] = [];
+  if (panchang.tithi && challengingTithis.has(panchang.tithi)) {
+    const delta = aspect === "emotional" || aspect === "love" ? -1.6 : -1;
+    score += delta;
+    notes.push(`${panchang.tithi} tithi reduces ease for ${aspect}.`);
+  } else if (panchang.tithi && supportiveTithis.has(panchang.tithi)) {
+    const delta = aspect === "focus" || aspect === "career" ? 1.1 : 0.8;
+    score += delta;
+    notes.push(`${panchang.tithi} tithi adds modest support for ${aspect}.`);
+  }
+
+  if (panchang.nakshatra && sattvicNakshatras.has(panchang.nakshatra)) {
+    score += aspect === "emotional" || aspect === "love" ? 1.1 : 0.7;
+    notes.push(`${panchang.nakshatra} nakshatra is comparatively supportive.`);
+  } else if (panchang.nakshatra && sharpNakshatras.has(panchang.nakshatra)) {
+    score -= aspect === "emotional" || aspect === "focus" ? 1.2 : 0.8;
+    notes.push(`${panchang.nakshatra} nakshatra raises sharpness or reactivity.`);
+  }
+
+  if (panchang.yoga && supportiveYogas.has(panchang.yoga)) {
+    score += 0.8;
+    notes.push(`${panchang.yoga} yoga gives a small supportive muhurta backdrop.`);
+  } else if (panchang.yoga && challengingYogas.has(panchang.yoga)) {
+    score -= 1;
+    notes.push(`${panchang.yoga} yoga adds caution to the day.`);
+  }
+
+  const auspicious = panchang.muhurta_windows?.filter((window) => window.kind === "auspicious").length ?? 0;
+  const inauspicious = panchang.muhurta_windows?.filter((window) => window.kind === "inauspicious").length ?? 0;
+  if (auspicious > 0) {
+    score += Math.min(1, auspicious * 0.4);
+  }
+  if (inauspicious > 0) {
+    score -= Math.min(1.2, inauspicious * 0.5);
+  }
+
+  return { score: round1(clamp(score, -4, 4)), notes: notes.slice(0, 5) };
+}
+
 function nodesInfluencePlanet(snapshot: ChartSnapshot, planet: Planet) {
   const placement = natalPlacement(snapshot, planet);
   if (!placement) {
@@ -1106,11 +1209,47 @@ function anyStabilizerForMercury(transits: TransitSummary, snapshot: ChartSnapsh
   return jupiter > 0 || (typeof saturnHouse === "number" && [3, 6, 10, 11].includes(saturnHouse));
 }
 
+function engineHitRelevance(aspect: DailyAspect, hit: TransitRuleHit) {
+  const config = DAILY_ASPECT_V3_CONFIG[aspect];
+  const goodHouses = positiveHouses(aspect);
+  const badHouses = cautionHouses(aspect);
+  const house = typeof hit.house === "number" ? hit.house : undefined;
+  const planetRelevant = (config.planets as readonly Planet[]).includes(hit.planet);
+  const houseRelevant = typeof house === "number" && (goodHouses.includes(house) || badHouses.includes(house));
+  const luminaryStress = (hit.rule.includes("moon") || hit.rule.includes("sun")) && (aspect === "emotional" || aspect === "focus");
+  return planetRelevant || houseRelevant || luminaryStress;
+}
+
+function engineHitAspectScale(aspect: DailyAspect, hit: TransitRuleHit) {
+  const house = typeof hit.house === "number" ? hit.house : undefined;
+  if (hit.planet === "Saturn" && house && upachayaHouses.has(house) && (aspect === "career" || aspect === "focus")) {
+    return 0.2;
+  }
+  if (hit.severity === "high") {
+    return 0.45;
+  }
+  return 0.35;
+}
+
 function transitTriggerScore(aspect: DailyAspect, snapshot: ChartSnapshot, transits: TransitSummary): ComponentResult & { rules: TransitRuleContribution[] } {
   const rules: TransitRuleContribution[] = [];
   const goodHouses = positiveHouses(aspect);
   const badHouses = cautionHouses(aspect);
   const config = DAILY_ASPECT_V3_CONFIG[aspect];
+
+  for (const hit of transits.overlay?.hits ?? []) {
+    if (hit.kind === "minor" || typeof hit.score_delta !== "number" || !engineHitRelevance(aspect, hit)) {
+      continue;
+    }
+    const scale = engineHitAspectScale(aspect, hit);
+    addRule(rules, {
+      rule: `${hit.rule}_${aspect}`,
+      delta: hit.score_delta * scale,
+      planet: hit.planet,
+      house: typeof hit.house === "number" ? hit.house : undefined,
+      note: hit.note,
+    });
+  }
 
   for (const planet of ["Jupiter", "Saturn", "Mars", "Venus", "Mercury", "Rahu", "Ketu"] as const) {
     const transit = transitPlacement(transits, planet);
@@ -1540,9 +1679,20 @@ function scoreAspect(aspect: DailyAspect, input: DailyScoringInput): ScoredAspec
   const transit = transitTriggerScore(aspect, input.snapshot, input.transits);
   const moon = dailyMoonScore(aspect, input.snapshot, input.transits);
   const yoga = yogaModifierScore(aspect, input.snapshot);
+  const transition = dashaTransitionScore(input.dashaTiming, input.scoringInstant ?? input.transits.as_of);
+  const panchang = panchangQualityScore(aspect, input.panchang);
   const volatility = volatilityPenalty(aspect, input.snapshot, input.transits, transit.rules);
   const baseRaw = clamp(
-    45 + natal.score * 0.8 + dasha.score * 1.2 + varga.score * 0.5 + transit.score * 0.7 + moon.score + yoga.score * 0.5 - volatility.score * 1.1,
+    45 +
+      natal.score * 0.8 +
+      dasha.score * 1.2 +
+      varga.score * 0.5 +
+      transit.score * 0.7 +
+      moon.score +
+      yoga.score * 0.5 +
+      transition.score * 0.9 +
+      panchang.score * 0.6 -
+      volatility.score * 1.1,
     0,
     100,
   );
@@ -1571,6 +1721,8 @@ function scoreAspect(aspect: DailyAspect, input: DailyScoringInput): ScoredAspec
     ...natal.notes,
     ...dasha.notes.slice(0, 3),
     ...varga.notes,
+    ...transition.notes,
+    ...panchang.notes,
     ...transit.notes,
     ...moon.notes,
     ...yoga.notes,
@@ -1601,6 +1753,8 @@ function scoreAspect(aspect: DailyAspect, input: DailyScoringInput): ScoredAspec
         transit_trigger: transit.score,
         daily_moon: moon.score,
         yoga_modifier: yoga.score,
+        dasha_transition: transition.score,
+        panchang_quality: panchang.score,
         volatility_penalty: volatility.score,
       },
       source_charts: Object.keys(config.charts).filter((chartKey) => Boolean(chart(input.snapshot, chartKey))).slice(0, 8),

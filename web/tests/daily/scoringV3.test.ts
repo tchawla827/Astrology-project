@@ -149,4 +149,28 @@ describe("daily Jyotish scoring V3", () => {
     expect(Math.max(...unknown.aspect_scores.map((score) => score.score))).toBeLessThanOrEqual(60);
     expect(unknown.score_breakdown.some((score) => score.notes.join(" ").includes("unknown"))).toBe(true);
   });
+
+  it("includes dasha boundary and panchang quality in deterministic components", () => {
+    const result = scoreDailyAspectsV3({
+      snapshot: goldenSnapshot,
+      transits: transitWithSaturnDistanceFromMoon(8),
+      dashaTiming,
+      birthTimeConfidence: "exact",
+      scoringInstant: "2026-04-30T00:00:00Z",
+      panchang: {
+        vaara: "Saturday",
+        tithi: "Navami",
+        nakshatra: "Ardra",
+        yoga: "Vyatipata",
+        karana: "Balava",
+        muhurta_windows: [{ name: "Rahu Kaal", kind: "inauspicious" }],
+      },
+    });
+
+    const emotional = result.score_breakdown.find((score) => score.aspect === "emotional");
+    expect(emotional?.components.dasha_transition).toBeLessThan(0);
+    expect(emotional?.components.panchang_quality).toBeLessThan(0);
+    expect(emotional?.notes.join(" ")).toContain("transition volatility");
+    expect(emotional?.notes.join(" ")).toContain("Navami");
+  });
 });

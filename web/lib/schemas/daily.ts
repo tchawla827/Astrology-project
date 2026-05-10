@@ -11,6 +11,8 @@ export const DailyScoreComponentSchema = z.object({
   transit_trigger: z.number().min(-16).max(16),
   daily_moon: z.number().min(-8).max(8),
   yoga_modifier: z.number().min(-8).max(8),
+  dasha_transition: z.number().min(-8).max(4),
+  panchang_quality: z.number().min(-4).max(4),
   volatility_penalty: z.number().min(0).max(12),
 });
 

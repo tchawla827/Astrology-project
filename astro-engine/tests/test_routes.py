@@ -68,6 +68,9 @@ def test_transits_overlay(monkeypatch: MonkeyPatch) -> None:
     assert body["overlay"] is not None
     assert "triggered_houses" in body["overlay"]
     assert "planet_to_house" in body["overlay"]
+    assert "hits" in body["overlay"]
+    for hit in body["overlay"]["hits"]:
+        assert {"rule", "planet", "kind", "severity", "score_delta", "note"}.issubset(hit)
 
 
 def test_panchang_endpoint(monkeypatch: MonkeyPatch) -> None:
@@ -153,6 +156,7 @@ def test_timeline_year_endpoint_returns_exact_daily_transits(monkeypatch: Monkey
     )
     assert transit_resp.status_code == 200
     assert first_day["transits"]["positions"] == transit_resp.json()["positions"]
+    assert first_day["transits"]["overlay"]["hits"] == transit_resp.json()["overlay"]["hits"]
 
 
 def test_invalid_input_returns_400(monkeypatch: MonkeyPatch) -> None:

@@ -1157,6 +1157,8 @@ function scoreAspect(aspect: DailyAspect, input: DailyScoringInput): ScoredAspec
         transit_trigger: transit.score,
         daily_moon: moon.score,
         yoga_modifier: yoga.score,
+        dasha_transition: 0,
+        panchang_quality: 0,
         volatility_penalty: volatility.score,
       },
       source_charts: Object.keys(config.charts).filter((chartKey) => Boolean(chart(input.snapshot, chartKey))).slice(0, 8),

@@ -68,5 +68,18 @@ def compute_transits(req: TransitRequest) -> dict[str, Any]:
     payload["overlay"] = {
         "triggered_houses": sorted({h.house for h in highlights if h.house is not None}),
         "planet_to_house": transit_house,
+        "hits": [
+            {
+                "rule": h.rule,
+                "planet": h.planet,
+                "house": h.house,
+                "kind": h.kind,
+                "severity": h.severity,
+                "score_delta": h.score_delta,
+                "orb_deg": h.orb_deg,
+                "note": h.note,
+            }
+            for h in highlights
+        ],
     }
     return payload

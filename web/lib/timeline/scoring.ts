@@ -43,6 +43,8 @@ export const lifeAreaTimingTopics = [
   "emotional",
 ] as const satisfies readonly SchemaLifeAreaTimingTopic[];
 
+export const LIFE_AREA_TIMING_SCORING_VERSION = "life_area_timing_v2_structured_rules";
+
 export type LifeAreaTimingTopic = SchemaLifeAreaTimingTopic;
 type StandardLifeAreaTimingTopic = (typeof standardLifeAreaTimingTopics)[number];
 type TimingTopicBundle = Pick<TopicBundle, "charts_used" | "headline_signals" | "houses" | "planets" | "timing" | "confidence_note">;
@@ -653,6 +655,36 @@ export function scoreLifeAreaTimingPoint(input: ScoreLifeAreaTimingInput): LifeA
     }
   }
 
+  for (const hit of input.transits.overlay?.hits ?? []) {
+    if (hit.kind === "minor" || typeof hit.house !== "number" || !relevantHouses.includes(hit.house)) {
+      continue;
+    }
+    const scaledDelta = (hit.score_delta ?? 0) * 0.55;
+    const impact = Math.abs(scaledDelta);
+    if (scaledDelta > 0) {
+      support += scaledDelta;
+      addFactor(factors, {
+        source: "transit",
+        score_kind: "support",
+        impact,
+        label: hit.rule,
+        summary: hit.note,
+        citations: citations({ charts: ["Transit"], houses: [hit.house], planets: [hit.planet] }),
+      });
+    } else if (scaledDelta < 0) {
+      pressure += impact;
+      volatility += hit.severity === "high" ? 3 : 1.5;
+      addFactor(factors, {
+        source: "transit",
+        score_kind: hit.severity === "high" ? "pressure" : "volatility",
+        impact,
+        label: hit.rule,
+        summary: hit.note,
+        citations: citations({ charts: ["Transit"], houses: [hit.house], planets: [hit.planet] }),
+      });
+    }
+  }
+
   for (const transit of input.transits.positions) {
     const directHouseHit = relevantHouses.includes(transit.house);
     const aspectedHouse = relevantHouses.find((house) => aspectHousesFrom(transit.house, transit.planet).includes(house));
@@ -805,8 +837,8 @@ export function scoreLifeAreaTimingPoint(input: ScoreLifeAreaTimingInput): LifeA
   }
 
   const rounded = {
-    support: round(clamp(support - pressure * 0.12, 0, 100)),
-    pressure: round(clamp(pressure - support * 0.04, 0, 100)),
+    support: round(clamp(support, 0, 100)),
+    pressure: round(clamp(pressure, 0, 100)),
     volatility: round(clamp(volatility, 0, 100)),
     confidence: round(clamp(confidence, 0, 100)),
   };
@@ -867,9 +899,14 @@ export function buildLifeAreaTimingSeries(input: {
   timezone: string;
   monthly: LifeAreaTimingPoint[];
   daily?: LifeAreaTimingPoint[];
+  engineVersion?: string;
+  derivedSchemaVersion?: string;
 }): LifeAreaTimingSeries {
   return LifeAreaTimingSeriesSchema.parse({
     version: "life_area_timing_v1",
+    scoring_version: LIFE_AREA_TIMING_SCORING_VERSION,
+    engine_version: input.engineVersion,
+    derived_schema_version: input.derivedSchemaVersion,
     topic: input.topic,
     year: input.year,
     timezone: input.timezone,

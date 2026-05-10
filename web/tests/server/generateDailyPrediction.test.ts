@@ -350,6 +350,34 @@ describe("generateDailyPrediction", () => {
     expect(overlay.transits.overlay?.triggered_houses).toEqual([5, 10]);
   });
 
+  it("preserves structured engine transit hits when present", () => {
+    const overlay = buildTransitOverlay({
+      transits: {
+        ...transitSummary,
+        overlay: {
+          triggered_houses: [10],
+          planet_to_house: { Sun: 1, Moon: 2, Mars: 3, Mercury: 4, Jupiter: 5, Venus: 6, Saturn: 10, Rahu: 7, Ketu: 1 },
+          hits: [
+            {
+              rule: "saturn_kendra_pressure",
+              planet: "Saturn",
+              house: 10,
+              kind: "major",
+              severity: "high",
+              score_delta: -4.5,
+              note: "Saturn pressure on kendra 10",
+            },
+          ],
+        },
+      },
+      natalPositions: goldenSnapshot.planetary_positions,
+      lagnaSign: "Aquarius",
+    });
+
+    expect(overlay.hits.find((hit) => hit.rule === "saturn_kendra_pressure")?.score_delta).toBe(-4.5);
+    expect(overlay.transits.overlay?.hits?.find((hit) => hit.rule === "saturn_kendra_pressure")?.severity).toBe("high");
+  });
+
   it("writes and reuses the per-profile daily prediction cache by tone", async () => {
     const supabase = new DailySupabaseMock();
     const first = await generateDailyPrediction({
