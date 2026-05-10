@@ -3,10 +3,10 @@
 This repo deploys as three free-tier services:
 
 - `web/` on Vercel Hobby for the Next.js app.
-- `astro-engine/` on Render Free for the FastAPI astrology engine.
+- `astro-engine/` on Hugging Face Spaces using the root Dockerfile.
 - Supabase Free for Auth, Postgres, and Storage.
 
-The free setup is suitable for demos, testing, and light personal use. Render Free web services sleep after idle time, and Supabase Free projects can pause after inactivity, so this is not a production-grade paid setup.
+The free setup is suitable for demos, testing, and light personal use. Hugging Face Spaces on free hardware can sleep after idle time, and Supabase Free projects can pause after inactivity, so this is not a production-grade paid setup.
 
 ## 1. Supabase
 
@@ -24,21 +24,26 @@ Keep these values for the Vercel environment:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `DATABASE_URL`
 
-## 2. Astro Engine on Render
+## 2. Astro Engine on Hugging Face Spaces
 
-Use the root `render.yaml` Blueprint, or create a Render Web Service manually with:
+Create a Docker Space at `https://huggingface.co/new-space`, then push this repo to the Space git remote. The root `README.md` includes the required Space metadata:
 
-- Root directory: `astro-engine`
-- Runtime: Python
-- Build command: `pip install -r requirements.txt`
-- Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-- Health check path: `/health`
+- `sdk: docker`
+- `app_port: 7860`
 
-Set these Render environment variables:
+The root `Dockerfile` builds only the FastAPI backend and starts:
+
+```bash
+python -m uvicorn app.main:app --host 0.0.0.0 --port 7860
+```
+
+Set these Space secrets in Settings:
 
 - `ASTRO_ENGINE_SECRET`: a long random secret shared only with the web app.
+
+Set these Space variables in Settings:
+
 - `ENVIRONMENT`: `production`
-- `PYTHON_VERSION`: `3.11.9`
 
 Commit the Swiss Ephemeris files in `astro-engine/ephe/*.se1` before deploying. The engine defaults to `astro-engine/ephe`; override with `ASTRO_ENGINE_EPHE_PATH` only if your host uses a different path.
 
@@ -59,8 +64,8 @@ Set these Vercel environment variables:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `NEXT_PUBLIC_SITE_URL`: your Vercel production URL or custom domain.
 - `NEXT_PUBLIC_APP_URL`: same as `NEXT_PUBLIC_SITE_URL`.
-- `ASTRO_ENGINE_URL`: the Render service URL.
-- `ASTRO_ENGINE_SECRET`: the same secret configured on Render.
+- `ASTRO_ENGINE_URL`: your Space app URL, for example `https://tchawla827-naksha-astrology.hf.space`.
+- `ASTRO_ENGINE_SECRET`: the same secret configured on Hugging Face Spaces.
 - `NOMINATIM_USER_AGENT`: a unique app user agent.
 - `NOMINATIM_EMAIL`: contact email for geocoding requests.
 

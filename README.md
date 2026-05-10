@@ -1,3 +1,10 @@
+---
+title: Naksha Astrology
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Naksha Project
 
 Naksha is a Vedic astrology web app backed by a stateless FastAPI astrology engine.
@@ -58,7 +65,8 @@ pytest -q
 
 Copy `.env.example` to the relevant local env files before running services.
 
-Deployment setup is documented in [`docs/deployment.md`](docs/deployment.md).
+Deployment setup is documented in [`docs/deployment.md`](docs/deployment.md). The root
+Dockerfile is for deploying the `astro-engine/` backend to Hugging Face Spaces.
 
 ## Supabase
 
