@@ -1,4 +1,5 @@
 import { DailyPredictionSchema, TransitSummarySchema, type DailyPrediction, type TransitSummary } from "@/lib/schemas";
+import type { DailyContextBundle } from "@/lib/server/generateDailyPrediction";
 
 const DAILY_SCHEMA_VERSION = "daily_v2_scoring_v5_structured_timing" as const;
 
@@ -23,12 +24,19 @@ export type SupabaseDailyCacheClient = {
 
 type DailyCacheRow = {
   payload: unknown;
+  render_payload?: unknown;
   computed_at: string;
 };
 
 type TransitCacheRow = {
   payload: unknown;
   computed_at: string;
+};
+
+export type DailyRenderCachePayload = {
+  prediction: DailyPrediction;
+  transits: TransitSummary;
+  context: DailyContextBundle;
 };
 
 function asDailyCacheRow(value: unknown): DailyCacheRow | null {
@@ -63,7 +71,7 @@ export async function readDailyPredictionCache(input: {
 }) {
   const { data, error } = await input.supabase
     .from("daily_predictions_cache")
-    .select("payload,computed_at")
+    .select("payload,render_payload,computed_at")
     .eq("birth_profile_id", input.birth_profile_id)
     .eq("date", input.date)
     .eq("tone", input.tone)
@@ -84,13 +92,15 @@ export async function readDailyPredictionCache(input: {
     return null;
   }
 
-  return { prediction: parsed.data, computed_at: row.computed_at };
+  const renderPayload = parseRenderPayload(row.render_payload, parsed.data);
+  return { prediction: parsed.data, renderPayload, computed_at: row.computed_at };
 }
 
 export async function writeDailyPredictionCache(input: {
   supabase: SupabaseDailyCacheClient;
   birth_profile_id: string;
   prediction: DailyPrediction;
+  renderPayload?: DailyRenderCachePayload;
 }) {
   const { error } = await input.supabase.from("daily_predictions_cache").upsert(
     {
@@ -99,6 +109,7 @@ export async function writeDailyPredictionCache(input: {
       tone: input.prediction.tone,
       answer_schema_version: DAILY_SCHEMA_VERSION,
       payload: input.prediction,
+      render_payload: input.renderPayload,
       computed_at: new Date().toISOString(),
     },
     { onConflict: "birth_profile_id,date,tone,answer_schema_version" },
@@ -107,6 +118,32 @@ export async function writeDailyPredictionCache(input: {
   if (error) {
     throw new Error(toErrorMessage(error, "Could not write daily prediction cache."));
   }
+}
+
+function parseRenderPayload(value: unknown, expectedPrediction: DailyPrediction): DailyRenderCachePayload | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const candidate = value as Partial<DailyRenderCachePayload>;
+  const prediction = DailyPredictionSchema.safeParse(candidate.prediction);
+  const transits = TransitSummarySchema.safeParse(candidate.transits);
+  if (!prediction.success || !transits.success) {
+    return undefined;
+  }
+  if (prediction.data.date !== expectedPrediction.date || prediction.data.tone !== expectedPrediction.tone) {
+    return undefined;
+  }
+  if (JSON.stringify(prediction.data) !== JSON.stringify(expectedPrediction)) {
+    return undefined;
+  }
+  if (!candidate.context || typeof candidate.context !== "object") {
+    return undefined;
+  }
+  return {
+    prediction: prediction.data,
+    transits: transits.data,
+    context: candidate.context as DailyContextBundle,
+  };
 }
 
 export async function readTransitCache(input: {

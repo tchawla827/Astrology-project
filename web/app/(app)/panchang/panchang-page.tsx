@@ -69,7 +69,7 @@ export async function PanchangPageContent({
       date,
       override: parseOverride(searchParams),
     });
-    await track(supabase, "panchang_viewed", {}, user.id);
+  void track(supabase, "panchang_viewed", {}, user.id);
 
     return (
       <div className="space-y-6">

@@ -122,7 +122,7 @@ export default async function DashboardPage() {
     profileId: dashboard.profile.id,
     date: "today",
   }).catch(() => null);
-  await track(supabase, "dashboard_viewed", {}, user.id);
+  void track(supabase, "dashboard_viewed", {}, user.id);
 
   const timingWindows = [
     {

@@ -24,6 +24,7 @@ import { LlmCitationError, LlmContextError, LlmProviderError, LlmSchemaError } f
 import { PROMPT_VERSIONS, systemPromptV1 } from "@/lib/llm/prompts";
 import { routeDailyV2 } from "@/lib/llm/prompts/route/daily_v2";
 import { callWithFallback, type LlmProvider } from "@/lib/llm/providers";
+import { readPanchangCache, writePanchangCache, type SupabasePanchangCacheClient } from "@/lib/panchang/cache";
 
 type DbError = { message: string } | Error;
 type QueryResult = PromiseLike<{ data: unknown; error: DbError | null }>;
@@ -35,7 +36,7 @@ type SupabaseQuery = {
   maybeSingle(): QueryResult;
 };
 
-export type SupabaseDailyClient = SupabaseDailyCacheClient & {
+export type SupabaseDailyClient = SupabaseDailyCacheClient & SupabasePanchangCacheClient & {
   from(table: string): {
     select(columns: string): SupabaseQuery;
     upsert(payload: unknown, options?: { onConflict?: string }): PromiseLike<{ error: DbError | null }>;
@@ -308,14 +309,28 @@ function activePeriod(timeline: DashaTimeline, level: DashaTimeline["periods"][n
   });
 }
 
-async function loadDateWiseAstroContext(input: { profile: BirthProfileRow; date: string }) {
-  const panchang = await getPanchang({
+async function loadDateWiseAstroContext(input: { supabase: SupabaseDailyClient; profile: BirthProfileRow; date: string }) {
+  const panchangCacheKey = {
+    supabase: input.supabase,
     date: input.date,
     latitude: input.profile.latitude,
     longitude: input.profile.longitude,
     timezone: input.profile.timezone,
     ayanamsha: input.profile.ayanamsha,
-  });
+  };
+  const cachedPanchang = await readPanchangCache(panchangCacheKey).catch(() => null);
+  const panchang =
+    cachedPanchang?.panchang ??
+    (await getPanchang({
+      date: input.date,
+      latitude: input.profile.latitude,
+      longitude: input.profile.longitude,
+      timezone: input.profile.timezone,
+      ayanamsha: input.profile.ayanamsha,
+    }));
+  if (!cachedPanchang) {
+    await writePanchangCache({ ...panchangCacheKey, panchang }).catch(() => undefined);
+  }
   const scoringInstant = timeOnDateInTimezoneIso(input.date, panchang.sunrise || "06:00:00", input.profile.timezone);
   const dasha = await getDasha({
     birth_date: input.profile.birth_date,
@@ -963,9 +978,18 @@ export async function generateDailyPrediction(input: GenerateDailyPredictionInpu
     date,
     tone: input.tone,
   });
+  if (cachedPrediction?.renderPayload) {
+    return {
+      prediction: cachedPrediction.renderPayload.prediction,
+      transits: cachedPrediction.renderPayload.transits,
+      profile,
+      context: cachedPrediction.renderPayload.context,
+      cache: { prediction: "hit", transits: "hit" },
+    };
+  }
 
   const { chartRow, snapshot, derived } = await loadContextRows(input.supabase, profile.id);
-  const dateWiseAstro = await loadDateWiseAstroContext({ profile, date });
+  const dateWiseAstro = await loadDateWiseAstroContext({ supabase: input.supabase, profile, date });
   const transitResult = await loadTransitSummary({
     supabase: input.supabase,
     profile,
@@ -991,6 +1015,16 @@ export async function generateDailyPrediction(input: GenerateDailyPredictionInpu
   });
 
   if (cachedPrediction) {
+    await writeDailyPredictionCache({
+      supabase: input.supabase,
+      birth_profile_id: profile.id,
+      prediction: cachedPrediction.prediction,
+      renderPayload: {
+        prediction: cachedPrediction.prediction,
+        transits: overlay.transits,
+        context,
+      },
+    }).catch(() => undefined);
     return {
       prediction: cachedPrediction.prediction,
       transits: overlay.transits,
@@ -1001,7 +1035,16 @@ export async function generateDailyPrediction(input: GenerateDailyPredictionInpu
   }
 
   const prediction = await generateWithLlm({ context, providers: input.providers });
-  await writeDailyPredictionCache({ supabase: input.supabase, birth_profile_id: profile.id, prediction });
+  await writeDailyPredictionCache({
+    supabase: input.supabase,
+    birth_profile_id: profile.id,
+    prediction,
+    renderPayload: {
+      prediction,
+      transits: overlay.transits,
+      context,
+    },
+  });
 
   return {
     prediction,

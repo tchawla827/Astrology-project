@@ -66,7 +66,7 @@ export default async function ChartDetailPage({ params }: { params: { key: strin
   if (!explorer.snapshot.charts[params.key]) {
     notFound();
   }
-  await track(supabase, "chart_viewed", { chart_key: params.key }, user.id);
+  void track(supabase, "chart_viewed", { chart_key: params.key }, user.id);
 
   return (
     <div className="space-y-6">

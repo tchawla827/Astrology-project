@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Fraunces, Source_Serif_4 } from "next/font/google";
 
 import { BRAND_NAME } from "@/components/brand/BrandLogo";
-import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/toast";
 import "./globals.css";
 
@@ -55,7 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${sourceSerif.className} ${fraunces.variable}`}>
-        <Providers>{children}</Providers>
+        {children}
         <Toaster />
       </body>
     </html>

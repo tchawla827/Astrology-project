@@ -114,7 +114,7 @@ export default async function DailyDatePage({
       result.prediction.technical_basis.triggered_houses.some((house) => angularHouses.has(house));
     const cacheLabel = `Prediction ${result.cache.prediction}; transits ${result.cache.transits}`;
     const todayDate = resolveDailyDate("today", result.profile.timezone);
-    await track(
+    void track(
       supabase,
       "daily_viewed",
       { date_offset_days: quota.date_offset_days ?? null, tone: parsedTone.data },

@@ -11,6 +11,11 @@ import {
   type TransitSummary,
 } from "@/lib/schemas";
 import {
+  readTimelineYearCache,
+  writeTimelineYearCache,
+  type SupabaseTimelineCacheClient,
+} from "@/lib/timeline/cache";
+import {
   aggregateMonthlyTimingPoint,
   buildLifeAreaTimingSeries,
   scoreLifeAreaTimingPoint,
@@ -31,7 +36,7 @@ type SupabaseQuery = {
   maybeSingle(): QueryResult;
 };
 
-export type SupabaseTimelineClient = {
+export type SupabaseTimelineClient = SupabaseTimelineCacheClient & {
   from(table: string): {
     select(columns: string): SupabaseQuery;
     upsert(payload: unknown, options?: { onConflict?: string }): MutationResult;
@@ -250,19 +255,39 @@ export async function loadTimelineContext(input: {
   }
 
   try {
-    const timeline = await getTimelineYear({
-      birth_date: profile.birth_date,
-      birth_time: profile.birth_time,
+    const cacheKey = {
+      birth_profile_id: profile.id,
+      year: input.year,
+      chart_snapshot_id: chartRow.id,
+      engine_version: profile.engine_version,
+      ayanamsha: profile.ayanamsha,
+      timezone: profile.timezone,
       latitude: profile.latitude,
       longitude: profile.longitude,
-      timezone: profile.timezone,
-      ayanamsha: profile.ayanamsha,
-      year: input.year,
-      natal: {
-        lagna_sign: parsedSnapshot.data.summary.lagna,
-        planetary_positions: parsedSnapshot.data.planetary_positions,
-      },
-    });
+    };
+    const cachedTimeline = await readTimelineYearCache({ ...cacheKey, supabase: input.supabase }).catch(() => null);
+    const timeline =
+      cachedTimeline?.timeline ??
+      (await getTimelineYear({
+        birth_date: profile.birth_date,
+        birth_time: profile.birth_time,
+        latitude: profile.latitude,
+        longitude: profile.longitude,
+        timezone: profile.timezone,
+        ayanamsha: profile.ayanamsha,
+        year: input.year,
+        natal: {
+          lagna_sign: parsedSnapshot.data.summary.lagna,
+          planetary_positions: parsedSnapshot.data.planetary_positions,
+        },
+      }));
+    if (!cachedTimeline) {
+      await writeTimelineYearCache({
+        ...cacheKey,
+        timeline,
+        supabase: input.supabase,
+      }).catch(() => undefined);
+    }
     const timingBundle = timingBundleForTopic({
       snapshot: parsedSnapshot.data,
       derived: parsedDerived.data,
@@ -306,7 +331,10 @@ export async function loadTimelineContext(input: {
       derived: parsedDerived.data,
       defaultToneMode: asUserProfile(userProfileData)?.default_tone_mode ?? "direct",
       series,
-      cache: { transitsHit: 0, transitsMiss: timeline.days.length },
+      cache: {
+        transitsHit: cachedTimeline ? timeline.days.length : 0,
+        transitsMiss: cachedTimeline ? 0 : timeline.days.length,
+      },
     };
   } catch (error) {
     return {

@@ -96,7 +96,7 @@ export default async function LifeAreaPage({ params }: { params: { topic: string
     context.profile.birth_time_confidence,
     context.derived.topic_evidence_v1[params.topic],
   );
-  await track(supabase, "life_area_viewed", { topic: params.topic }, user.id);
+  void track(supabase, "life_area_viewed", { topic: params.topic }, user.id);
   const confidence = viewModel.evidence
     ? {
         level: viewModel.evidence.confidence.level,
