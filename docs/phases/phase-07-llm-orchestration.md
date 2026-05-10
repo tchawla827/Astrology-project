@@ -28,6 +28,8 @@ The full LLM plumbing behind Ask Astrology: provider adapter, classifier, contex
 - `web/lib/llm/tests/golden-questions.ts` — harness and dataset of `(question, profile_fixture, expected_topic, min_charts_cited, min_planets_cited)` tuples.
 - `web/tests/llm/orchestration.test.ts` — runs the harness in CI against mocked provider.
 
+Current implementation note: Ask now runs `planAskContext(...)` before answer generation. The planner prompt (`context_planner_v1`) asks the provider to request the charts, houses, planets, timing layers, and computations needed for the user's exact question. `buildContextBundle(...)` then extracts that fact slice from the stored chart snapshot and passes it as `planner_requested_context`. `classifyQuestion(...)` remains as a fallback if the planner provider fails or returns invalid JSON.
+
 ## Specification
 
 All contracts, prompt structure, tone rules, citation rules, and versioning are defined in [../llm-layer.md](../llm-layer.md). Implement them exactly. Do not re-specify here.

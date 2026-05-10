@@ -3,6 +3,7 @@ import { systemPromptV1 } from "@/lib/llm/prompts/system_v1";
 import { userPromptV2 } from "@/lib/llm/prompts/user_v2";
 import { routePromptFor } from "@/lib/llm/prompts/route";
 import { routeDayQuestionV2 } from "@/lib/llm/prompts/route/day_question_v2";
+import { contextPlannerSystemV1, contextPlannerUserV1 } from "@/lib/llm/prompts/context_planner_v1";
 
 export const PROMPT_VERSIONS = {
   system: "system_v1",
@@ -21,8 +22,9 @@ export const PROMPT_VERSIONS = {
   day_question_route: "route_day_question_v2",
   daily_route: "route_daily_v2",
   user: "user_v2",
+  planner: "context_planner_v1",
   answer_schema: "answer_v2",
   daily_answer_schema: "daily_v2",
 } as const;
 
-export { routeDayQuestionV2, routePromptFor, systemPromptV1, userPromptV2 };
+export { contextPlannerSystemV1, contextPlannerUserV1, routeDayQuestionV2, routePromptFor, systemPromptV1, userPromptV2 };

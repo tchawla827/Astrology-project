@@ -7,7 +7,7 @@ import { LlmProviderError } from "@/lib/llm/errors";
 import type { AskClassification } from "@/lib/llm/classify";
 import type { LlmMetadata, Topic } from "@/lib/schemas";
 
-type ContextBundleType = Topic | "daily";
+type ContextBundleType = Topic | "daily" | "planner";
 const DEFAULT_MAX_ATTEMPTS = 5;
 
 export type { LlmMessage, LlmProvider };
@@ -23,6 +23,7 @@ export type CallWithFallbackArgs = {
     system: string;
     route: string;
     user: string;
+    planner?: string;
   };
   answer_schema_version?: string;
   model?: string;
@@ -72,6 +73,42 @@ function logLlmProviderFailure(input: {
   });
 }
 
+function shouldLogLlmTraffic() {
+  const flag = process.env.ASK_LLM_DEBUG_LOGS?.toLowerCase();
+  if (flag === "0" || flag === "false" || flag === "off") {
+    return false;
+  }
+  if (flag === "1" || flag === "true" || flag === "on") {
+    return true;
+  }
+  return process.env.NODE_ENV !== "production" && process.env.NODE_ENV !== "test";
+}
+
+function stringifyForConsole(value: unknown) {
+  const seen = new WeakSet<object>();
+  return JSON.stringify(
+    value,
+    (_key, item) => {
+      if (typeof item !== "object" || item === null) {
+        return item;
+      }
+      if (seen.has(item)) {
+        return "[Circular]";
+      }
+      seen.add(item);
+      return item;
+    },
+    2,
+  );
+}
+
+function printLlmTraffic(label: "REQUEST" | "RESPONSE", payload: unknown) {
+  if (!shouldLogLlmTraffic()) {
+    return;
+  }
+  console.log(`\n[ASK LLM ${label}]\n${stringifyForConsole(payload)}\n`);
+}
+
 export async function callWithFallback(args: CallWithFallbackArgs): Promise<{ output: unknown; meta: LlmMetadata }> {
   const providers = [...(args.providers ?? [geminiProvider, openRouterProvider])];
   const maxAttempts = Math.max(1, args.max_attempts ?? args.max_attempts_per_provider ?? DEFAULT_MAX_ATTEMPTS);
@@ -86,6 +123,19 @@ export async function callWithFallback(args: CallWithFallbackArgs): Promise<{ ou
 
     try {
       const start = Date.now();
+      const model = args.model ?? provider.defaultModel;
+      printLlmTraffic("REQUEST", {
+        provider: provider.name,
+        model,
+        topic: args.topic,
+        attempt,
+        max_attempts: maxAttempts,
+        temperature: args.temperature,
+        prompt_versions: args.prompt_versions,
+        answer_schema_version: args.answer_schema_version ?? PROMPT_VERSIONS.answer_schema,
+        system: args.system,
+        messages: args.messages,
+      });
       const result = await provider.generate({
         system: args.system,
         messages: args.messages,
@@ -96,7 +146,7 @@ export async function callWithFallback(args: CallWithFallbackArgs): Promise<{ ou
 
       const meta: LlmMetadata = {
         provider: provider.name,
-        model: args.model ?? provider.defaultModel,
+        model,
         prompt_version: "ask_v1",
         prompt_versions: args.prompt_versions,
         answer_schema_version: args.answer_schema_version ?? PROMPT_VERSIONS.answer_schema,
@@ -107,6 +157,17 @@ export async function callWithFallback(args: CallWithFallbackArgs): Promise<{ ou
         tokens_in: result.tokens_in,
         tokens_out: result.tokens_out,
       };
+
+      printLlmTraffic("RESPONSE", {
+        provider: provider.name,
+        model,
+        topic: args.topic,
+        attempt,
+        latency_ms: meta.latency_ms,
+        tokens_in: result.tokens_in,
+        tokens_out: result.tokens_out,
+        output: result.output,
+      });
 
       return {
         output: result.output,

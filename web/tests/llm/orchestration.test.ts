@@ -11,7 +11,7 @@ import {
 import type { AskContextBundle } from "@/lib/llm/buildContext";
 import { callWithFallback, type LlmProvider } from "@/lib/llm/providers";
 import { PROMPT_VERSIONS } from "@/lib/llm/prompts";
-import { AskAnswerSchema, type AskAnswer, type Planet, type Topic } from "@/lib/schemas";
+import { AskAnswerSchema, type AskAnswer, type AskContextPlan, type Planet, type Topic } from "@/lib/schemas";
 import type { AstrologyFactsAskContext } from "@/lib/server/exportAstrologyFacts";
 import { goldenSnapshot } from "@/tests/derived/goldenSnapshot";
 
@@ -148,6 +148,50 @@ const preferredCitations: Partial<Record<Topic, { charts: string[]; planets: Pla
   education: { charts: ["D1", "D24"], planets: ["Mercury", "Jupiter"] },
 };
 
+const planDefaults: Record<Topic, Pick<AskContextPlan, "requested_charts" | "requested_houses" | "requested_planets">> = {
+  personality: { requested_charts: ["D1", "Bhava", "Moon"], requested_houses: [1], requested_planets: ["Moon", "Sun"] },
+  career: { requested_charts: ["D1", "Bhava", "D10"], requested_houses: [2, 6, 10, 11], requested_planets: ["Saturn", "Sun", "Mercury", "Jupiter"] },
+  wealth: { requested_charts: ["D1", "D2", "D11"], requested_houses: [2, 5, 9, 11], requested_planets: ["Jupiter", "Venus"] },
+  relationships: { requested_charts: ["D1", "D9", "D7", "Moon"], requested_houses: [5, 7, 11], requested_planets: ["Venus", "Mars", "Moon"] },
+  marriage: { requested_charts: ["D1", "D9"], requested_houses: [7], requested_planets: ["Venus", "Jupiter"] },
+  family: { requested_charts: ["D1", "D3", "D4", "D12"], requested_houses: [2, 3, 4, 5], requested_planets: ["Moon", "Jupiter"] },
+  health: { requested_charts: ["D1", "D6", "D8", "D30"], requested_houses: [1, 6, 8, 12], requested_planets: ["Moon", "Sun"] },
+  education: { requested_charts: ["D1", "D4", "D24"], requested_houses: [2, 4, 5, 9], requested_planets: ["Mercury", "Jupiter"] },
+  spirituality: { requested_charts: ["D1", "D20", "D45", "D60"], requested_houses: [5, 9, 12], requested_planets: ["Ketu", "Jupiter"] },
+  relocation: { requested_charts: ["D1", "D4", "D12"], requested_houses: [3, 4, 9, 12], requested_planets: ["Rahu", "Moon"] },
+};
+
+function isPlannerCall(args: Parameters<LlmProvider["generate"]>[0]) {
+  return args.system.includes("minimum astrological context");
+}
+
+function contextPlanForTopic(topic: Topic, question = "mock question"): AskContextPlan {
+  const defaults = planDefaults[topic];
+
+  return {
+    version: "ask_context_plan_v1",
+    primary_topic: topic,
+    intent_summary: `Plan context for ${question}`,
+    requested_charts: defaults.requested_charts,
+    requested_houses: defaults.requested_houses,
+    requested_planets: defaults.requested_planets,
+    requested_timing: ["current_dasha", "current_antardasha", "transits"],
+    requested_computations: [
+      "house_lord_placements",
+      "planet_condition",
+      "aspects_to_requested_factors",
+      "dasha_lord_relevance",
+      "transit_hits_to_requested_factors",
+    ],
+    needs_timing: true,
+    needs_technical_depth: true,
+    birth_time_sensitive: topic !== "spirituality",
+    is_mixed: false,
+    confidence: "high",
+    reason: "The mocked planner chose the compact chart facts needed for this topic.",
+  };
+}
+
 function answerForTopic(topic: Topic): AskAnswer {
   const context = contextFor(topic);
   const base = buildMockAnswer(context);
@@ -167,7 +211,10 @@ function providerReturning(name: "gemini" | "openrouter", output: unknown): LlmP
   return {
     name,
     defaultModel: `${name}-mock`,
-    async generate() {
+    async generate(args) {
+      if (isPlannerCall(args)) {
+        return { output: contextPlanForTopic("career"), tokens_in: 5, tokens_out: 8, latency_ms: 1 };
+      }
       return { output, tokens_in: 10, tokens_out: 20, latency_ms: 1 };
     },
   };
@@ -187,7 +234,10 @@ describe("phase 07 LLM orchestration", () => {
           {
             name: "gemini",
             defaultModel: "recorded-gemini",
-            async generate() {
+            async generate(args) {
+              if (isPlannerCall(args)) {
+                return { output: contextPlanForTopic(testCase.expected_topic, testCase.question), tokens_in: 25, tokens_out: 35, latency_ms: 1 };
+              }
               return { output: answerForTopic(testCase.expected_topic), tokens_in: 100, tokens_out: 90, latency_ms: 2 };
             },
           },
@@ -203,6 +253,7 @@ describe("phase 07 LLM orchestration", () => {
         system: PROMPT_VERSIONS.system,
         route: PROMPT_VERSIONS.route[testCase.expected_topic],
         user: PROMPT_VERSIONS.user,
+        planner: PROMPT_VERSIONS.planner,
       });
       expect(result.meta.context_bundle_id).toBe("derived-1");
       expect(supabase.messages).toHaveLength(2);
@@ -210,8 +261,63 @@ describe("phase 07 LLM orchestration", () => {
         provider: "gemini",
         answer_schema_version: "answer_v2",
         context_bundle_type: testCase.expected_topic,
+        context_plan: {
+          source: "llm",
+          primary_topic: testCase.expected_topic,
+        },
+        planner_metadata: {
+          provider: "gemini",
+        },
       });
     }
+  });
+
+  it("lets the LLM planner request relationship context for semantic reconnection questions", async () => {
+    const supabase = new AskSupabaseMock("exact");
+    let answerPrompt = "";
+
+    const result = await generateAnswer({
+      supabase,
+      profile_id: profileId,
+      question: "In the future, is it ever possible for a reconnection with my ex?",
+      tone: "direct",
+      depth: "technical",
+      providers: [
+        {
+          name: "gemini",
+          defaultModel: "gemini-mock",
+          async generate(args) {
+            if (isPlannerCall(args)) {
+              return {
+                output: {
+                  ...contextPlanForTopic("relationships"),
+                  intent_summary: "The user is asking whether a past romantic bond can reconnect in the future.",
+                  requested_charts: ["D1", "D9", "D7", "Moon"],
+                  requested_houses: [5, 7, 11, 12],
+                  requested_planets: ["Venus", "Mars", "Moon", "Jupiter", "Saturn"],
+                  requested_timing: ["current_dasha", "current_antardasha", "upcoming_dasha", "transits"],
+                  reason: "Reconnection needs relationship promise, emotional pattern, return/contact indicators, and timing.",
+                },
+                latency_ms: 1,
+              };
+            }
+            answerPrompt = args.messages.map((message) => message.content).join("\n");
+            return { output: answerForTopic("relationships"), latency_ms: 1 };
+          },
+        },
+      ],
+    });
+
+    expect(result.classification.topic).toBe("relationships");
+    expect(result.meta.context_plan).toMatchObject({
+      source: "llm",
+      primary_topic: "relationships",
+      requested_charts: ["D1", "D9", "D7", "Moon"],
+      requested_houses: [5, 7, 11, 12],
+    });
+    expect(answerPrompt).toContain('"planner_requested_context"');
+    expect(answerPrompt).toContain('"intent_summary": "The user is asking whether a past romantic bond can reconnect in the future."');
+    expect(result.answer.technical_basis.charts_used.some((chart) => ["D9", "D7"].includes(chart))).toBe(true);
   });
 
   it("falls back to OpenRouter when Gemini fails", async () => {
@@ -298,6 +404,9 @@ describe("phase 07 LLM orchestration", () => {
           name: "gemini",
           defaultModel: "gemini-mock",
           async generate(args) {
+            if (isPlannerCall(args)) {
+              return { output: contextPlanForTopic("career"), latency_ms: 1 };
+            }
             promptContent = args.messages.map((message) => message.content).join("\n");
             return { output: answer, latency_ms: 1 };
           },
@@ -357,7 +466,10 @@ describe("phase 07 LLM orchestration", () => {
         {
           name: "gemini",
           defaultModel: "gemini-mock",
-          async generate() {
+          async generate(args) {
+            if (isPlannerCall(args)) {
+              return { output: contextPlanForTopic("career"), latency_ms: 1 };
+            }
             calls += 1;
             return { output: calls === 1 ? invalid : repaired, latency_ms: 1 };
           },
@@ -596,7 +708,10 @@ describe("phase 07 LLM orchestration", () => {
         {
           name: "gemini",
           defaultModel: "gemini-mock",
-          async generate() {
+          async generate(args) {
+            if (isPlannerCall(args)) {
+              return { output: contextPlanForTopic("career"), latency_ms: 1 };
+            }
             calls += 1;
             return { output: answer, latency_ms: 1 };
           },

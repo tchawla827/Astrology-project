@@ -17,10 +17,12 @@ const depthGuidance: Record<DepthMode, string> = {
 function promptContext(context: AskContextBundle) {
   return {
     topic: context.topic,
+    context_plan: context.context_plan,
     profile_summary: context.profile_summary,
     selected_day_facts: context.day_context,
     birth_time_confidence: context.birth_time_confidence,
     charts_used: context.charts_used,
+    planner_requested_context: context.planned_context,
     headline_signals: context.headline_signals,
     houses: context.houses,
     planets: context.planets,
@@ -47,7 +49,8 @@ Tone guidance: ${toneGuidance[input.tone]}
 Depth: ${input.depth}
 Depth guidance: ${depthGuidance[input.depth]}
 ${dayInstruction}
-Evidence instruction: If topic_evidence is present, treat it as the primary reading. Start from its verdict, use its primary_factors, supporting_factors, friction_factors, timing_factors, confidence, and birth_time_sensitivity. Do not contradict it unless the user asks about a different topic or the evidence is explicitly missing.
+Planner instruction: If context_plan and planner_requested_context are present, treat planner_requested_context as the question-specific source of truth. It contains the chart facts requested for this exact question. Use the broader topic bundle only as supporting context when it does not contradict the planner-selected facts.
+Evidence instruction: If topic_evidence is present, use it as supporting derived evidence. When planner_requested_context is absent, topic_evidence becomes the primary reading. Do not contradict topic_evidence unless the question-specific planner context clearly narrows the answer or the evidence is explicitly missing.
 
 Context:
 ${JSON.stringify(promptContext(input.context_bundle), null, 2)}

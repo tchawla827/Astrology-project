@@ -1,12 +1,19 @@
 import {
   ChartSnapshotSchema,
   DerivedFeaturePayloadSchema,
+  type Aspect,
+  type AskContextComputation,
+  type AskContextPlanMetadata,
+  type Chart,
   type ChartSnapshot,
+  type PlanetInChart,
+  type PlanetPlacement,
   type DerivedFeaturePayload,
   type Planet,
   type Topic,
   type TopicBundle,
   type TopicEvidence,
+  type Yoga,
 } from "@/lib/schemas";
 import { LlmContextError } from "@/lib/llm/errors";
 import { buildTopicEvidence } from "@/lib/derived/topicEvidence";
@@ -57,6 +64,8 @@ export type AskContextBundle = TopicBundle & {
   birth_time_confidence: "exact" | "approximate" | "unknown";
   profile_summary: ChartSnapshot["summary"];
   time_sensitivity: DerivedFeaturePayload["time_sensitivity"];
+  context_plan?: AskContextPlanMetadata;
+  planned_context?: AskPlannedContextFacts;
   topic_evidence?: TopicEvidence;
   day_context?: AstrologyFactsAskContext;
   allowed_citations: {
@@ -64,6 +73,34 @@ export type AskContextBundle = TopicBundle & {
     houses: number[];
     planets: Planet[];
   };
+};
+
+export type AskPlannedContextFacts = {
+  intent_summary: string;
+  requested: {
+    charts: string[];
+    houses: number[];
+    planets: Planet[];
+    timing: AskContextPlanMetadata["requested_timing"];
+    computations: AskContextPlanMetadata["requested_computations"];
+  };
+  included: {
+    charts: string[];
+    houses: number[];
+    planets: Planet[];
+  };
+  charts: Array<{
+    chart_key: string;
+    ascendant_sign: string;
+    ascendant_longitude_deg?: number;
+    houses: Chart["houses"];
+    planets: PlanetInChart[];
+    aspects: Aspect[];
+  }>;
+  natal_planets: PlanetPlacement[];
+  dasha?: ChartSnapshot["dasha"];
+  transits?: Pick<ChartSnapshot["transits"], "as_of" | "highlights" | "positions">;
+  yogas: Yoga[];
 };
 
 function toErrorMessage(error: { message: string } | Error | null, fallback: string) {
@@ -144,10 +181,195 @@ function allowedPlanets(bundle: TopicBundle, evidence?: TopicEvidence, dayContex
   ];
 }
 
+function unique<T>(values: T[]) {
+  return [...new Set(values)];
+}
+
+function includesComputation(plan: AskContextPlanMetadata, computation: AskContextComputation) {
+  return plan.requested_computations.includes(computation);
+}
+
+function relevantAspect(aspect: Aspect, houses: Set<number>, planets: Set<Planet>) {
+  if (planets.has(aspect.from)) {
+    return true;
+  }
+  if (typeof aspect.to === "number") {
+    return houses.has(aspect.to);
+  }
+  return planets.has(aspect.to);
+}
+
+function requestedHouseLords(snapshot: ChartSnapshot, houses: number[]) {
+  const d1 = snapshot.charts.D1;
+  if (!d1) {
+    return [];
+  }
+  return houses
+    .map((house) => d1.houses.find((entry) => entry.house === house)?.lord)
+    .filter((planet): planet is Planet => Boolean(planet));
+}
+
+function resolvePlanetsForContext(snapshot: ChartSnapshot, plan: AskContextPlanMetadata) {
+  const houses = new Set(plan.requested_houses);
+  const planets = new Set<Planet>(plan.requested_planets);
+
+  if (includesComputation(plan, "house_lord_placements")) {
+    requestedHouseLords(snapshot, plan.requested_houses).forEach((planet) => planets.add(planet));
+  }
+
+  if (
+    plan.requested_timing.includes("current_dasha") ||
+    plan.requested_timing.includes("current_antardasha") ||
+    includesComputation(plan, "dasha_lord_relevance")
+  ) {
+    planets.add(snapshot.dasha.current_mahadasha.lord);
+    planets.add(snapshot.dasha.current_antardasha.lord);
+  }
+
+  if (plan.requested_timing.includes("upcoming_dasha")) {
+    snapshot.dasha.upcoming.forEach((period) => planets.add(period.lord));
+  }
+
+  for (const chartKey of plan.requested_charts) {
+    const chart = snapshot.charts[chartKey];
+    chart?.planets.forEach((placement) => {
+      if (houses.has(placement.house)) {
+        planets.add(placement.planet);
+      }
+    });
+  }
+
+  return [...planets];
+}
+
+function chartFactsForPlan(snapshot: ChartSnapshot, plan: AskContextPlanMetadata, includedPlanets: Planet[]) {
+  const houses = new Set(plan.requested_houses);
+  const planets = new Set(includedPlanets);
+  const charts: AskPlannedContextFacts["charts"] = [];
+
+  for (const chartKey of plan.requested_charts) {
+    const chart = snapshot.charts[chartKey];
+    if (!chart) {
+      continue;
+    }
+
+    const chartPlanets = chart.planets.filter((placement) => planets.has(placement.planet) || houses.has(placement.house));
+    const chartAspects =
+      includesComputation(plan, "aspects_to_requested_factors") || includesComputation(plan, "varga_confirmations")
+        ? (chart.aspects ?? []).filter((aspect) => relevantAspect(aspect, houses, planets)).slice(0, 24)
+        : [];
+
+    charts.push({
+      chart_key: chart.chart_key,
+      ascendant_sign: chart.ascendant_sign,
+      ascendant_longitude_deg: chart.ascendant_longitude_deg,
+      houses: chart.houses.filter((house) => houses.has(house.house)),
+      planets: chartPlanets,
+      aspects: chartAspects,
+    });
+  }
+
+  return charts;
+}
+
+function transitFactsForPlan(snapshot: ChartSnapshot, plan: AskContextPlanMetadata, includedPlanets: Planet[]) {
+  if (!plan.requested_timing.includes("transits") && !includesComputation(plan, "transit_hits_to_requested_factors")) {
+    return undefined;
+  }
+
+  const houses = new Set(plan.requested_houses);
+  const planets = new Set(includedPlanets);
+  const positions = snapshot.transits.positions
+    .filter((position) => planets.has(position.planet) || houses.has(position.house))
+    .slice(0, 12);
+
+  return {
+    as_of: snapshot.transits.as_of,
+    highlights: snapshot.transits.highlights.slice(0, 8),
+    positions,
+  };
+}
+
+function yogasForPlan(snapshot: ChartSnapshot, plan: AskContextPlanMetadata, includedPlanets: Planet[]) {
+  if (!includesComputation(plan, "yogas_involving_requested_factors")) {
+    return [];
+  }
+
+  const charts = new Set<string>(plan.requested_charts);
+  const planets = new Set(includedPlanets);
+  return snapshot.yogas
+    .filter(
+      (yoga) =>
+        yoga.source_charts.some((chart) => charts.has(chart)) ||
+        yoga.planets_involved.some((planet) => planets.has(planet)),
+    )
+    .slice(0, 8);
+}
+
+function plannedContextFacts(snapshot: ChartSnapshot, plan: AskContextPlanMetadata): AskPlannedContextFacts {
+  const includedPlanets = resolvePlanetsForContext(snapshot, plan);
+  const charts = chartFactsForPlan(snapshot, plan, includedPlanets);
+  const natalPlanets = snapshot.planetary_positions
+    .filter((placement) => includedPlanets.includes(placement.planet) || plan.requested_houses.includes(placement.house))
+    .slice(0, 16);
+  const transits = transitFactsForPlan(snapshot, plan, includedPlanets);
+  const yogas = yogasForPlan(snapshot, plan, includedPlanets);
+  const includedHouses = unique([
+    ...plan.requested_houses,
+    ...charts.flatMap((chart) => chart.houses.map((house) => house.house)),
+    ...charts.flatMap((chart) => chart.planets.map((planet) => planet.house)),
+    ...natalPlanets.map((planet) => planet.house),
+    ...(transits?.positions.map((planet) => planet.house) ?? []),
+  ]).sort((left, right) => left - right);
+
+  return {
+    intent_summary: plan.intent_summary,
+    requested: {
+      charts: plan.requested_charts,
+      houses: plan.requested_houses,
+      planets: plan.requested_planets,
+      timing: plan.requested_timing,
+      computations: plan.requested_computations,
+    },
+    included: {
+      charts: charts.map((chart) => chart.chart_key),
+      houses: includedHouses,
+      planets: includedPlanets,
+    },
+    charts,
+    natal_planets: natalPlanets,
+    dasha: plan.requested_timing.some((item) => item === "current_dasha" || item === "current_antardasha" || item === "upcoming_dasha")
+      ? snapshot.dasha
+      : undefined,
+    transits,
+    yogas,
+  };
+}
+
+function allowedChartsFromPlan(planned?: AskPlannedContextFacts) {
+  if (!planned) {
+    return [];
+  }
+  const charts = [...planned.included.charts];
+  if (planned.transits) {
+    charts.push("Transit");
+  }
+  return unique(charts);
+}
+
+function allowedHousesFromPlan(planned?: AskPlannedContextFacts) {
+  return planned?.included.houses ?? [];
+}
+
+function allowedPlanetsFromPlan(planned?: AskPlannedContextFacts) {
+  return planned?.included.planets ?? [];
+}
+
 export async function buildContextBundle(input: {
   supabase: SupabaseAskContextClient;
   profile_id: string;
   topic: Topic;
+  context_plan?: AskContextPlanMetadata;
   day_context?: AstrologyFactsAskContext;
 }): Promise<AskContextBundle> {
   const { data: profileData, error: profileError } = await input.supabase
@@ -215,11 +437,24 @@ export async function buildContextBundle(input: {
 
   const bundle = parsedDerived.data.topic_bundles[input.topic];
   const evidence = parsedDerived.data.topic_evidence_v1[input.topic] ?? buildTopicEvidence(parsedChart.data, bundle, input.topic);
-  const houses = allowedHouses(bundle, evidence, input.day_context);
-  const planets = allowedPlanets(bundle, evidence, input.day_context);
+  const planned = input.context_plan ? plannedContextFacts(parsedChart.data, input.context_plan) : undefined;
+  const dayCharts = input.day_context?.allowed_citations.charts ?? [];
+  const dayHouses = input.day_context?.allowed_citations.houses ?? [];
+  const dayPlanets = input.day_context?.allowed_citations.planets ?? [];
+  const baseCharts = planned ? dayCharts : allowedCharts(bundle, evidence, input.day_context);
+  const baseHouses = planned ? dayHouses : allowedHouses(bundle, evidence, input.day_context);
+  const basePlanets = planned ? dayPlanets : allowedPlanets(bundle, evidence, input.day_context);
+  const houses = [
+    ...new Set([...baseHouses, ...allowedHousesFromPlan(planned)]),
+  ].sort((left, right) => left - right);
+  const planets = [...new Set([...basePlanets, ...allowedPlanetsFromPlan(planned)])];
+  const charts = [
+    ...new Set([...baseCharts, ...allowedChartsFromPlan(planned)]),
+  ];
 
   return {
     ...bundle,
+    charts_used: charts.filter((chart) => chart !== "Transit"),
     context_id: derivedRow.id,
     birth_profile_id: input.profile_id,
     chart_snapshot_id: chartRow.id,
@@ -229,10 +464,12 @@ export async function buildContextBundle(input: {
     birth_time_confidence: parsedChart.data.birth_time_confidence ?? profile.birth_time_confidence,
     profile_summary: parsedChart.data.summary,
     time_sensitivity: parsedDerived.data.time_sensitivity,
+    context_plan: input.context_plan,
+    planned_context: planned,
     topic_evidence: evidence,
     day_context: input.day_context,
     allowed_citations: {
-      charts: allowedCharts(bundle, evidence, input.day_context),
+      charts,
       houses,
       planets,
     },

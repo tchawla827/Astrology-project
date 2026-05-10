@@ -131,7 +131,11 @@ function topicFromMetadata(metadata: LlmMetadata): Topic {
   if (metadata.classification?.topic) {
     return metadata.classification.topic;
   }
-  if (metadata.context_bundle_type === "mixed" || metadata.context_bundle_type === "daily") {
+  if (
+    metadata.context_bundle_type === "mixed" ||
+    metadata.context_bundle_type === "daily" ||
+    metadata.context_bundle_type === "planner"
+  ) {
     return "personality";
   }
   return metadata.context_bundle_type;
@@ -141,7 +145,11 @@ function askTopicFromMetadata(metadata: LlmMetadata): Topic | null {
   if (metadata.classification?.topic) {
     return metadata.classification.topic;
   }
-  if (metadata.context_bundle_type === "mixed" || metadata.context_bundle_type === "daily") {
+  if (
+    metadata.context_bundle_type === "mixed" ||
+    metadata.context_bundle_type === "daily" ||
+    metadata.context_bundle_type === "planner"
+  ) {
     return null;
   }
   return metadata.context_bundle_type;

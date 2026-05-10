@@ -353,6 +353,47 @@ export const AskAnswerSchema = z.object({
   }),
 });
 
+export const AskContextTimingNeedSchema = z.enum([
+  "current_dasha",
+  "current_antardasha",
+  "upcoming_dasha",
+  "transits",
+  "selected_day",
+]);
+
+export const AskContextComputationSchema = z.enum([
+  "house_lord_placements",
+  "planet_condition",
+  "varga_confirmations",
+  "aspects_to_requested_factors",
+  "dasha_lord_relevance",
+  "transit_hits_to_requested_factors",
+  "yogas_involving_requested_factors",
+  "birth_time_sensitivity",
+]);
+
+export const AskContextPlanSchema = z.object({
+  version: z.literal("ask_context_plan_v1").default("ask_context_plan_v1"),
+  primary_topic: TopicSchema,
+  intent_summary: z.string().min(1).max(220),
+  requested_charts: z.array(ChartKeySchema).max(6),
+  requested_houses: z.array(z.number().int().min(1).max(12)).max(8),
+  requested_planets: z.array(PlanetSchema).max(9),
+  requested_timing: z.array(AskContextTimingNeedSchema).max(5),
+  requested_computations: z.array(AskContextComputationSchema).max(8).default([]),
+  needs_timing: z.boolean(),
+  needs_technical_depth: z.boolean(),
+  birth_time_sensitive: z.boolean(),
+  is_mixed: z.boolean(),
+  confidence: z.enum(["low", "medium", "high"]),
+  reason: z.string().min(1).max(600),
+});
+
+export const AskContextPlanMetadataSchema = AskContextPlanSchema.extend({
+  source: z.enum(["llm", "deterministic_fallback"]),
+  planner_error: z.string().optional(),
+});
+
 export const LlmMetadataSchema = z.object({
   provider: z.enum(["gemini", "openrouter"]),
   model: z.string(),
@@ -361,9 +402,10 @@ export const LlmMetadataSchema = z.object({
     system: z.string(),
     route: z.string(),
     user: z.string(),
+    planner: z.string().optional(),
   }).optional(),
   answer_schema_version: z.string(),
-  context_bundle_type: z.union([TopicSchema, z.literal("mixed"), z.literal("daily")]),
+  context_bundle_type: z.union([TopicSchema, z.literal("mixed"), z.literal("daily"), z.literal("planner")]),
   context_bundle_id: z.string().optional(),
   classification: z.object({
     topic: TopicSchema,
@@ -373,6 +415,14 @@ export const LlmMetadataSchema = z.object({
     is_mixed: z.boolean(),
     matched_terms: z.array(z.string()),
     confidence: z.enum(["low", "medium", "high"]),
+  }).optional(),
+  context_plan: AskContextPlanMetadataSchema.optional(),
+  planner_metadata: z.object({
+    provider: z.enum(["gemini", "openrouter"]),
+    model: z.string(),
+    latency_ms: z.number().int().nonnegative(),
+    tokens_in: z.number().int().nonnegative().optional(),
+    tokens_out: z.number().int().nonnegative().optional(),
   }).optional(),
   repaired_from_provider: z.enum(["gemini", "openrouter"]).optional(),
   latency_ms: z.number().int().nonnegative(),
@@ -472,6 +522,10 @@ export type TimeSensitivity = z.infer<typeof TimeSensitivitySchema>;
 export type AskSession = z.infer<typeof AskSessionSchema>;
 export type AskMessage = z.infer<typeof AskMessageSchema>;
 export type AskAnswer = z.infer<typeof AskAnswerSchema>;
+export type AskContextTimingNeed = z.infer<typeof AskContextTimingNeedSchema>;
+export type AskContextComputation = z.infer<typeof AskContextComputationSchema>;
+export type AskContextPlan = z.infer<typeof AskContextPlanSchema>;
+export type AskContextPlanMetadata = z.infer<typeof AskContextPlanMetadataSchema>;
 export type LlmMetadata = z.infer<typeof LlmMetadataSchema>;
 export { DailyPredictionSchema };
 export type { DailyPrediction };

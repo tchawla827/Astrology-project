@@ -1,5 +1,5 @@
 import { computeBundles } from "@/lib/derived/computeBundles";
-import type { AskAnswer, Planet, Topic } from "@/lib/schemas";
+import type { AskAnswer, AskContextPlan, Planet, Topic } from "@/lib/schemas";
 import type { LlmProvider } from "@/lib/llm/providers";
 import type { AskContextBundle } from "@/lib/llm/buildContext";
 import { goldenSnapshot } from "@/tests/derived/goldenSnapshot";
@@ -110,6 +110,34 @@ export function createRecordedProvider(answerForTopic: (topic: Topic) => AskAnsw
     defaultModel: "recorded-gemini",
     async generate(args) {
       const content = args.messages.map((message) => message.content).join("\n");
+      if (args.system.includes("minimum astrological context")) {
+        const topic = (content.match(/"primary_topic":\s*"([^"]+)"/)?.[1] ??
+          content.match(/"topic":\s*"([^"]+)"/)?.[1] ??
+          "career") as Topic;
+        const bundle = goldenDerivedPayload.topic_bundles[topic];
+        const plan: AskContextPlan = {
+          version: "ask_context_plan_v1",
+          primary_topic: topic,
+          intent_summary: `Recorded planner context for ${topic}.`,
+          requested_charts: bundle.charts_used.slice(0, 5) as AskContextPlan["requested_charts"],
+          requested_houses: Object.keys(bundle.houses).map(Number).slice(0, 6),
+          requested_planets: (Object.keys(bundle.planets) as Planet[]).slice(0, 7),
+          requested_timing: ["current_dasha", "current_antardasha", "transits"],
+          requested_computations: ["house_lord_placements", "planet_condition", "aspects_to_requested_factors"],
+          needs_timing: true,
+          needs_technical_depth: true,
+          birth_time_sensitive: topic !== "spirituality",
+          is_mixed: false,
+          confidence: "high",
+          reason: "Recorded test provider returned a compact context plan.",
+        };
+        return {
+          output: plan,
+          tokens_in: 30,
+          tokens_out: 40,
+          latency_ms: 2,
+        };
+      }
       const topic = (content.match(/"topic":\s*"([^"]+)"/)?.[1] ?? "personality") as Topic;
       return {
         output: answerForTopic(topic),

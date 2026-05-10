@@ -1,7 +1,8 @@
 import { AskAnswerSchema, type AskAnswer, type DepthMode, type LlmMetadata, type ToneMode } from "@/lib/schemas";
 import { buildContextBundle, type AskContextBundle } from "@/lib/llm/buildContext";
-import { classifyQuestion, type AskClassification } from "@/lib/llm/classify";
+import type { AskClassification } from "@/lib/llm/classify";
 import { LlmCitationError, LlmSchemaError } from "@/lib/llm/errors";
+import { planAskContext, type PlannedAskContext } from "@/lib/llm/planContext";
 import { PROMPT_VERSIONS, routeDayQuestionV2, routePromptFor, systemPromptV1, userPromptV2 } from "@/lib/llm/prompts";
 import { callWithFallback, type LlmProvider } from "@/lib/llm/providers";
 import { applyBirthTimeConsistency, validateAnswer } from "@/lib/llm/validate";
@@ -238,6 +239,7 @@ function buildPrompt(input: {
       system: PROMPT_VERSIONS.system,
       route: input.context.day_context ? PROMPT_VERSIONS.day_question_route : PROMPT_VERSIONS.route[input.context.topic],
       user: PROMPT_VERSIONS.user,
+      planner: PROMPT_VERSIONS.planner,
     },
   };
 }
@@ -276,6 +278,28 @@ function logLlmValidationFailure(error: LlmCitationError | LlmSchemaError) {
   });
 }
 
+function plannerMetadata(planned: PlannedAskContext) {
+  if (!planned.planner_metadata) {
+    return undefined;
+  }
+
+  return {
+    provider: planned.planner_metadata.provider,
+    model: planned.planner_metadata.model,
+    latency_ms: planned.planner_metadata.latency_ms,
+    tokens_in: planned.planner_metadata.tokens_in,
+    tokens_out: planned.planner_metadata.tokens_out,
+  };
+}
+
+function withPlanningMetadata(meta: LlmMetadata, planned: PlannedAskContext): LlmMetadata {
+  return {
+    ...meta,
+    context_plan: planned.plan,
+    planner_metadata: plannerMetadata(planned),
+  };
+}
+
 export async function generateAnswer(input: GenerateAnswerInput): Promise<{
   answer: AskAnswer;
   meta: LlmMetadata;
@@ -283,11 +307,17 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<{
   assistant_message_id?: string;
   classification: AskClassification;
 }> {
-  const classification = await classifyQuestion({ question: input.question });
+  const planned = await planAskContext({
+    question: input.question,
+    hasSelectedDayContext: Boolean(input.day_context),
+    providers: input.providers,
+  });
+  const classification = planned.classification;
   const context = await buildContextBundle({
     supabase: input.supabase,
     profile_id: input.profile_id,
     topic: classification.topic,
+    context_plan: planned.plan,
     day_context: input.day_context,
   });
 
@@ -310,7 +340,7 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<{
   });
 
   let answer: AskAnswer;
-  let meta = firstCall.meta;
+  let meta = withPlanningMetadata(firstCall.meta, planned);
 
   try {
     answer = validateAnswer(firstCall.output, context, { depth: input.depth });
@@ -332,10 +362,10 @@ export async function generateAnswer(input: GenerateAnswerInput): Promise<{
       temperature: 0,
     });
     answer = validateAnswer(repaired.output, context, { depth: input.depth });
-    meta = {
+    meta = withPlanningMetadata({
       ...repaired.meta,
       repaired_from_provider: firstCall.meta.provider,
-    };
+    }, planned);
   }
 
   answer = applyBirthTimeConsistency(answer, context, classification);

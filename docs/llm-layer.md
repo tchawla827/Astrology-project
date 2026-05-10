@@ -1,14 +1,16 @@
 # LLM Layer
 
-The LLM exists to explain computed astrological facts. It does not calculate anything, invent placements, or answer from generic horoscope tropes. Every Ask answer is grounded strictly in the supplied context bundle.
+The LLM exists to plan context needs and explain computed astrological facts. It does not calculate anything, invent placements, or answer from generic horoscope tropes. Every Ask answer is grounded strictly in the supplied context bundle.
 
 ## Core rules
 
-1. Engine computes. LLM explains.
-2. Send the minimum viable context — a single topic bundle, not the whole profile.
+1. Engine computes. LLM plans context and explains.
+2. Send the minimum viable context requested by the planner, not the whole profile.
 3. Every answer is structured (`AskAnswer` schema, see [data-model.md](data-model.md)).
 4. Tone is a controlled feature, not model-personality drift.
 5. If the model's output violates the schema or invents charts/factors not in context, reject it. One repair attempt, then fail loudly.
+
+Normal Ask flow uses planner-selected context. The planner receives only a catalog of available charts, houses, planets, timing sources, and computations; it returns a bounded JSON request, and the server extracts those facts from the stored chart snapshot.
 
 ## Provider adapter
 
@@ -37,7 +39,21 @@ export interface LlmProvider {
 
 Never hardcode a provider name outside `web/lib/llm/`.
 
-## Question classifier
+## Context planner
+
+Ask uses a planner-driven retrieval step before answer generation:
+
+1. The planner LLM receives the user question and a catalog of available charts, houses, planets, timing sources, and computations.
+2. It returns structured JSON (`ask_context_plan_v1`) with `primary_topic`, `intent_summary`, requested charts, houses, planets, timing, and computations.
+3. The server validates and clamps the request to supported values and budget limits.
+4. The server extracts those facts from the stored `ChartSnapshot`: requested chart houses, relevant planet placements, aspects, dasha, transits, and yogas.
+5. The answer LLM receives this planner-requested context as the question-specific source of truth.
+
+The planner is semantic. It should understand a question like "can I reconnect with my ex?" as a relationship/timing request without requiring static keyword routing.
+
+If the planner provider fails or returns invalid JSON, the deterministic classifier is used only as a fallback so Ask can still answer gracefully.
+
+## Question classifier fallback
 
 ```ts
 async function classifyQuestion(input: { question: string; profile_summary: ProfileSummary }): Promise<{
@@ -49,13 +65,13 @@ async function classifyQuestion(input: { question: string; profile_summary: Prof
 }>;
 ```
 
-Implemented deterministic-first with a constrained topic vocabulary. This keeps Ask fast, cheap, and aligned with the product rule that deterministic routing should happen before generative interpretation. The classifier can still expose `is_mixed`, but it always chooses one primary topic bundle so the LLM never receives the full profile.
+Implemented with a constrained topic vocabulary. This is now a provider-failure fallback for planner outages or malformed planner JSON. The normal path is planner-first.
 
 Topics: `personality | career | wealth | relationships | marriage | family | health | education | spirituality | relocation`.
 
 ## Context bundles
 
-Precomputed per-profile by the derived-features job (phase 05) and stored in `derived_feature_snapshots.payload.topic_bundles`.
+Precomputed topic bundles still exist per profile in `derived_feature_snapshots.payload.topic_bundles`, but Ask context is narrowed by the planner. `buildContextBundle(...)` loads the topic bundle and full chart snapshot, then attaches `context_plan` and `planner_requested_context` with the exact facts the planner requested.
 
 Shape is defined in [data-model.md](data-model.md) as `TopicBundle`.
 
@@ -74,7 +90,7 @@ Shape is defined in [data-model.md](data-model.md) as `TopicBundle`.
 | spirituality | D1, D20, D45, D60 | 5, 9, 12 | Ketu, Jupiter, 9th lord, 12th lord |
 | relocation | D1, D4, D12 | 3, 4, 9, 12 | 4th lord, 12th lord, Rahu |
 
-Each bundle also includes current dasha/antardasha and current transit highlights from the ChartSnapshot.
+Each bundle also includes current dasha/antardasha and current transit highlights from the ChartSnapshot. Planner-requested context can additionally include selected chart slices, relevant aspects, transit positions, dasha periods, and yogas.
 
 ## Prompt architecture
 
@@ -121,6 +137,8 @@ Question:
 
 Return ONLY JSON matching AskAnswer schema.
 ```
+
+`user_v2.ts` additionally includes `context_plan` and `planner_requested_context`. The answer prompt treats `planner_requested_context` as the question-specific source of truth and uses broader topic evidence only as support.
 
 ## Answer schema
 
@@ -198,6 +216,7 @@ export const PROMPT_VERSIONS = {
   system: 'system_v1',
   route: { career: 'route_career_v1', wealth: 'route_wealth_v1', /* ... */ },
   user: 'user_v1',
+  planner: 'context_planner_v1',
   answer_schema: 'answer_v1',
 };
 ```
