@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, CalendarDays, HeartPulse, LayoutDashboard, LineChart, MessageSquareText, Sparkles, SunMedium, UserRound } from "lucide-react";
+import { BarChart3, CalendarDays, HeartHandshake, HeartPulse, LayoutDashboard, LineChart, MessageSquareText, Sparkles, SunMedium, UserRound } from "lucide-react";
 
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -10,6 +10,7 @@ const navItems = [
   { href: "/charts", label: "Charts", icon: BarChart3 },
   { href: "/life-areas", label: "Life Areas", icon: HeartPulse },
   { href: "/timeline", label: "Timing Graph", icon: LineChart },
+  { href: "/relationships", label: "Relationships", icon: HeartHandshake },
   { href: "/ask", label: "Ask AI", icon: MessageSquareText },
   { href: "/daily", label: "Daily", icon: CalendarDays },
   { href: "/panchang", label: "Panchang", icon: SunMedium },

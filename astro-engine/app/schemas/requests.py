@@ -5,7 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-from .common import Ayanamsha, BirthProfileInput, ChartKey, PlanetPlacementOut
+from .common import Ayanamsha, BirthProfileInput, ChartKey, ChartOut, PlanetPlacementOut
 
 
 class ProfileRequest(BirthProfileInput):
@@ -58,3 +58,16 @@ class PanchangRequest(BaseModel):
         except ValueError as exc:
             raise ValueError("date must be a valid calendar date") from exc
         return value
+
+
+class CompatibilityPersonInput(BaseModel):
+    label: str
+    summary: dict[str, object]
+    charts: dict[str, ChartOut]
+    planetary_positions: list[PlanetPlacementOut]
+
+
+class CompatibilityRequest(BaseModel):
+    person_a: CompatibilityPersonInput
+    person_b: CompatibilityPersonInput
+    relationship_label: str

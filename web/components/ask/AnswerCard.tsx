@@ -36,11 +36,13 @@ export function AnswerCard({
   metadata,
   messageId,
   className,
+  shareEnabled = true,
 }: {
   answer: AskAnswer;
   metadata?: LlmMetadata;
   messageId?: string;
   className?: string;
+  shareEnabled?: boolean;
 }) {
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -50,7 +52,7 @@ export function AnswerCard({
             <p className="text-xs uppercase tracking-[0.18em] text-primary">Verdict</p>
             <CardTitle className="text-xl leading-7">{answer.verdict}</CardTitle>
           </div>
-          <ShareButton askMessageId={messageId} />
+          {shareEnabled ? <ShareButton askMessageId={messageId} /> : null}
         </div>
         {answer.explanation ? (
           <p className="max-w-3xl text-sm leading-6 text-muted-foreground">{answer.explanation}</p>

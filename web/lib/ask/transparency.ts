@@ -134,7 +134,8 @@ function topicFromMetadata(metadata: LlmMetadata): Topic {
   if (
     metadata.context_bundle_type === "mixed" ||
     metadata.context_bundle_type === "daily" ||
-    metadata.context_bundle_type === "planner"
+    metadata.context_bundle_type === "planner" ||
+    metadata.context_bundle_type === "relationship"
   ) {
     return "personality";
   }
@@ -148,7 +149,8 @@ function askTopicFromMetadata(metadata: LlmMetadata): Topic | null {
   if (
     metadata.context_bundle_type === "mixed" ||
     metadata.context_bundle_type === "daily" ||
-    metadata.context_bundle_type === "planner"
+    metadata.context_bundle_type === "planner" ||
+    metadata.context_bundle_type === "relationship"
   ) {
     return null;
   }

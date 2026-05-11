@@ -22,12 +22,14 @@ export function ThreadView({
   depth,
   onFollowUp,
   onRetry,
+  shareEnabled = true,
 }: {
   messages: AskUiMessage[];
   tone: ToneMode;
   depth: DepthMode;
   onFollowUp(question: string): void;
   onRetry(messageId: string, question: string): void;
+  shareEnabled?: boolean;
 }) {
   const lastAssistantIndex = messages.findLastIndex((message) => message.role === "assistant");
 
@@ -47,7 +49,12 @@ export function ThreadView({
         if (message.role === "assistant") {
           return (
             <div className="space-y-3" key={message.id}>
-              <AnswerCard answer={message.content_structured} messageId={message.id} metadata={message.llm_metadata} />
+              <AnswerCard
+                answer={message.content_structured}
+                messageId={message.id}
+                metadata={message.llm_metadata}
+                shareEnabled={shareEnabled}
+              />
               {index === lastAssistantIndex ? <FollowUpSuggestions depth={depth} onSelect={onFollowUp} tone={tone} /> : null}
             </div>
           );

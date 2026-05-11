@@ -5,6 +5,7 @@ import {
   ChartSnapshotSchema,
   DashaTimelineSchema,
   PanchangSchema,
+  RelationshipFactorSchema,
   TimelineYearSchema,
   TransitSummarySchema,
 } from "@/lib/schemas";
@@ -17,6 +18,7 @@ import type {
   TimelineYear,
   TransitSummary,
 } from "@/lib/schemas";
+import { z } from "zod";
 
 export type Ayanamsha = "lahiri" | "raman" | "kp";
 
@@ -64,6 +66,32 @@ export interface PanchangRequest {
   longitude: number;
   timezone: string;
   ayanamsha?: Ayanamsha;
+}
+
+export const CompatibilityResponseSchema = z.object({
+  engine_version: z.string(),
+  relationship_label: z.string(),
+  polarity: z.enum(["supportive", "mixed", "challenging"]),
+  score_band: z.number(),
+  factors: z.array(RelationshipFactorSchema),
+});
+
+export type CompatibilityResponse = z.infer<typeof CompatibilityResponseSchema>;
+
+export interface CompatibilityRequest {
+  relationship_label: string;
+  person_a: {
+    label: string;
+    summary: ChartSnapshot["summary"];
+    charts: Partial<ChartSnapshot["charts"]>;
+    planetary_positions: PlanetPlacement[];
+  };
+  person_b: {
+    label: string;
+    summary: ChartSnapshot["summary"];
+    charts: Partial<ChartSnapshot["charts"]>;
+    planetary_positions: PlanetPlacement[];
+  };
 }
 
 export type { ChartResponse, ChartSnapshot, DashaTimeline, PanchangResponse, PlanetPlacement, TransitSummary };
@@ -166,4 +194,8 @@ export async function getTimelineYear(body: TimelineYearRequest, opts?: CallOpti
 
 export async function getPanchang(body: PanchangRequest, opts?: CallOptions) {
   return callAstroEngine<PanchangResponse>("/panchang", body, PanchangSchema, opts);
+}
+
+export async function getCompatibility(body: CompatibilityRequest, opts?: CallOptions) {
+  return callAstroEngine<CompatibilityResponse>("/compatibility", body, CompatibilityResponseSchema, opts);
 }

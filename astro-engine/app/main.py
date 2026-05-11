@@ -3,7 +3,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.observability import configure_logging, request_log_middleware
-from app.routes import charts, dasha, health, panchang, profile, timeline, transits
+from app.routes import charts, compatibility, dasha, health, panchang, profile, timeline, transits
 from app.versioning import ENGINE_VERSION
 
 configure_logging()
@@ -13,6 +13,7 @@ app.middleware("http")(request_log_middleware)
 app.include_router(health.router)
 app.include_router(profile.router)
 app.include_router(charts.router)
+app.include_router(compatibility.router)
 app.include_router(dasha.router)
 app.include_router(transits.router)
 app.include_router(panchang.router)

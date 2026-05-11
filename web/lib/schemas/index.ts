@@ -435,6 +435,80 @@ export const AskContextPlanMetadataSchema = AskContextPlanSchema.extend({
   planner_error: z.string().optional(),
 });
 
+export const RelationshipLabelSchema = z.enum([
+  "friend",
+  "romantic_partner",
+  "spouse",
+  "ex",
+  "sibling",
+  "parent",
+  "child",
+  "colleague",
+]);
+
+export const RelationshipParticipantSchema = z.object({
+  user_id: z.string().uuid(),
+  birth_profile_id: z.string().uuid(),
+  display_name: z.string(),
+  label_for_other: RelationshipLabelSchema,
+});
+
+export const RelationshipCitationSchema = z.object({
+  person: z.enum(["self", "other", "both"]),
+  charts: z.array(z.string()),
+  houses: z.array(z.number().int().min(1).max(12)),
+  planets: z.array(PlanetSchema),
+});
+
+export const RelationshipFactorSchema = z.object({
+  category: z.string().min(1),
+  polarity: z.enum(["strength", "friction", "mixed", "timing"]),
+  title: z.string().min(1),
+  summary: z.string().min(1),
+  citations: z.array(RelationshipCitationSchema).min(1),
+  confidence: z.enum(["high", "medium", "low"]),
+});
+
+export const RelationshipInsightSchema = z.object({
+  version: z.literal("relationship_insight_v1"),
+  relationship_id: z.string().uuid(),
+  labels: z.object({
+    self: RelationshipLabelSchema,
+    other: RelationshipLabelSchema,
+  }),
+  participants: z.object({
+    self: RelationshipParticipantSchema,
+    other: RelationshipParticipantSchema,
+  }),
+  verdict: z.string().min(1).max(280),
+  summary: z.string().min(1).max(1200),
+  confidence: z.object({
+    level: z.enum(["high", "medium", "low"]),
+    note: z.string().min(1),
+  }),
+  categories: z.array(RelationshipFactorSchema).min(1),
+  strengths: z.array(RelationshipFactorSchema),
+  frictions: z.array(RelationshipFactorSchema),
+  timing_notes: z.array(RelationshipFactorSchema),
+  computed_basis: z.object({
+    engine_version: z.string(),
+    chart_snapshot_ids: z.object({ self: z.string().uuid(), other: z.string().uuid() }),
+    profile_ids: z.object({ self: z.string().uuid(), other: z.string().uuid() }),
+  }),
+  created_at: z.string(),
+});
+
+export const RelationshipAskSessionSchema = z.object({
+  id: z.string().uuid(),
+  relationship_id: z.string().uuid(),
+  created_by: z.string().uuid(),
+  tone_mode: ToneModeSchema,
+  depth: DepthModeSchema,
+  context_kind: z.enum(["natal", "daily"]).default("natal"),
+  context_date: z.string().nullable().optional(),
+  created_at: z.string(),
+});
+
 export const LlmMetadataSchema = z.object({
   provider: z.enum(["gemini", "openrouter"]),
   model: z.string(),
@@ -446,7 +520,13 @@ export const LlmMetadataSchema = z.object({
     planner: z.string().optional(),
   }).optional(),
   answer_schema_version: z.string(),
-  context_bundle_type: z.union([TopicSchema, z.literal("mixed"), z.literal("daily"), z.literal("planner")]),
+  context_bundle_type: z.union([
+    TopicSchema,
+    z.literal("mixed"),
+    z.literal("daily"),
+    z.literal("planner"),
+    z.literal("relationship"),
+  ]),
   context_bundle_id: z.string().optional(),
   classification: z.object({
     topic: TopicSchema,
@@ -489,6 +569,30 @@ export const AssistantAskMessageSchema = z.object({
 });
 
 export const AskMessageSchema = z.discriminatedUnion("role", [UserAskMessageSchema, AssistantAskMessageSchema]);
+
+export const UserRelationshipAskMessageSchema = z.object({
+  id: z.string().uuid(),
+  relationship_ask_session_id: z.string().uuid(),
+  role: z.literal("user"),
+  content: z.string(),
+  created_by: z.string().uuid().nullable().optional(),
+  created_at: z.string(),
+});
+
+export const AssistantRelationshipAskMessageSchema = z.object({
+  id: z.string().uuid(),
+  relationship_ask_session_id: z.string().uuid(),
+  role: z.literal("assistant"),
+  content_structured: AskAnswerSchema,
+  llm_metadata: LlmMetadataSchema,
+  created_by: z.string().uuid().nullable().optional(),
+  created_at: z.string(),
+});
+
+export const RelationshipAskMessageSchema = z.discriminatedUnion("role", [
+  UserRelationshipAskMessageSchema,
+  AssistantRelationshipAskMessageSchema,
+]);
 
 const PanchangElementSchema = z.object({
   name: z.string(),
@@ -560,6 +664,13 @@ export type TimeSensitivity = z.infer<typeof TimeSensitivitySchema>;
 export type AskSession = z.infer<typeof AskSessionSchema>;
 export type AskMessage = z.infer<typeof AskMessageSchema>;
 export type AskAnswer = z.infer<typeof AskAnswerSchema>;
+export type RelationshipLabel = z.infer<typeof RelationshipLabelSchema>;
+export type RelationshipParticipant = z.infer<typeof RelationshipParticipantSchema>;
+export type RelationshipCitation = z.infer<typeof RelationshipCitationSchema>;
+export type RelationshipFactor = z.infer<typeof RelationshipFactorSchema>;
+export type RelationshipInsight = z.infer<typeof RelationshipInsightSchema>;
+export type RelationshipAskSession = z.infer<typeof RelationshipAskSessionSchema>;
+export type RelationshipAskMessage = z.infer<typeof RelationshipAskMessageSchema>;
 export type AskContextTimingNeed = z.infer<typeof AskContextTimingNeedSchema>;
 export type AskContextComputation = z.infer<typeof AskContextComputationSchema>;
 export type AskContextPlan = z.infer<typeof AskContextPlanSchema>;

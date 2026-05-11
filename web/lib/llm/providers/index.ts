@@ -7,7 +7,7 @@ import { LlmProviderError } from "@/lib/llm/errors";
 import type { AskClassification } from "@/lib/llm/classify";
 import type { LlmMetadata, Topic } from "@/lib/schemas";
 
-type ContextBundleType = Topic | "daily" | "planner";
+type ContextBundleType = Topic | "daily" | "planner" | "relationship";
 const DEFAULT_MAX_ATTEMPTS = 5;
 
 export type { LlmMessage, LlmProvider };
@@ -50,6 +50,60 @@ function llmFailureDetails(error: unknown) {
   return error.cause;
 }
 
+function shouldLogLlmAttempts() {
+  const flag = process.env.ASK_LLM_ATTEMPT_LOGS?.toLowerCase();
+  if (flag === "0" || flag === "false" || flag === "off") {
+    return false;
+  }
+  return process.env.NODE_ENV !== "test";
+}
+
+function logLlmAttempt(input: {
+  phase: "start" | "success" | "failure" | "exhausted";
+  callId: string;
+  provider?: LlmProvider;
+  model?: string;
+  topic: ContextBundleType;
+  attempt: number;
+  maxAttempts: number;
+  latencyMs?: number;
+  tokensIn?: number;
+  tokensOut?: number;
+  retryable?: boolean;
+  status?: number;
+  reason?: string;
+}) {
+  if (!shouldLogLlmAttempts()) {
+    return;
+  }
+
+  console.log("LLM try", {
+    phase: input.phase,
+    call_id: input.callId,
+    provider: input.provider?.name,
+    model: input.model ?? input.provider?.defaultModel,
+    topic: input.topic,
+    attempt: input.attempt,
+    max_attempts: input.maxAttempts,
+    latency_ms: input.latencyMs,
+    tokens_in: input.tokensIn,
+    tokens_out: input.tokensOut,
+    retryable: input.retryable,
+    status: input.status,
+    reason: input.reason,
+  });
+}
+
+function selectedModel(provider: LlmProvider, override?: string) {
+  if (override) {
+    return override;
+  }
+  if (provider.name === "openrouter") {
+    return process.env.OPENROUTER_MODEL || provider.defaultModel;
+  }
+  return provider.defaultModel;
+}
+
 function logLlmProviderFailure(input: {
   error: unknown;
   provider: LlmProvider;
@@ -58,9 +112,11 @@ function logLlmProviderFailure(input: {
   attempt: number;
   maxAttempts: number;
   retryable: boolean;
+  callId?: string;
 }) {
   const status = input.error instanceof LlmProviderError ? input.error.status : undefined;
   console.error("LLM provider failed", {
+    call_id: input.callId,
     provider: input.provider.name,
     model: input.model ?? input.provider.defaultModel,
     topic: input.topic,
@@ -114,6 +170,7 @@ export async function callWithFallback(args: CallWithFallbackArgs): Promise<{ ou
   const maxAttempts = Math.max(1, args.max_attempts ?? args.max_attempts_per_provider ?? DEFAULT_MAX_ATTEMPTS);
   let lastError: unknown;
   let providerIndex = 0;
+  const callId = `llm_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 
   for (let attempt = 1; attempt <= maxAttempts && providers.length > 0; attempt += 1) {
     const provider = providers[providerIndex % providers.length];
@@ -123,7 +180,16 @@ export async function callWithFallback(args: CallWithFallbackArgs): Promise<{ ou
 
     try {
       const start = Date.now();
-      const model = args.model ?? provider.defaultModel;
+      const model = selectedModel(provider, args.model);
+      logLlmAttempt({
+        phase: "start",
+        callId,
+        provider,
+        model,
+        topic: args.topic,
+        attempt,
+        maxAttempts,
+      });
       printLlmTraffic("REQUEST", {
         provider: provider.name,
         model,
@@ -158,6 +224,18 @@ export async function callWithFallback(args: CallWithFallbackArgs): Promise<{ ou
         tokens_out: result.tokens_out,
       };
 
+      logLlmAttempt({
+        phase: "success",
+        callId,
+        provider,
+        model,
+        topic: args.topic,
+        attempt,
+        maxAttempts,
+        latencyMs: meta.latency_ms,
+        tokensIn: result.tokens_in,
+        tokensOut: result.tokens_out,
+      });
       printLlmTraffic("RESPONSE", {
         provider: provider.name,
         model,
@@ -176,14 +254,28 @@ export async function callWithFallback(args: CallWithFallbackArgs): Promise<{ ou
     } catch (error) {
       lastError = error;
       const retryable = !(error instanceof LlmProviderError && error.retryable === false);
-      logLlmProviderFailure({
-        error,
+      const status = error instanceof LlmProviderError ? error.status : undefined;
+      logLlmAttempt({
+        phase: "failure",
+        callId,
         provider,
-        model: args.model,
+        model: selectedModel(provider, args.model),
         topic: args.topic,
         attempt,
         maxAttempts,
         retryable,
+        status,
+        reason: llmFailureReason(error),
+      });
+      logLlmProviderFailure({
+        error,
+        provider,
+        model: selectedModel(provider, args.model),
+        topic: args.topic,
+        attempt,
+        maxAttempts,
+        retryable,
+        callId,
       });
       if (!retryable) {
         providers.splice(providerIndex % providers.length, 1);
@@ -197,5 +289,13 @@ export async function callWithFallback(args: CallWithFallbackArgs): Promise<{ ou
     }
   }
 
+  logLlmAttempt({
+    phase: "exhausted",
+    callId,
+    topic: args.topic,
+    attempt: maxAttempts,
+    maxAttempts,
+    reason: llmFailureReason(lastError),
+  });
   throw new LlmProviderError("All LLM providers failed.", { cause: lastError });
 }
