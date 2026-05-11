@@ -173,10 +173,9 @@ export function RelationshipWorkspace({
             <Badge className="capitalize">{insight.confidence.level} confidence</Badge>
             <span className="text-sm text-muted-foreground">{insight.confidence.note}</span>
           </div>
-          <div className="grid gap-5 lg:grid-cols-3">
+          <div className="grid gap-5 lg:grid-cols-2">
             <FactorList title="Strengths" factors={insight.strengths} />
             <FactorList title="Frictions" factors={insight.frictions} />
-            <FactorList title="All factors" factors={insight.categories} />
           </div>
         </>
       ) : (
