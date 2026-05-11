@@ -104,9 +104,13 @@ export function RelationshipWorkspace({
             <p className="text-sm uppercase tracking-[0.24em]">Relationship workspace</p>
           </div>
           <h1 className="mt-4 font-display text-5xl font-semibold leading-tight sm:text-6xl">{relationship.other_name}</h1>
-          <p className="mt-4 text-sm leading-6 text-muted-foreground">
-            {labelText(relationship.self_label)} / {labelText(relationship.other_label)}
-          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <Badge>{labelText(relationship.other_label)}</Badge>
+            <p className="text-sm leading-6 text-muted-foreground">
+              {relationship.other_name} is your {labelText(relationship.other_label).toLowerCase()}; you are their{" "}
+              {labelText(relationship.self_label).toLowerCase()}.
+            </p>
+          </div>
           {insight ? <p className="mt-5 max-w-3xl text-base leading-7">{insight.verdict}</p> : null}
           <div className="mt-6 flex flex-wrap gap-2">
             <Button className="gap-2" disabled={isRegenerating} onClick={() => void regenerateInsight()} type="button">

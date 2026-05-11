@@ -5,7 +5,7 @@ import { RelationshipWorkspace } from "@/components/relationships/RelationshipWo
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { loadRelationshipWorkspace, type SupabaseRelationshipsClient } from "@/lib/server/loadRelationships";
 import { ToneModeSchema } from "@/lib/schemas";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 
 export default async function RelationshipPage({ params }: { params: { relationship_id: string } }) {
   const supabase = createClient();
@@ -28,10 +28,11 @@ export default async function RelationshipPage({ params }: { params: { relations
     );
   }
 
+  const service = createServiceClient();
   const [{ data: userProfile }, workspace] = await Promise.all([
     supabase.from("user_profiles").select("default_tone_mode").eq("id", user.id).maybeSingle(),
     loadRelationshipWorkspace({
-      supabase: supabase as unknown as SupabaseRelationshipsClient,
+      supabase: service as unknown as SupabaseRelationshipsClient,
       userId: user.id,
       relationshipId: params.relationship_id,
     }),

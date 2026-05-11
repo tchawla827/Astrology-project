@@ -1,13 +1,14 @@
 import Link from "next/link";
-import { HeartHandshake, Link2, ShieldCheck } from "lucide-react";
+import { HeartHandshake, Link2, ShieldCheck, UserRound } from "lucide-react";
 
+import { RelationshipInviteLinkForm } from "@/components/relationships/RelationshipInviteLinkForm";
 import { RelationshipInviteForm } from "@/components/relationships/RelationshipInviteForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { labelText } from "@/lib/relationships/labels";
 import { loadRelationshipsIndex, type SupabaseRelationshipsClient } from "@/lib/server/loadRelationships";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 
 export default async function RelationshipsPage() {
   const supabase = createClient();
@@ -30,7 +31,8 @@ export default async function RelationshipsPage() {
     );
   }
 
-  const index = await loadRelationshipsIndex(supabase as unknown as SupabaseRelationshipsClient, user.id);
+  const service = createServiceClient();
+  const index = await loadRelationshipsIndex(service as unknown as SupabaseRelationshipsClient, user.id);
 
   return (
     <div className="space-y-8">
@@ -59,14 +61,24 @@ export default async function RelationshipsPage() {
               {index.relationships.map((relationship) => (
                 <Card className="border-primary/20 bg-card/70" key={relationship.id}>
                   <CardHeader>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <CardTitle className="text-2xl">{relationship.other_name}</CardTitle>
-                      <Badge>{labelText(relationship.self_label)}</Badge>
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-primary/20 bg-primary/10 text-primary">
+                        <UserRound className="h-5 w-5" aria-hidden="true" />
+                      </div>
+                      <div className="min-w-0 space-y-2">
+                        <CardTitle className="truncate text-2xl">{relationship.other_name}</CardTitle>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge>{labelText(relationship.other_label)}</Badge>
+                          <span className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                            Accepted relationship
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      They are your {labelText(relationship.other_label).toLowerCase()}. You are their{" "}
+                      {relationship.other_name} is your {labelText(relationship.other_label).toLowerCase()}. You are their{" "}
                       {labelText(relationship.self_label).toLowerCase()}.
                     </p>
                     <Button asChild>
@@ -88,6 +100,15 @@ export default async function RelationshipsPage() {
         <aside className="space-y-5">
           <Card className="border-primary/20 bg-card/70">
             <CardHeader>
+              <CardTitle className="text-xl">Join from invite</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <RelationshipInviteLinkForm />
+            </CardContent>
+          </Card>
+
+          <Card className="border-primary/20 bg-card/70">
+            <CardHeader>
               <div className="flex items-center gap-3 text-primary">
                 <Link2 className="h-5 w-5" aria-hidden="true" />
                 <CardTitle className="text-xl">Create invite</CardTitle>
@@ -106,11 +127,21 @@ export default async function RelationshipsPage() {
               {index.invites.length > 0 ? (
                 index.invites.map((invite) => (
                   <div className="rounded-md border border-primary/15 bg-background/50 p-3" key={invite.id}>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge>{invite.status}</Badge>
-                      <span className="text-sm">{labelText(invite.requester_label)} / {labelText(invite.recipient_label)}</span>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge>{invite.status}</Badge>
+                        <span className="text-sm">{labelText(invite.recipient_label)}</span>
+                      </div>
+                      {invite.status === "pending" ? (
+                        <Button asChild size="sm" variant="ghost">
+                          <Link href={`/relationships/invite/${invite.token}`}>Open</Link>
+                        </Button>
+                      ) : null}
                     </div>
-                    <p className="mt-2 text-xs text-muted-foreground">Expires {new Date(invite.expires_at).toLocaleDateString()}</p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      You are their {labelText(invite.requester_label).toLowerCase()}. Expires{" "}
+                      {new Date(invite.expires_at).toLocaleDateString()}.
+                    </p>
                   </div>
                 ))
               ) : (
