@@ -35,5 +35,6 @@ astro-engine/ephe/*
 !astro-engine/ephe/.gitkeep
 !astro-engine/ephe/*.se1
 referenc.png
+image.png
 
 *log

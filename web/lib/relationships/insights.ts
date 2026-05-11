@@ -221,7 +221,7 @@ CRITICAL INSTRUCTION: You MUST return ONLY valid JSON matching this exact struct
       "confidence": "high" | "medium" | "low",
       "citations": [
         {
-          "person": "both",
+          "person": "both", // MUST be EXACTLY "self" (for Person A), "other" (for Person B), or "both"
           "charts": ["D1"],
           "houses": [1, 7], // MUST be an array of numbers, NOT strings!
           "planets": ["Sun", "Moon"]
@@ -238,7 +238,7 @@ CRITICAL INSTRUCTION: You MUST return ONLY valid JSON matching this exact struct
       "confidence": "high" | "medium" | "low",
       "citations": [
         {
-          "person": "both",
+          "person": "both", // MUST be EXACTLY "self" (for Person A), "other" (for Person B), or "both"
           "charts": ["D1"],
           "houses": [1, 7],
           "planets": ["Sun", "Moon"]
@@ -255,7 +255,7 @@ CRITICAL INSTRUCTION: You MUST return ONLY valid JSON matching this exact struct
       "confidence": "high" | "medium" | "low",
       "citations": [
         {
-          "person": "both",
+          "person": "both", // MUST be EXACTLY "self" (for Person A), "other" (for Person B), or "both"
           "charts": ["D1"],
           "houses": [1, 7],
           "planets": ["Sun", "Moon"]
@@ -294,6 +294,23 @@ Do not include any markdown formatting like \`\`\`json around the output, just t
     schema: LlmInsightOutputSchema,
     topic: "relationship",
   });
+
+  // Pre-process LLM output to fix common enum mistakes for "person"
+  if (llmOutput && typeof llmOutput === "object") {
+    for (const category of ["strengths", "frictions", "timing_notes"]) {
+      const arr = (llmOutput as any)[category];
+      if (Array.isArray(arr)) {
+        for (const item of arr) {
+          if (Array.isArray(item.citations)) {
+            for (const cit of item.citations) {
+              if (cit.person === "A" || cit.person === "person_a") cit.person = "self";
+              if (cit.person === "B" || cit.person === "person_b") cit.person = "other";
+            }
+          }
+        }
+      }
+    }
+  }
 
   const parsedLlmOutput = LlmInsightOutputSchema.parse(llmOutput);
 
