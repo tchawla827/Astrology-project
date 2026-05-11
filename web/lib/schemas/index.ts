@@ -470,7 +470,7 @@ export const RelationshipFactorSchema = z.object({
 });
 
 export const RelationshipInsightSchema = z.object({
-  version: z.literal("relationship_insight_v1"),
+  version: z.union([z.literal("relationship_insight_v1"), z.literal("relationship_insight_v2")]),
   relationship_id: z.string().uuid(),
   labels: z.object({
     self: RelationshipLabelSchema,
@@ -486,6 +486,12 @@ export const RelationshipInsightSchema = z.object({
     level: z.enum(["high", "medium", "low"]),
     note: z.string().min(1),
   }),
+  dimensional_scores: z.object({
+    emotional: z.number().min(0).max(100),
+    communication: z.number().min(0).max(100),
+    physical: z.number().min(0).max(100),
+    long_term: z.number().min(0).max(100),
+  }).optional(),
   categories: z.array(RelationshipFactorSchema).min(1),
   strengths: z.array(RelationshipFactorSchema),
   frictions: z.array(RelationshipFactorSchema),

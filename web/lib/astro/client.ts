@@ -74,6 +74,7 @@ export const CompatibilityResponseSchema = z.object({
   polarity: z.enum(["supportive", "mixed", "challenging"]),
   score_band: z.number(),
   factors: z.array(RelationshipFactorSchema),
+  synastry_metrics: z.any().optional(),
 });
 
 export type CompatibilityResponse = z.infer<typeof CompatibilityResponseSchema>;

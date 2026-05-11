@@ -1,7 +1,10 @@
+import { z } from "zod";
 import { getCompatibility } from "@/lib/astro/client";
+import { callWithFallback } from "@/lib/llm/providers";
 import {
   ChartSnapshotSchema,
   RelationshipInsightSchema,
+  RelationshipFactorSchema,
   type ChartSnapshot,
   type RelationshipFactor,
   type RelationshipInsight,
@@ -9,7 +12,7 @@ import {
 } from "@/lib/schemas";
 import { labelText } from "@/lib/relationships/labels";
 
-export const RELATIONSHIP_INSIGHT_SCHEMA_VERSION = "relationship_insight_v1";
+export const RELATIONSHIP_INSIGHT_SCHEMA_VERSION = "relationship_insight_v2";
 
 type QueryResult = PromiseLike<{ data: unknown; error: { message: string } | Error | null }>;
 
@@ -76,13 +79,13 @@ function asChartRow(value: unknown): ChartRow | null {
   return row as ChartRow;
 }
 
-function splitFactors(factors: RelationshipFactor[]) {
-  return {
-    strengths: factors.filter((factor) => factor.polarity === "strength"),
-    frictions: factors.filter((factor) => factor.polarity === "friction"),
-    timing: factors.filter((factor) => factor.polarity === "timing"),
-  };
-}
+const LlmInsightOutputSchema = z.object({
+  verdict: z.string().min(1).max(280),
+  summary: z.string().min(1).max(1200),
+  strengths: z.array(RelationshipFactorSchema),
+  frictions: z.array(RelationshipFactorSchema),
+  timing_notes: z.array(RelationshipFactorSchema),
+});
 
 function confidenceForSnapshots(left: ChartSnapshot, right: ChartSnapshot) {
   const values = [left.birth_time_confidence, right.birth_time_confidence];
@@ -102,31 +105,6 @@ function confidenceForSnapshots(left: ChartSnapshot, right: ChartSnapshot) {
     level: "high" as const,
     note: "Both profiles use exact birth-time confidence, so chart-to-chart factors have the strongest available grounding.",
   };
-}
-
-function verdictFor(input: {
-  polarity: "supportive" | "mixed" | "challenging";
-  selfName: string;
-  otherName: string;
-  selfLabel: RelationshipLabel;
-}) {
-  const label = labelText(input.selfLabel).toLowerCase();
-  if (input.polarity === "supportive") {
-    return `${input.selfName} and ${input.otherName} have a real ${label} channel, but it still needs conscious handling.`;
-  }
-  if (input.polarity === "challenging") {
-    return `${input.selfName} and ${input.otherName} are not an effortless ${label} match; the bond needs boundaries and translation.`;
-  }
-  return `${input.selfName} and ${input.otherName} have a mixed ${label} signature: useful chemistry, visible friction.`;
-}
-
-function summaryFor(factors: RelationshipFactor[]) {
-  const strength = factors.find((factor) => factor.polarity === "strength")?.summary;
-  const friction = factors.find((factor) => factor.polarity === "friction")?.summary;
-  if (strength && friction) {
-    return `${strength} ${friction}`;
-  }
-  return factors.slice(0, 2).map((factor) => factor.summary).join(" ");
 }
 
 export async function loadRelationshipParticipants(input: {
@@ -222,8 +200,113 @@ export async function computeRelationshipInsight(input: {
   });
 
   const confidence = confidenceForSnapshots(selfChart.snapshot, otherChart.snapshot);
-  const { strengths, frictions, timing } = splitFactors(compatibility.factors);
+
+  const llmSystemPrompt = `You are an expert Vedic astrologer analyzing a synastry connection between Person A (${selfProfile.name}) and Person B (${otherProfile.name}). 
+The relationship context is: Person A views Person B as a ${labelText(self.label_for_other)}.
+You will receive raw astrological metrics (Ashtakoota scores, house overlays, cross-aspects, and dimensional scores).
+Your job is to synthesize these metrics into a highly readable, personalized, and deep narrative insight.
+Produce a 'verdict' (short punchy summary), a longer 'summary', and categorize the key planetary interactions into strengths, frictions, and timing_notes. 
+Be nuanced, avoiding overly fatalistic language, focusing on growth and mutual understanding.
+
+CRITICAL INSTRUCTION: You MUST return ONLY valid JSON matching this exact structure:
+{
+  "verdict": "A short, punchy 1-2 sentence summary of the relationship dynamic.",
+  "summary": "A longer, deeper paragraph exploring the synergy.",
+  "strengths": [
+    {
+      "category": "string",
+      "polarity": "strength",
+      "title": "string",
+      "summary": "string",
+      "confidence": "high" | "medium" | "low",
+      "citations": [
+        {
+          "person": "both",
+          "charts": ["D1"],
+          "houses": [1, 7], // MUST be an array of numbers, NOT strings!
+          "planets": ["Sun", "Moon"]
+        }
+      ]
+    }
+  ],
+  "frictions": [
+    {
+      "category": "string",
+      "polarity": "friction",
+      "title": "string",
+      "summary": "string",
+      "confidence": "high" | "medium" | "low",
+      "citations": [
+        {
+          "person": "both",
+          "charts": ["D1"],
+          "houses": [1, 7],
+          "planets": ["Sun", "Moon"]
+        }
+      ]
+    }
+  ],
+  "timing_notes": [
+    {
+      "category": "string",
+      "polarity": "timing",
+      "title": "string",
+      "summary": "string",
+      "confidence": "high" | "medium" | "low",
+      "citations": [
+        {
+          "person": "both",
+          "charts": ["D1"],
+          "houses": [1, 7],
+          "planets": ["Sun", "Moon"]
+        }
+      ]
+    }
+  ]
+}
+IMPORTANT: The "citations" array MUST NOT be empty. It must contain at least one citation object with "person", "charts", "houses", and "planets" fields for EVERY factor in strengths, frictions, and timing_notes. The "houses" array MUST contain numbers only (e.g., [1, 5, 9]).
+Do not include any markdown formatting like \`\`\`json around the output, just the raw JSON object.`;
+
+  const { output: llmOutput } = await callWithFallback({
+    system: llmSystemPrompt,
+    messages: [
+      {
+        role: "user",
+        content: JSON.stringify(
+          {
+            base_charts: {
+              person_a: {
+                name: selfProfile.name,
+                summary: selfChart.snapshot.summary,
+              },
+              person_b: {
+                name: otherProfile.name,
+                summary: otherChart.snapshot.summary,
+              },
+            },
+            synastry: compatibility,
+          },
+          null,
+          2
+        ),
+      },
+    ],
+    schema: LlmInsightOutputSchema,
+    topic: "relationship",
+  });
+
+  const parsedLlmOutput = LlmInsightOutputSchema.parse(llmOutput);
+
   const createdAt = new Date().toISOString();
+  // We expect python to return dimensional_scores now. Fallback to 0 if missing.
+  const pyMetrics = compatibility as any;
+  const dimensional_scores = pyMetrics.synastry_metrics?.dimensional_scores ?? {
+    emotional: 0,
+    communication: 0,
+    physical: 0,
+    long_term: 0,
+  };
+
   const insight = RelationshipInsightSchema.parse({
     version: RELATIONSHIP_INSIGHT_SCHEMA_VERSION,
     relationship_id: input.relationshipId,
@@ -245,18 +328,14 @@ export async function computeRelationshipInsight(input: {
         label_for_other: other.label_for_other,
       },
     },
-    verdict: verdictFor({
-      polarity: compatibility.polarity,
-      selfName: selfProfile.name,
-      otherName: otherProfile.name,
-      selfLabel: self.label_for_other,
-    }),
-    summary: summaryFor(compatibility.factors),
+    verdict: parsedLlmOutput.verdict,
+    summary: parsedLlmOutput.summary,
     confidence,
-    categories: compatibility.factors,
-    strengths,
-    frictions,
-    timing_notes: timing,
+    dimensional_scores,
+    categories: [...parsedLlmOutput.strengths, ...parsedLlmOutput.frictions, ...parsedLlmOutput.timing_notes],
+    strengths: parsedLlmOutput.strengths,
+    frictions: parsedLlmOutput.frictions,
+    timing_notes: parsedLlmOutput.timing_notes,
     computed_basis: {
       engine_version: compatibility.engine_version,
       chart_snapshot_ids: { self: selfChart.row.id, other: otherChart.row.id },

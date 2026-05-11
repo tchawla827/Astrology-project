@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Copy, HeartHandshake, LoaderCircle, RefreshCw, ShieldCheck } from "lucide-react";
+import { CalendarDays, Copy, HeartHandshake, LoaderCircle, RefreshCw, ShieldCheck, Zap, MessageCircleHeart, Flame, Infinity } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -39,6 +39,29 @@ function FactorList({ title, factors }: { title: string; factors: RelationshipFa
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function ScoreBar({ label, score, icon: Icon }: { label: string; score: number; icon: React.ElementType }) {
+  const getScoreColor = (val: number) => {
+    if (val >= 80) return "bg-green-500/80";
+    if (val >= 50) return "bg-yellow-500/80";
+    return "bg-red-500/80";
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center gap-2 font-medium">
+          <Icon className="h-4 w-4 text-primary" />
+          {label}
+        </div>
+        <span className="font-semibold">{score}%</span>
+      </div>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-primary/10">
+        <div className={`h-full rounded-full transition-all duration-1000 ${getScoreColor(score)}`} style={{ width: `${score}%` }} />
+      </div>
+    </div>
   );
 }
 
@@ -111,7 +134,23 @@ export function RelationshipWorkspace({
               {labelText(relationship.self_label).toLowerCase()}.
             </p>
           </div>
-          {insight ? <p className="mt-5 max-w-3xl text-base leading-7">{insight.verdict}</p> : null}
+          
+          {insight ? (
+            <div className="mt-8 rounded-xl border border-primary/20 bg-background/40 p-6 backdrop-blur-sm">
+              <h2 className="text-2xl font-semibold text-foreground">{insight.verdict}</h2>
+              <p className="mt-4 text-base leading-7 text-muted-foreground">{insight.summary}</p>
+              
+              {insight.dimensional_scores && (
+                <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                  <ScoreBar label="Emotional" score={insight.dimensional_scores.emotional} icon={HeartHandshake} />
+                  <ScoreBar label="Communication" score={insight.dimensional_scores.communication} icon={MessageCircleHeart} />
+                  <ScoreBar label="Physical" score={insight.dimensional_scores.physical} icon={Flame} />
+                  <ScoreBar label="Long-term" score={insight.dimensional_scores.long_term} icon={Infinity} />
+                </div>
+              )}
+            </div>
+          ) : null}
+
           <div className="mt-6 flex flex-wrap gap-2">
             <Button className="gap-2" disabled={isRegenerating} onClick={() => void regenerateInsight()} type="button">
               {isRegenerating ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <RefreshCw className="h-4 w-4" aria-hidden="true" />}
@@ -130,18 +169,10 @@ export function RelationshipWorkspace({
 
       {insight ? (
         <>
-          <Card className="border-primary/20 bg-card/70">
-            <CardHeader>
-              <CardTitle>Compatibility read</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm leading-6 text-muted-foreground">{insight.summary}</p>
-              <div className="flex flex-wrap gap-2">
-                <Badge className="capitalize">{insight.confidence.level} confidence</Badge>
-                <span className="text-sm text-muted-foreground">{insight.confidence.note}</span>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex flex-wrap gap-2">
+            <Badge className="capitalize">{insight.confidence.level} confidence</Badge>
+            <span className="text-sm text-muted-foreground">{insight.confidence.note}</span>
+          </div>
           <div className="grid gap-5 lg:grid-cols-3">
             <FactorList title="Strengths" factors={insight.strengths} />
             <FactorList title="Frictions" factors={insight.frictions} />

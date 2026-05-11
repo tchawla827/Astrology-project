@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.calc.synastry import compute_synastry_metrics
 from app.schemas.common import ChartOut, PlanetPlacementOut
 from app.schemas.requests import CompatibilityPersonInput
 from app.versioning import ENGINE_VERSION
@@ -208,10 +209,13 @@ def compute_compatibility(
         )
 
     polarity = "supportive" if score >= 3 else "mixed" if score >= 0 else "challenging"
+    synastry_metrics = compute_synastry_metrics(person_a, person_b)
+    
     return {
         "engine_version": ENGINE_VERSION,
         "relationship_label": relationship_label,
         "polarity": polarity,
         "score_band": score,
         "factors": factors,
+        "synastry_metrics": synastry_metrics,
     }
