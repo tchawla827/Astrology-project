@@ -1,4 +1,14 @@
-import { AskAnswerSchema, ChartSnapshotSchema, type AskAnswer, type DepthMode, type LlmMetadata, type ToneMode } from "@/lib/schemas";
+import {
+  AskAnswerSchema,
+  ChartSnapshotSchema,
+  PlanetSchema,
+  type AskAnswer,
+  type DepthMode,
+  type LlmMetadata,
+  type Planet,
+  type RelationshipInsight,
+  type ToneMode,
+} from "@/lib/schemas";
 import { getTransits } from "@/lib/astro/client";
 import { LlmProviderError } from "@/lib/llm/errors";
 import { PROMPT_VERSIONS, systemPromptV1 } from "@/lib/llm/prompts";
@@ -42,6 +52,157 @@ type ProfileRow = {
 
 function asObject(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+}
+
+function compactText(value: string, maxLength: number) {
+  return value.length > maxLength ? value.slice(0, maxLength - 1).trimEnd() : value;
+}
+
+function arrayOfStrings(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => arrayOfStrings(item));
+  }
+  if (value && typeof value === "object") {
+    return Object.values(value).flatMap((item) => arrayOfStrings(item));
+  }
+  return typeof value === "string" && value.trim().length > 0 ? [value] : [];
+}
+
+function textValue(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function houseNumber(value: unknown) {
+  if (typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 12) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isInteger(parsed) && parsed >= 1 && parsed <= 12 ? parsed : undefined;
+  }
+  return undefined;
+}
+
+function arrayOfNumbers(value: unknown): number[] {
+  const single = houseNumber(value);
+  if (single) {
+    return [single];
+  }
+  if (Array.isArray(value)) {
+    return value.map(houseNumber).filter((item): item is number => typeof item === "number");
+  }
+  if (typeof value === "string") {
+    return [...value.matchAll(/\b(?:1[0-2]|[1-9])\b/g)]
+      .map((match) => houseNumber(match[0]))
+      .filter((item): item is number => typeof item === "number");
+  }
+  if (value && typeof value === "object") {
+    return Object.values(value).flatMap(arrayOfNumbers);
+  }
+  return [];
+}
+
+function arrayOfPlanets(value: unknown): Planet[] {
+  const values: unknown[] = Array.isArray(value)
+    ? value
+    : typeof value === "string"
+      ? value.split(/[,/&]|\band\b/i)
+      : value && typeof value === "object"
+        ? Object.values(value).flatMap((item) => arrayOfPlanets(item))
+        : [];
+  return values
+    .map((item) => (typeof item === "string" ? item.trim() : item))
+    .map((item) => {
+      if (typeof item !== "string") {
+        return item;
+      }
+      return item.charAt(0).toUpperCase() + item.slice(1).toLowerCase();
+    })
+    .filter((item): item is Planet => PlanetSchema.safeParse(item).success);
+}
+
+function timingTypes(value: unknown, hasDateContext: boolean) {
+  const values = Array.isArray(value) ? value : typeof value === "string" ? [value] : [];
+  const normalized = values
+    .map((item) => (typeof item === "string" ? item.toLowerCase().trim() : ""))
+    .map((item) => (item === "daily" || item === "day" || item === "selected_day" ? "transit" : item))
+    .filter((item): item is "natal" | "dasha" | "transit" => item === "natal" || item === "dasha" || item === "transit");
+  return normalized.length > 0 ? [...new Set(normalized)] : [hasDateContext ? "transit" : "natal"];
+}
+
+function confidenceValue(value: unknown) {
+  if (typeof value === "string" && value.trim().length > 0) {
+    return { level: "medium", note: value };
+  }
+
+  const confidence = asObject(value);
+  const level = typeof confidence?.level === "string" ? confidence.level.toLowerCase().trim() : "";
+  return {
+    level: level === "high" || level === "medium" || level === "low" ? level : "medium",
+    note: typeof confidence?.note === "string" && confidence.note.trim().length > 0 ? confidence.note : "Grounded in supplied relationship context.",
+  };
+}
+
+function unique<T>(values: T[]) {
+  return [...new Set(values)];
+}
+
+function citationBasis(insight: RelationshipInsight) {
+  const citations = insight.categories.flatMap((factor) => factor.citations);
+  const fallback = citations[0];
+  return {
+    charts_used: unique(citations.flatMap((citation) => citation.charts)).slice(0, 6),
+    houses_used: unique(citations.flatMap((citation) => citation.houses)).slice(0, 8),
+    planets_used: unique(citations.flatMap((citation) => citation.planets)).slice(0, 8),
+    fallback_chart: fallback?.charts[0] ?? "D1",
+    fallback_house: fallback?.houses[0] ?? 7,
+    fallback_planet: fallback?.planets[0] ?? "Venus",
+  };
+}
+
+function normalizeAskAnswerOutput(output: unknown, input: { hasDateContext: boolean; insight: RelationshipInsight }) {
+  const wrapper = asObject(output);
+  const candidate =
+    asObject(wrapper?.answer) ??
+    asObject(wrapper?.ask_answer) ??
+    asObject(wrapper?.content_structured) ??
+    output;
+  const row = asObject(candidate);
+  if (!row) {
+    return candidate;
+  }
+
+  const timing = asObject(row.timing);
+  const technicalBasis = asObject(row.technical_basis ?? row.technicalBasis ?? row.basis ?? row.citations);
+  const charts = technicalBasis?.charts_used ?? technicalBasis?.charts ?? technicalBasis?.chart_keys ?? technicalBasis?.chart;
+  const houses = technicalBasis?.houses_used ?? technicalBasis?.houses ?? technicalBasis?.triggered_houses ?? technicalBasis?.house;
+  const planets = technicalBasis?.planets_used ?? technicalBasis?.planets ?? technicalBasis?.planet;
+  const basis = citationBasis(input.insight);
+  const normalizedCharts = arrayOfStrings(charts);
+  const normalizedHouses = arrayOfNumbers(houses);
+  const normalizedPlanets = arrayOfPlanets(planets);
+  const advice = arrayOfStrings(row.advice ?? row.guidance ?? row.next_steps ?? row.recommendations);
+  const why = arrayOfStrings(row.why ?? row.reasons ?? row.rationale ?? row.factors);
+
+  return {
+    ...row,
+    verdict: compactText(textValue(row.verdict ?? row.answer ?? row.summary ?? input.insight.verdict), 280),
+    explanation: compactText(textValue(row.explanation ?? row.expanded_verdict ?? row.summary ?? input.insight.summary), 900),
+    advice: (advice.length > 0 ? advice : ["Use the relationship as workable, not automatic; name expectations clearly."]).slice(0, 5),
+    why: (why.length > 0 ? why : input.insight.categories.map((factor) => factor.summary)).slice(0, 5),
+    timing: {
+      ...timing,
+      summary: textValue(timing?.summary ?? row.timing_summary) || (input.hasDateContext ? "This uses the selected-date relationship context." : "This is mainly a natal relationship pattern."),
+      type: timingTypes(timing?.type, input.hasDateContext),
+    },
+    confidence: confidenceValue(row.confidence),
+    technical_basis: {
+      ...technicalBasis,
+      charts_used: normalizedCharts.length > 0 ? normalizedCharts : basis.charts_used.length > 0 ? basis.charts_used : [basis.fallback_chart],
+      houses_used: normalizedHouses.length > 0 ? normalizedHouses : basis.houses_used.length > 0 ? basis.houses_used : [basis.fallback_house],
+      planets_used: normalizedPlanets.length > 0 ? normalizedPlanets : basis.planets_used.length > 0 ? basis.planets_used : [basis.fallback_planet],
+    },
+  };
 }
 
 function asProfile(value: unknown): ProfileRow | null {
@@ -184,6 +345,23 @@ async function selectedDateContext(input: {
   };
 }
 
+function relationshipAnswerSchemaPrompt() {
+  return `Return exactly this JSON shape:
+{
+  "verdict": "string, max 280 chars",
+  "explanation": "string, max 900 chars",
+  "advice": ["1-5 practical strings"],
+  "why": ["1-5 grounded reason strings"],
+  "timing": { "summary": "string", "type": ["natal" | "dasha" | "transit"] },
+  "confidence": { "level": "high" | "medium" | "low", "note": "string" },
+  "technical_basis": {
+    "charts_used": ["self:D1", "other:D9", "D1", or another supplied chart label"],
+    "houses_used": [1-12],
+    "planets_used": ["Sun" | "Moon" | "Mars" | "Mercury" | "Jupiter" | "Venus" | "Saturn" | "Rahu" | "Ketu"]
+  }
+}`;
+}
+
 function relationshipPrompt(input: {
   question: string;
   tone: ToneMode;
@@ -209,7 +387,37 @@ ${JSON.stringify(input.context)}
 Question:
 ${input.question}
 
-Return ONLY JSON matching AskAnswer schema. technical_basis.charts_used may cite person-scoped labels such as "self:D1" and "other:D9".`;
+${relationshipAnswerSchemaPrompt()}
+
+Return ONLY JSON. technical_basis.charts_used may cite person-scoped labels such as "self:D1" and "other:D9".`;
+}
+
+function buildRepairPrompt(input: {
+  originalOutput: unknown;
+  validationError: unknown;
+  insight: RelationshipInsight;
+  hasDateContext: boolean;
+}) {
+  return `Repair the previous relationship answer JSON so it matches the AskAnswer schema.
+
+Validation error:
+${input.validationError instanceof Error ? input.validationError.message : String(input.validationError)}
+
+Use only these relationship factors for citations and reasoning:
+${JSON.stringify(input.insight.categories, null, 2)}
+
+Timing type must include ${input.hasDateContext ? '"transit" when using selected-date context' : '"natal" unless dasha or transit is explicitly cited'}.
+
+${relationshipAnswerSchemaPrompt()}
+
+Previous output:
+${JSON.stringify(input.originalOutput, null, 2)}
+
+Return only the corrected JSON.`;
+}
+
+function parseRelationshipAnswer(output: unknown, input: { insight: RelationshipInsight; hasDateContext: boolean }) {
+  return AskAnswerSchema.safeParse(normalizeAskAnswerOutput(output, input));
 }
 
 async function insertMessages(input: {
@@ -332,16 +540,51 @@ export async function generateRelationshipAnswer(input: {
     providers: input.providers,
   });
 
-  const parsed = AskAnswerSchema.safeParse(firstCall.output);
+  let parsed = parseRelationshipAnswer(firstCall.output, { insight, hasDateContext: Boolean(input.date) });
+  let meta = firstCall.meta;
   if (!parsed.success) {
-    throw new LlmProviderError("Relationship Ask returned malformed JSON.", { retryable: false });
+    console.error("Relationship Ask answer validation failed; attempting repair", {
+      reason: parsed.error.message,
+      issues: parsed.error.issues,
+    });
+    const repaired = await callWithFallback({
+      system: systemPromptV1,
+      messages: [{
+        role: "user",
+        content: buildRepairPrompt({
+          originalOutput: firstCall.output,
+          validationError: parsed.error,
+          insight,
+          hasDateContext: Boolean(input.date),
+        }),
+      }],
+      schema: AskAnswerSchema,
+      topic: "relationship",
+      context_bundle_id: input.relationshipId,
+      prompt_versions: {
+        system: PROMPT_VERSIONS.system,
+        route: "relationship_route_v1",
+        user: "relationship_repair_v1",
+      },
+      answer_schema_version: PROMPT_VERSIONS.answer_schema,
+      providers: input.providers,
+      temperature: 0,
+    });
+    parsed = parseRelationshipAnswer(repaired.output, { insight, hasDateContext: Boolean(input.date) });
+    meta = {
+      ...repaired.meta,
+      repaired_from_provider: firstCall.meta.provider,
+    };
+    if (!parsed.success) {
+      throw new LlmProviderError("Relationship Ask returned malformed JSON.", { retryable: false, cause: parsed.error });
+    }
   }
   const assistantMessageId = await insertMessages({
     supabase: input.supabase,
     sessionId,
     question: input.question,
     answer: parsed.data,
-    meta: firstCall.meta,
+    meta,
     userId: input.userId,
   });
 
@@ -349,6 +592,6 @@ export async function generateRelationshipAnswer(input: {
     session_id: sessionId,
     assistant_message_id: assistantMessageId,
     answer: parsed.data,
-    meta: firstCall.meta,
+    meta,
   };
 }
