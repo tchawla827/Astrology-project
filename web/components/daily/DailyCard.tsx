@@ -95,7 +95,7 @@ export function DailyCard({
     <div className="space-y-5">
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <DatePicker date={prediction.date} max={maxDate} min={minDate} todayDate={todayDate} tone={tone} />
-        <TransitFactsExportButton date={prediction.date} />
+        <TransitFactsExportButton date={prediction.date} maxDate={maxDate} minDate={minDate} />
       </div>
 
       <DayQuestionPanel date={prediction.date} profileId={profileId} tone={tone} />

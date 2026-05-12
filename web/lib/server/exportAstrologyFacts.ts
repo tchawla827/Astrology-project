@@ -1,10 +1,11 @@
-import { getTransits } from "@/lib/astro/client";
+import { getTimelineYear, getTransits } from "@/lib/astro/client";
 import {
   ChartSnapshotSchema,
   type BirthProfile,
   type ChartSnapshot,
   type Planet,
   type PlanetPlacement,
+  type TimelineYear,
   type TransitSummary,
 } from "@/lib/schemas";
 
@@ -78,6 +79,27 @@ export type AstrologyFactsExportData = {
   };
 };
 
+export type BulkTransitFactsExportData = {
+  export_kind: "bulk_charts_transits_json";
+  generated_at: string;
+  requested_range: {
+    from: string;
+    to: string;
+    inclusive: true;
+    days: number;
+    calculation: "timeline_year_sunrise_scoring_instant";
+  };
+  profile: AstrologyFactsExportData["profile"];
+  chart_snapshot: AstrologyFactsExportData["chart_snapshot"];
+  transits_by_date: Array<{
+    date: string;
+    transit_at: string;
+    as_of: string;
+    positions: TransitSummary["positions"];
+    natal_overlay: AstrologyFactsExportData["transits"]["natal_overlay"];
+  }>;
+};
+
 type PromptPlanetPlacement = Pick<
   PlanetPlacement,
   "planet" | "longitude_deg" | "sign" | "house" | "nakshatra" | "pada" | "retrograde" | "combust" | "dignity"
@@ -131,6 +153,28 @@ function assertIsoDate(value: string) {
   if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
     throw new AstrologyFactsExportInputError("Export date must be a valid calendar date.");
   }
+}
+
+function compareIsoDate(left: string, right: string) {
+  return left.localeCompare(right);
+}
+
+function addUtcDays(date: string, days: number) {
+  const next = new Date(`${date}T00:00:00Z`);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next.toISOString().slice(0, 10);
+}
+
+function daysInclusive(from: string, to: string) {
+  const start = Date.parse(`${from}T00:00:00Z`);
+  const end = Date.parse(`${to}T00:00:00Z`);
+  return Math.floor((end - start) / 86_400_000) + 1;
+}
+
+function yearsInRange(from: string, to: string) {
+  const startYear = Number(from.slice(0, 4));
+  const endYear = Number(to.slice(0, 4));
+  return Array.from({ length: endYear - startYear + 1 }, (_, index) => startYear + index);
 }
 
 function todayInTimezone(timezone: string) {
@@ -267,12 +311,15 @@ export function renderAstrologyFactsJson(data: AstrologyFactsExportData) {
   return Buffer.from(`${JSON.stringify(data, null, 2)}\n`, "utf8");
 }
 
-export async function loadAstrologyFactsExportData(input: {
+export function renderBulkTransitFactsJson(data: BulkTransitFactsExportData) {
+  return Buffer.from(`${JSON.stringify(data, null, 2)}\n`, "utf8");
+}
+
+async function loadExportContext(input: {
   supabase: SupabaseAstrologyFactsExportClient;
   userId: string;
   profileId?: string;
-  date?: string;
-}): Promise<AstrologyFactsExportData> {
+}) {
   let profileQuery = input.supabase
     .from("birth_profiles")
     .select(
@@ -316,6 +363,31 @@ export async function loadAstrologyFactsExportData(input: {
   }
 
   const snapshot = ChartSnapshotSchema.parse(chartRow.payload);
+
+  return { profile, chartRow, snapshot };
+}
+
+function chartSnapshotForExport(chartRow: ChartSnapshotRow, snapshot: ChartSnapshot): AstrologyFactsExportData["chart_snapshot"] {
+  return {
+    id: chartRow.id,
+    engine_version: chartRow.engine_version,
+    computed_at: chartRow.computed_at,
+    summary: snapshot.summary,
+    lagna_longitude_deg: snapshot.lagna_longitude_deg,
+    chart_keys: Object.keys(snapshot.charts).sort(),
+    planetary_positions: snapshot.planetary_positions,
+    aspects: snapshot.aspects,
+    charts: snapshot.charts,
+  };
+}
+
+export async function loadAstrologyFactsExportData(input: {
+  supabase: SupabaseAstrologyFactsExportClient;
+  userId: string;
+  profileId?: string;
+  date?: string;
+}): Promise<AstrologyFactsExportData> {
+  const { profile, chartRow, snapshot } = await loadExportContext(input);
   const requestedDate = resolveExportDate(input.date, profile.timezone);
   const transitAt = startOfDayInTimezoneIso(requestedDate, profile.timezone);
   const transits = await getTransits({
@@ -338,17 +410,7 @@ export async function loadAstrologyFactsExportData(input: {
     requested_date: requestedDate,
     transit_at: transitAt,
     profile: profileForExport(profile),
-    chart_snapshot: {
-      id: chartRow.id,
-      engine_version: chartRow.engine_version,
-      computed_at: chartRow.computed_at,
-      summary: snapshot.summary,
-      lagna_longitude_deg: snapshot.lagna_longitude_deg,
-      chart_keys: Object.keys(snapshot.charts).sort(),
-      planetary_positions: snapshot.planetary_positions,
-      aspects: snapshot.aspects,
-      charts: snapshot.charts,
-    },
+    chart_snapshot: chartSnapshotForExport(chartRow, snapshot),
     transits: {
       as_of: transits.as_of,
       positions: transits.positions,
@@ -356,5 +418,92 @@ export async function loadAstrologyFactsExportData(input: {
         planet_to_house: transits.overlay?.planet_to_house ?? planetToHouseFromPositions(transits),
       },
     },
+  };
+}
+
+function resolveBulkRange(input: { from?: string; to?: string; timezone: string }) {
+  const from = resolveExportDate(input.from, input.timezone);
+  const to = resolveExportDate(input.to, input.timezone);
+  if (compareIsoDate(from, to) > 0) {
+    throw new AstrologyFactsExportInputError("Export range start date must be on or before the end date.");
+  }
+  const days = daysInclusive(from, to);
+  if (days > 366) {
+    throw new AstrologyFactsExportInputError("Bulk transit export range cannot exceed 366 days.");
+  }
+  return { from, to, days };
+}
+
+function transitByDateFromTimeline(timelines: TimelineYear[], from: string, to: string) {
+  const days = new Map(
+    timelines.flatMap((timeline) =>
+      timeline.days
+        .filter((day) => compareIsoDate(day.date, from) >= 0 && compareIsoDate(day.date, to) <= 0)
+        .map((day) => [day.date, day] as const),
+    ),
+  );
+  const ordered: Array<{
+    date: string;
+    transit_at: string;
+    as_of: string;
+    positions: TransitSummary["positions"];
+    natal_overlay: AstrologyFactsExportData["transits"]["natal_overlay"];
+  }> = [];
+  for (let date = from; compareIsoDate(date, to) <= 0; date = addUtcDays(date, 1)) {
+    const day = days.get(date);
+    if (!day) {
+      throw new Error(`Timeline transit calculation did not return ${date}.`);
+    }
+    ordered.push({
+      date,
+      transit_at: day.scoring_instant,
+      as_of: day.transits.as_of,
+      positions: day.transits.positions,
+      natal_overlay: {
+        planet_to_house: day.transits.overlay?.planet_to_house ?? planetToHouseFromPositions(day.transits),
+      },
+    });
+  }
+  return ordered;
+}
+
+export async function loadBulkTransitFactsExportData(input: {
+  supabase: SupabaseAstrologyFactsExportClient;
+  userId: string;
+  profileId?: string;
+  from?: string;
+  to?: string;
+}): Promise<BulkTransitFactsExportData> {
+  const { profile, chartRow, snapshot } = await loadExportContext(input);
+  const range = resolveBulkRange({ from: input.from, to: input.to, timezone: profile.timezone });
+  const timelines = await Promise.all(
+    yearsInRange(range.from, range.to).map((year) =>
+      getTimelineYear({
+        birth_date: profile.birth_date,
+        birth_time: profile.birth_time,
+        latitude: profile.latitude,
+        longitude: profile.longitude,
+        timezone: profile.timezone,
+        ayanamsha: profile.ayanamsha,
+        year,
+        natal: {
+          lagna_sign: snapshot.summary.lagna,
+          planetary_positions: snapshot.planetary_positions,
+        },
+      }),
+    ),
+  );
+
+  return {
+    export_kind: "bulk_charts_transits_json",
+    generated_at: new Date().toISOString(),
+    requested_range: {
+      ...range,
+      inclusive: true,
+      calculation: "timeline_year_sunrise_scoring_instant",
+    },
+    profile: profileForExport(profile),
+    chart_snapshot: chartSnapshotForExport(chartRow, snapshot),
+    transits_by_date: transitByDateFromTimeline(timelines, range.from, range.to),
   };
 }

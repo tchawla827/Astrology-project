@@ -1,17 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getTransits } from "@/lib/astro/client";
+import { getTimelineYear, getTransits } from "@/lib/astro/client";
 import {
   AstrologyFactsExportInputError,
   buildAstrologyFactsAskContext,
+  loadBulkTransitFactsExportData,
   loadAstrologyFactsExportData,
   renderAstrologyFactsJson,
+  renderBulkTransitFactsJson,
   type SupabaseAstrologyFactsExportClient,
 } from "@/lib/server/exportAstrologyFacts";
 import type { TransitSummary } from "@/lib/schemas";
 import { goldenSnapshot } from "@/tests/derived/goldenSnapshot";
 
-const { transitSummary } = vi.hoisted(() => ({
+const { timelineYear, transitSummary } = vi.hoisted(() => ({
   transitSummary: {
     as_of: "2026-04-24T18:30:00.000Z",
     positions: [
@@ -54,9 +56,87 @@ const { transitSummary } = vi.hoisted(() => ({
       },
     },
   } satisfies TransitSummary,
+  timelineYear: {
+    year: 2026,
+    timezone: "Asia/Kolkata",
+    dasha: { system: "vimshottari", periods: [] },
+    days: [
+      {
+        date: "2026-04-25",
+        scoring_instant: "2026-04-25T00:19:00.000Z",
+        transits: {
+          as_of: "2026-04-25T00:19:00.000Z",
+          positions: [
+            {
+              planet: "Sun",
+              longitude_deg: 11,
+              sign: "Aries",
+              house: 3,
+              nakshatra: "Ashwini",
+              pada: 1,
+              retrograde: false,
+              combust: false,
+              dignity: "exalted",
+            },
+          ],
+          highlights: ["Hidden export highlight"],
+          overlay: {
+            triggered_houses: [3],
+            planet_to_house: {
+              Sun: 3,
+              Moon: 4,
+              Mars: 5,
+              Mercury: 6,
+              Jupiter: 7,
+              Venus: 8,
+              Saturn: 9,
+              Rahu: 10,
+              Ketu: 11,
+            },
+          },
+        },
+      },
+      {
+        date: "2026-04-26",
+        scoring_instant: "2026-04-26T00:18:00.000Z",
+        transits: {
+          as_of: "2026-04-26T00:18:00.000Z",
+          positions: [
+            {
+              planet: "Moon",
+              longitude_deg: 46,
+              sign: "Taurus",
+              house: 4,
+              nakshatra: "Rohini",
+              pada: 2,
+              retrograde: false,
+              combust: false,
+              dignity: "exalted",
+            },
+          ],
+          highlights: [],
+          overlay: {
+            triggered_houses: [4],
+            planet_to_house: {
+              Sun: 3,
+              Moon: 4,
+              Mars: 5,
+              Mercury: 6,
+              Jupiter: 7,
+              Venus: 8,
+              Saturn: 9,
+              Rahu: 10,
+              Ketu: 11,
+            },
+          },
+        },
+      },
+    ],
+  },
 }));
 
 vi.mock("@/lib/astro/client", () => ({
+  getTimelineYear: vi.fn(async () => timelineYear),
   getTransits: vi.fn(async () => transitSummary),
 }));
 
@@ -178,5 +258,47 @@ describe("astrology facts export", () => {
         date: "2026-02-31",
       }),
     ).rejects.toBeInstanceOf(AstrologyFactsExportInputError);
+  });
+
+  it("builds a range JSON export from timeline daily transit calculations", async () => {
+    const data = await loadBulkTransitFactsExportData({
+      supabase: new ExportSupabaseMock(),
+      userId,
+      from: "2026-04-25",
+      to: "2026-04-26",
+    });
+
+    expect(data.export_kind).toBe("bulk_charts_transits_json");
+    expect(data.requested_range).toMatchObject({
+      from: "2026-04-25",
+      to: "2026-04-26",
+      days: 2,
+      calculation: "timeline_year_sunrise_scoring_instant",
+    });
+    expect(data.transits_by_date.map((day) => day.date)).toEqual(["2026-04-25", "2026-04-26"]);
+    expect(data.transits_by_date[0]?.transit_at).toBe("2026-04-25T00:19:00.000Z");
+    expect(data.transits_by_date[0]?.natal_overlay.planet_to_house).toEqual(timelineYear.days[0]?.transits.overlay?.planet_to_house);
+    expect(JSON.parse(renderBulkTransitFactsJson(data).toString("utf8"))).toEqual(data);
+    expect(renderBulkTransitFactsJson(data).toString("utf8")).not.toContain("Hidden export highlight");
+    expect(getTimelineYear).toHaveBeenCalledWith(
+      expect.objectContaining({
+        year: 2026,
+        natal: {
+          lagna_sign: goldenSnapshot.summary.lagna,
+          planetary_positions: goldenSnapshot.planetary_positions,
+        },
+      }),
+    );
+  });
+
+  it("rejects bulk ranges longer than one year", async () => {
+    await expect(
+      loadBulkTransitFactsExportData({
+        supabase: new ExportSupabaseMock(),
+        userId,
+        from: "2026-01-01",
+        to: "2027-01-02",
+      }),
+    ).rejects.toThrow("cannot exceed 366 days");
   });
 });

@@ -5,16 +5,20 @@ import { track } from "@/lib/analytics/events";
 import {
   AstrologyFactsExportInputError,
   loadAstrologyFactsExportData,
+  loadBulkTransitFactsExportData,
   renderAstrologyFactsJson,
+  renderBulkTransitFactsJson,
   type SupabaseAstrologyFactsExportClient,
 } from "@/lib/server/exportAstrologyFacts";
 import { loadBasicReportData, renderBasicReportPdf, type SupabaseExportClient } from "@/lib/server/exportBasicReport";
 import { createClient } from "@/lib/supabase/server";
 
 const ExportRequestSchema = z.object({
-  kind: z.enum(["basic_report_pdf", "charts_transits_json"]).default("basic_report_pdf"),
+  kind: z.enum(["basic_report_pdf", "charts_transits_json", "bulk_charts_transits_json"]).default("basic_report_pdf"),
   profile_id: z.string().uuid().optional(),
   date: z.string().optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -34,7 +38,25 @@ export async function POST(request: Request) {
 
   try {
     const exportFile =
-      parsed.data.kind === "charts_transits_json"
+      parsed.data.kind === "bulk_charts_transits_json"
+        ? await (async () => {
+            const data = await loadBulkTransitFactsExportData({
+              supabase: supabase as unknown as SupabaseAstrologyFactsExportClient,
+              userId: user.id,
+              profileId: parsed.data.profile_id,
+              from: parsed.data.from,
+              to: parsed.data.to,
+            });
+            const safeName = data.profile.name.replace(/[^a-z0-9_-]+/gi, "-").replace(/^-|-$/g, "") || "profile";
+            return {
+              birthProfileId: data.profile.id,
+              body: renderBulkTransitFactsJson(data),
+              contentType: "application/json",
+              downloadName: `${safeName}-${data.requested_range.from}-to-${data.requested_range.to}-bulk-transits.json`,
+              storagePath: `${user.id}/${Date.now()}-${data.profile.id}-${data.requested_range.from}-to-${data.requested_range.to}-bulk-transits.json`,
+            };
+          })()
+        : parsed.data.kind === "charts_transits_json"
         ? await (async () => {
             const data = await loadAstrologyFactsExportData({
               supabase: supabase as unknown as SupabaseAstrologyFactsExportClient,
