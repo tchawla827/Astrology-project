@@ -3,9 +3,11 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AnswerCard } from "@/components/ask/AnswerCard";
+import { AskHistoryList } from "@/components/ask/AskHistoryList";
 import { FollowUpSuggestions } from "@/components/ask/FollowUpSuggestions";
 import { StarterQuestions } from "@/components/ask/StarterQuestions";
 import type { AskAnswer } from "@/lib/schemas";
+import type { AskSessionSummary } from "@/lib/server/loadAsk";
 
 const answer: AskAnswer = {
   verdict: "Career pressure is real, but it is structured rather than random.",
@@ -69,5 +71,26 @@ describe("Ask components", () => {
 
     expect(onStarter).toHaveBeenCalledWith("Why has my career felt stuck?");
     expect(onFollowUp).toHaveBeenCalledWith("Explain this technically");
+  });
+
+  it("keeps Ask history inside a scroll container", () => {
+    const sessions: AskSessionSummary[] = Array.from({ length: 12 }, (_, index) => ({
+      id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+      birth_profile_id: "00000000-0000-4000-8000-000000000101",
+      topic: "career",
+      tone_mode: "direct",
+      depth: "simple",
+      context_kind: "natal",
+      first_question_preview: `Question ${index + 1}`,
+      created_at: "2026-05-13T00:00:00.000Z",
+      last_updated: "2026-05-13T00:00:00.000Z",
+    }));
+
+    render(<AskHistoryList sessions={sessions} />);
+
+    const scrollRegion = screen.getByTestId("ask-history-scroll");
+    expect(scrollRegion.className).toContain("overflow-y-auto");
+    expect(scrollRegion.className).toContain("max-h-");
+    expect(screen.getByText("Question 12")).toBeTruthy();
   });
 });

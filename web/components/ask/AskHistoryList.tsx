@@ -22,24 +22,26 @@ export function AskHistoryList({ sessions }: { sessions: AskSessionSummary[] }) 
   }
 
   return (
-    <div className="space-y-2">
-      {sessions.map((session) => (
-        <Link
-          className="block rounded-lg border p-3 transition-colors hover:border-primary/50 hover:bg-muted/30"
-          href={`/ask/${session.id}`}
-          key={session.id}
-        >
-          <div className="mb-2 flex flex-wrap gap-2">
-            <Badge className="capitalize text-muted-foreground">{session.topic}</Badge>
-            <Badge className="capitalize text-muted-foreground">{session.tone_mode}</Badge>
-            {session.context_kind === "daily" && session.context_date ? (
-              <Badge className="text-muted-foreground">Day {session.context_date}</Badge>
-            ) : null}
-          </div>
-          <p className="line-clamp-2 text-sm font-medium">{session.first_question_preview}</p>
-          <p className="mt-2 text-xs text-muted-foreground">{formatDate(session.last_updated)}</p>
-        </Link>
-      ))}
+    <div className="max-h-[clamp(16rem,45vh,32rem)] overflow-y-auto pr-1" data-testid="ask-history-scroll">
+      <div className="space-y-2">
+        {sessions.map((session) => (
+          <Link
+            className="block rounded-lg border p-3 transition-colors hover:border-primary/50 hover:bg-muted/30"
+            href={`/ask/${session.id}`}
+            key={session.id}
+          >
+            <div className="mb-2 flex flex-wrap gap-2">
+              <Badge className="capitalize text-muted-foreground">{session.topic}</Badge>
+              <Badge className="capitalize text-muted-foreground">{session.tone_mode}</Badge>
+              {session.context_kind === "daily" && session.context_date ? (
+                <Badge className="text-muted-foreground">Day {session.context_date}</Badge>
+              ) : null}
+            </div>
+            <p className="line-clamp-2 text-sm font-medium">{session.first_question_preview}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{formatDate(session.last_updated)}</p>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
