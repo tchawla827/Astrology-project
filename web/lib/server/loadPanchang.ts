@@ -1,4 +1,8 @@
 import { AstroEngineError, getPanchang } from "@/lib/astro/client";
+import {
+  assertValidIsoDate,
+  todayInTimezone,
+} from "@/lib/date-utils";
 import { LlmContextError } from "@/lib/llm/errors";
 import {
   readPanchangCache,
@@ -67,6 +71,8 @@ export type LoadPanchangResult = {
   computed_at?: string;
 };
 
+export { todayInTimezone };
+
 function errorMessage(error: DbError | null, fallback: string) {
   return error?.message ?? fallback;
 }
@@ -80,20 +86,11 @@ function asProfile(value: unknown): BirthProfileRow | null {
 }
 
 function assertIsoDate(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(Date.parse(`${value}T00:00:00Z`))) {
-    throw new LlmContextError("Panchang date must be an ISO date in YYYY-MM-DD format.");
-  }
-}
-
-export function todayInTimezone(timezone: string) {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: timezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date());
-  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  return `${lookup.year}-${lookup.month}-${lookup.day}`;
+  assertValidIsoDate(
+    value,
+    { format: "Panchang date must be an ISO date in YYYY-MM-DD format." },
+    (message) => new LlmContextError(message),
+  );
 }
 
 export function resolvePanchangDate(date: string, timezone: string) {

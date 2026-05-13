@@ -1,5 +1,12 @@
 import { getTimelineYear, getTransits } from "@/lib/astro/client";
 import {
+  addUtcDays as sharedAddUtcDays,
+  assertValidIsoDate,
+  compareIsoDate,
+  startOfDayInTimezoneIso,
+  todayInTimezone,
+} from "@/lib/date-utils";
+import {
   ChartSnapshotSchema,
   type BirthProfile,
   type ChartSnapshot,
@@ -146,23 +153,18 @@ function asChartRow(value: unknown): ChartSnapshotRow | null {
 }
 
 function assertIsoDate(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    throw new AstrologyFactsExportInputError("Export date must be an ISO date in YYYY-MM-DD format.");
-  }
-  const parsed = new Date(`${value}T00:00:00Z`);
-  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
-    throw new AstrologyFactsExportInputError("Export date must be a valid calendar date.");
-  }
-}
-
-function compareIsoDate(left: string, right: string) {
-  return left.localeCompare(right);
+  assertValidIsoDate(
+    value,
+    {
+      format: "Export date must be an ISO date in YYYY-MM-DD format.",
+      calendar: "Export date must be a valid calendar date.",
+    },
+    (message) => new AstrologyFactsExportInputError(message),
+  );
 }
 
 function addUtcDays(date: string, days: number) {
-  const next = new Date(`${date}T00:00:00Z`);
-  next.setUTCDate(next.getUTCDate() + days);
-  return next.toISOString().slice(0, 10);
+  return sharedAddUtcDays(date, days);
 }
 
 function daysInclusive(from: string, to: string) {
@@ -175,49 +177,6 @@ function yearsInRange(from: string, to: string) {
   const startYear = Number(from.slice(0, 4));
   const endYear = Number(to.slice(0, 4));
   return Array.from({ length: endYear - startYear + 1 }, (_, index) => startYear + index);
-}
-
-function todayInTimezone(timezone: string) {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: timezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date());
-  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  return `${lookup.year}-${lookup.month}-${lookup.day}`;
-}
-
-function timezoneOffsetMs(instant: Date, timezone: string) {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: timezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(instant);
-  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  const asUtc = Date.UTC(
-    Number(lookup.year),
-    Number(lookup.month) - 1,
-    Number(lookup.day),
-    Number(lookup.hour),
-    Number(lookup.minute),
-    Number(lookup.second),
-  );
-  return asUtc - instant.getTime();
-}
-
-function startOfDayInTimezoneIso(date: string, timezone: string) {
-  assertIsoDate(date);
-  const [year, month, day] = date.split("-").map(Number);
-  const initial = new Date(Date.UTC(year ?? 0, (month ?? 1) - 1, day ?? 1, 0, 0, 0));
-  const firstGuess = new Date(initial.getTime() - timezoneOffsetMs(initial, timezone));
-  const secondGuess = new Date(initial.getTime() - timezoneOffsetMs(firstGuess, timezone));
-  return secondGuess.toISOString();
 }
 
 function resolveExportDate(date: string | undefined, timezone: string) {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getCompatibility } from "@/lib/astro/client";
-import { callWithFallback } from "@/lib/llm/providers";
+import { callWithFallback, type LlmProvider } from "@/lib/llm/providers";
 import {
   ChartSnapshotSchema,
   RelationshipInsightSchema,
@@ -87,6 +87,33 @@ const LlmInsightOutputSchema = z.object({
   timing_notes: z.array(RelationshipFactorSchema),
 });
 
+function insightOutputFromCompatibility(compatibility: unknown): z.infer<typeof LlmInsightOutputSchema> | null {
+  const rawFactors = Array.isArray((compatibility as { factors?: unknown }).factors)
+    ? (compatibility as { factors: unknown[] }).factors
+    : [];
+  const factors = rawFactors
+    .map((factor) => RelationshipFactorSchema.safeParse(factor))
+    .filter((parsed): parsed is { success: true; data: RelationshipFactor } => parsed.success)
+    .map((parsed) => parsed.data);
+
+  if (factors.length === 0) {
+    return null;
+  }
+
+  const strengths = factors.filter((factor) => factor.polarity === "strength");
+  const frictions = factors.filter((factor) => factor.polarity === "friction" || factor.polarity === "mixed");
+  const timingNotes = factors.filter((factor) => factor.polarity === "timing");
+  const lead = strengths[0] ?? frictions[0] ?? timingNotes[0] ?? factors[0];
+
+  return {
+    verdict: lead?.title.slice(0, 280) ?? "Relationship factors are available.",
+    summary: factors.map((factor) => factor.summary).join(" ").slice(0, 1200),
+    strengths,
+    frictions,
+    timing_notes: timingNotes,
+  };
+}
+
 function confidenceForSnapshots(left: ChartSnapshot, right: ChartSnapshot) {
   const values = [left.birth_time_confidence, right.birth_time_confidence];
   if (values.includes("unknown")) {
@@ -154,6 +181,7 @@ export async function computeRelationshipInsight(input: {
   supabase: SupabaseRelationshipInsightClient;
   relationshipId: string;
   viewerUserId?: string;
+  providers?: LlmProvider[];
 }): Promise<RelationshipInsight> {
   const participants = await loadRelationshipParticipants(input);
   const ordered = input.viewerUserId
@@ -267,52 +295,63 @@ CRITICAL INSTRUCTION: You MUST return ONLY valid JSON matching this exact struct
 IMPORTANT: The "citations" array MUST NOT be empty. It must contain at least one citation object with "person", "charts", "houses", and "planets" fields for EVERY factor in strengths, frictions, and timing_notes. The "houses" array MUST contain numbers only (e.g., [1, 5, 9]).
 Do not include any markdown formatting like \`\`\`json around the output, just the raw JSON object.`;
 
-  const { output: llmOutput } = await callWithFallback({
-    system: llmSystemPrompt,
-    messages: [
-      {
-        role: "user",
-        content: JSON.stringify(
-          {
-            base_charts: {
-              person_a: {
-                name: selfProfile.name,
-                summary: selfChart.snapshot.summary,
-              },
-              person_b: {
-                name: otherProfile.name,
-                summary: otherChart.snapshot.summary,
-              },
-            },
-            synastry: compatibility,
-          },
-          null,
-          2
-        ),
-      },
-    ],
-    schema: LlmInsightOutputSchema,
-    topic: "relationship",
-  });
+  const fallbackOutput = insightOutputFromCompatibility(compatibility);
+  let parsedLlmOutput: z.infer<typeof LlmInsightOutputSchema>;
 
-  // Pre-process LLM output to fix common enum mistakes for "person"
-  if (llmOutput && typeof llmOutput === "object") {
-    for (const category of ["strengths", "frictions", "timing_notes"]) {
-      const arr = (llmOutput as any)[category];
-      if (Array.isArray(arr)) {
-        for (const item of arr) {
-          if (Array.isArray(item.citations)) {
-            for (const cit of item.citations) {
-              if (cit.person === "A" || cit.person === "person_a") cit.person = "self";
-              if (cit.person === "B" || cit.person === "person_b") cit.person = "other";
+  try {
+    const { output: llmOutput } = await callWithFallback({
+      system: llmSystemPrompt,
+      messages: [
+        {
+          role: "user",
+          content: JSON.stringify(
+            {
+              base_charts: {
+                person_a: {
+                  name: selfProfile.name,
+                  summary: selfChart.snapshot.summary,
+                },
+                person_b: {
+                  name: otherProfile.name,
+                  summary: otherChart.snapshot.summary,
+                },
+              },
+              synastry: compatibility,
+            },
+            null,
+            2
+          ),
+        },
+      ],
+      schema: LlmInsightOutputSchema,
+      topic: "relationship",
+      providers: input.providers,
+    });
+
+    // Pre-process LLM output to fix common enum mistakes for "person"
+    if (llmOutput && typeof llmOutput === "object") {
+      for (const category of ["strengths", "frictions", "timing_notes"]) {
+        const arr = (llmOutput as any)[category];
+        if (Array.isArray(arr)) {
+          for (const item of arr) {
+            if (Array.isArray(item.citations)) {
+              for (const cit of item.citations) {
+                if (cit.person === "A" || cit.person === "person_a") cit.person = "self";
+                if (cit.person === "B" || cit.person === "person_b") cit.person = "other";
+              }
             }
           }
         }
       }
     }
-  }
 
-  const parsedLlmOutput = LlmInsightOutputSchema.parse(llmOutput);
+    parsedLlmOutput = LlmInsightOutputSchema.parse(llmOutput);
+  } catch (error) {
+    if (!fallbackOutput) {
+      throw error;
+    }
+    parsedLlmOutput = fallbackOutput;
+  }
 
   const createdAt = new Date().toISOString();
   // We expect python to return dimensional_scores now. Fallback to 0 if missing.

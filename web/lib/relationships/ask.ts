@@ -489,6 +489,7 @@ export async function generateRelationshipAnswer(input: {
     supabase: input.supabase,
     relationshipId: input.relationshipId,
     viewerUserId: input.userId,
+    providers: input.providers,
   });
   const [selfDate, otherDate] = await Promise.all([
     selectedDateContext({ profile: selfProfile, chart: selfChart, date: input.date }),

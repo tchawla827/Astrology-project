@@ -1,5 +1,13 @@
 import { DailyAspectSchema, DailyPredictionSchema, type DailyAspectScore, type DailyPrediction, type DailyScoreBreakdown } from "@/lib/schemas/daily";
 import {
+  addUtcDays,
+  assertValidIsoDate,
+  compareIsoDate,
+  startOfDayInTimezoneIso as sharedStartOfDayInTimezoneIso,
+  timeOnDateInTimezoneIso as sharedTimeOnDateInTimezoneIso,
+  todayInTimezone,
+} from "@/lib/date-utils";
+import {
   ChartSnapshotSchema,
   DerivedFeaturePayloadSchema,
   type ChartSnapshot,
@@ -207,9 +215,11 @@ function asDerivedRow(value: unknown): DerivedSnapshotRow | null {
 }
 
 function assertIsoDate(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(Date.parse(`${value}T00:00:00Z`))) {
-    throw new LlmContextError("Daily prediction date must be an ISO date in YYYY-MM-DD format.");
-  }
+  assertValidIsoDate(
+    value,
+    { format: "Daily prediction date must be an ISO date in YYYY-MM-DD format." },
+    (message) => new LlmContextError(message),
+  );
 }
 
 function plusYears(date: string, years: number) {
@@ -218,75 +228,26 @@ function plusYears(date: string, years: number) {
 }
 
 function plusDays(date: string, days: number) {
-  const next = new Date(`${date}T00:00:00Z`);
-  next.setUTCDate(next.getUTCDate() + days);
-  return next.toISOString().slice(0, 10);
-}
-
-function compareDate(a: string, b: string) {
-  return a.localeCompare(b);
-}
-
-function todayInTimezone(timezone: string) {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: timezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date());
-  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  return `${lookup.year}-${lookup.month}-${lookup.day}`;
-}
-
-function timezoneOffsetMs(instant: Date, timezone: string) {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: timezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(instant);
-  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  const asUtc = Date.UTC(
-    Number(lookup.year),
-    Number(lookup.month) - 1,
-    Number(lookup.day),
-    Number(lookup.hour),
-    Number(lookup.minute),
-    Number(lookup.second),
-  );
-  return asUtc - instant.getTime();
+  return addUtcDays(date, days);
 }
 
 export function startOfDayInTimezoneIso(date: string, timezone: string) {
-  assertIsoDate(date);
-  const [year, month, day] = date.split("-").map(Number);
-  const initial = new Date(Date.UTC(year ?? 0, (month ?? 1) - 1, day ?? 1, 0, 0, 0));
-  const firstGuess = new Date(initial.getTime() - timezoneOffsetMs(initial, timezone));
-  const secondGuess = new Date(initial.getTime() - timezoneOffsetMs(firstGuess, timezone));
-  return secondGuess.toISOString();
+  return sharedStartOfDayInTimezoneIso(
+    date,
+    timezone,
+    { format: "Daily prediction date must be an ISO date in YYYY-MM-DD format." },
+    (message) => new LlmContextError(message),
+  );
 }
 
 export function timeOnDateInTimezoneIso(date: string, time: string, timezone: string) {
-  assertIsoDate(date);
-  const match = /^(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(time);
-  if (!match) {
-    const parsed = Date.parse(time);
-    if (!Number.isNaN(parsed)) {
-      return new Date(parsed).toISOString();
-    }
-  }
-  const hour = Number(match?.[1] ?? "6");
-  const minute = Number(match?.[2] ?? "0");
-  const second = Number(match?.[3] ?? "0");
-  const [year, month, day] = date.split("-").map(Number);
-  const localAsUtc = new Date(Date.UTC(year ?? 0, (month ?? 1) - 1, day ?? 1, hour, minute, second));
-  const firstGuess = new Date(localAsUtc.getTime() - timezoneOffsetMs(localAsUtc, timezone));
-  const secondGuess = new Date(localAsUtc.getTime() - timezoneOffsetMs(firstGuess, timezone));
-  return secondGuess.toISOString();
+  return sharedTimeOnDateInTimezoneIso(
+    date,
+    time,
+    timezone,
+    { format: "Daily prediction date must be an ISO date in YYYY-MM-DD format." },
+    (message) => new LlmContextError(message),
+  );
 }
 
 function panchangValueName(value: Panchang["tithi"]) {
@@ -375,7 +336,7 @@ export function resolveDailyDate(dateParam: string, timezone: string) {
 
 function validateDateBounds(date: string, profile: BirthProfileRow) {
   const maxDate = plusYears(profile.birth_date, 120);
-  if (compareDate(date, profile.birth_date) < 0 || compareDate(date, maxDate) > 0) {
+  if (compareIsoDate(date, profile.birth_date) < 0 || compareIsoDate(date, maxDate) > 0) {
     throw new LlmContextError(`Daily prediction date must be between ${profile.birth_date} and ${maxDate}.`);
   }
 }

@@ -1,37 +1,20 @@
 import { DailyPredictionSchema, TransitSummarySchema, type DailyPrediction, type TransitSummary } from "@/lib/schemas";
 import type { DailyContextBundle } from "@/lib/server/generateDailyPrediction";
+import {
+  asComputedPayloadRow,
+  cacheErrorMessage,
+  roundedCacheCoordinate,
+  type ComputedPayloadRow,
+  type SupabaseCacheClient,
+} from "@/lib/cache/shared";
 
 const DAILY_SCHEMA_VERSION = "daily_v2_scoring_v5_structured_timing" as const;
 
-type DbError = { message: string } | Error;
-type QueryResult = PromiseLike<{ data: unknown; error: DbError | null }>;
-type MutationResult = PromiseLike<{ error: DbError | null }>;
-
-type SupabaseQuery = {
-  eq(column: string, value: string | number): SupabaseQuery;
-  gt(column: string, value: string): SupabaseQuery;
-  order(column: string, options: { ascending: boolean }): SupabaseQuery;
-  limit(count: number): SupabaseQuery;
-  maybeSingle(): QueryResult;
-};
-
-export type SupabaseDailyCacheClient = {
-  from(table: string): {
-    select(columns: string): SupabaseQuery;
-    upsert(payload: unknown, options?: { onConflict?: string }): MutationResult;
-  };
-};
-
-type DailyCacheRow = {
-  payload: unknown;
+type DailyCacheRow = ComputedPayloadRow & {
   render_payload?: unknown;
-  computed_at: string;
 };
 
-type TransitCacheRow = {
-  payload: unknown;
-  computed_at: string;
-};
+export type SupabaseDailyCacheClient = SupabaseCacheClient;
 
 export type DailyRenderCachePayload = {
   prediction: DailyPrediction;
@@ -39,28 +22,8 @@ export type DailyRenderCachePayload = {
   context: DailyContextBundle;
 };
 
-function asDailyCacheRow(value: unknown): DailyCacheRow | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-  const row = value as Partial<DailyCacheRow>;
-  return typeof row.computed_at === "string" ? (row as DailyCacheRow) : null;
-}
-
-function asTransitCacheRow(value: unknown): TransitCacheRow | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-  const row = value as Partial<TransitCacheRow>;
-  return typeof row.computed_at === "string" ? (row as TransitCacheRow) : null;
-}
-
-function toErrorMessage(error: DbError | null, fallback: string) {
-  return error?.message ?? fallback;
-}
-
 export function roundedCoordinate(value: number) {
-  return Number(value.toFixed(2));
+  return roundedCacheCoordinate(value);
 }
 
 export async function readDailyPredictionCache(input: {
@@ -79,10 +42,10 @@ export async function readDailyPredictionCache(input: {
     .maybeSingle();
 
   if (error) {
-    throw new Error(toErrorMessage(error, "Could not read daily prediction cache."));
+    throw new Error(cacheErrorMessage(error, "Could not read daily prediction cache."));
   }
 
-  const row = asDailyCacheRow(data);
+  const row = asComputedPayloadRow<DailyCacheRow>(data);
   if (!row) {
     return null;
   }
@@ -116,7 +79,7 @@ export async function writeDailyPredictionCache(input: {
   );
 
   if (error) {
-    throw new Error(toErrorMessage(error, "Could not write daily prediction cache."));
+    throw new Error(cacheErrorMessage(error, "Could not write daily prediction cache."));
   }
 }
 
@@ -167,10 +130,10 @@ export async function readTransitCache(input: {
     .maybeSingle();
 
   if (error) {
-    throw new Error(toErrorMessage(error, "Could not read transit cache."));
+    throw new Error(cacheErrorMessage(error, "Could not read transit cache."));
   }
 
-  const row = asTransitCacheRow(data);
+  const row = asComputedPayloadRow(data);
   if (!row) {
     return null;
   }
@@ -212,6 +175,6 @@ export async function writeTransitCache(input: {
   );
 
   if (error) {
-    throw new Error(toErrorMessage(error, "Could not write transit cache."));
+    throw new Error(cacheErrorMessage(error, "Could not write transit cache."));
   }
 }

@@ -1,22 +1,12 @@
 import { TimelineYearSchema, type TimelineYear } from "@/lib/schemas";
+import {
+  asComputedPayloadRow,
+  cacheErrorMessage,
+  roundedCacheCoordinate,
+  type SupabaseCacheClient,
+} from "@/lib/cache/shared";
 
-type DbError = { message: string } | Error;
-type QueryResult = PromiseLike<{ data: unknown; error: DbError | null }>;
-type MutationResult = PromiseLike<{ error: DbError | null }>;
-
-type SupabaseQuery = {
-  eq(column: string, value: string | number): SupabaseQuery;
-  order(column: string, options: { ascending: boolean }): SupabaseQuery;
-  limit(count: number): SupabaseQuery;
-  maybeSingle(): QueryResult;
-};
-
-export type SupabaseTimelineCacheClient = {
-  from(table: string): {
-    select(columns: string): SupabaseQuery;
-    upsert(payload: unknown, options?: { onConflict?: string }): MutationResult;
-  };
-};
+export type SupabaseTimelineCacheClient = SupabaseCacheClient;
 
 type TimelineCacheKey = {
   birth_profile_id: string;
@@ -29,25 +19,8 @@ type TimelineCacheKey = {
   longitude: number;
 };
 
-type TimelineCacheRow = {
-  payload: unknown;
-  computed_at: string;
-};
-
-function asTimelineCacheRow(value: unknown): TimelineCacheRow | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-  const row = value as Partial<TimelineCacheRow>;
-  return typeof row.computed_at === "string" ? (row as TimelineCacheRow) : null;
-}
-
-function toErrorMessage(error: DbError | null, fallback: string) {
-  return error?.message ?? fallback;
-}
-
 export function roundedTimelineCoordinate(value: number) {
-  return Number(value.toFixed(2));
+  return roundedCacheCoordinate(value);
 }
 
 export async function readTimelineYearCache(input: { supabase: SupabaseTimelineCacheClient } & TimelineCacheKey) {
@@ -67,10 +40,10 @@ export async function readTimelineYearCache(input: { supabase: SupabaseTimelineC
     .maybeSingle();
 
   if (error) {
-    throw new Error(toErrorMessage(error, "Could not read timeline cache."));
+    throw new Error(cacheErrorMessage(error, "Could not read timeline cache."));
   }
 
-  const row = asTimelineCacheRow(data);
+  const row = asComputedPayloadRow(data);
   if (!row) {
     return null;
   }
@@ -104,6 +77,6 @@ export async function writeTimelineYearCache(input: { supabase: SupabaseTimeline
   );
 
   if (error) {
-    throw new Error(toErrorMessage(error, "Could not write timeline cache."));
+    throw new Error(cacheErrorMessage(error, "Could not write timeline cache."));
   }
 }
