@@ -3,22 +3,22 @@
 @tailwind utilities;
 
 :root {
-  --background: 35 38% 5%;
-  --foreground: 43 54% 92%;
-  --card: 31 30% 9%;
+  --background: 174 22% 7%;
+  --foreground: 43 52% 93%;
+  --card: 188 22% 10%;
   --card-foreground: 43 50% 92%;
-  --primary: 42 83% 61%;
-  --primary-foreground: 34 44% 7%;
-  --secondary: 158 24% 22%;
+  --primary: 42 84% 62%;
+  --primary-foreground: 177 26% 7%;
+  --secondary: 169 38% 20%;
   --secondary-foreground: 43 50% 92%;
-  --muted: 33 22% 13%;
-  --muted-foreground: 42 20% 74%;
-  --accent: 8 73% 56%;
+  --muted: 185 18% 14%;
+  --muted-foreground: 45 21% 75%;
+  --accent: 7 76% 58%;
   --accent-foreground: 44 45% 94%;
   --destructive: 0 72% 51%;
   --destructive-foreground: 44 45% 94%;
-  --border: 38 32% 23%;
-  --input: 33 22% 17%;
+  --border: 43 25% 24%;
+  --input: 184 18% 16%;
   --ring: 42 83% 61%;
   --font-display: "Fraunces", "Iowan Old Style", "Georgia", serif;
 }
@@ -27,12 +27,40 @@
   border-color: hsl(var(--border));
 }
 
+input[type="date"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="time"],
+input[type="week"] {
+  color-scheme: dark;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="week"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(84%) sepia(54%) saturate(585%) hue-rotate(352deg) brightness(96%) contrast(91%);
+  opacity: 0.9;
+}
+
+input[type="date"]:disabled::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]:disabled::-webkit-calendar-picker-indicator,
+input[type="month"]:disabled::-webkit-calendar-picker-indicator,
+input[type="time"]:disabled::-webkit-calendar-picker-indicator,
+input[type="week"]:disabled::-webkit-calendar-picker-indicator {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 body {
   min-height: 100vh;
   background:
-    linear-gradient(180deg, rgba(25, 17, 9, 0.58), rgba(13, 9, 5, 0.96)),
-    repeating-linear-gradient(90deg, rgba(232, 181, 70, 0.045) 0 1px, transparent 1px 6rem),
-    repeating-linear-gradient(0deg, rgba(232, 181, 70, 0.035) 0 1px, transparent 1px 6rem),
+    linear-gradient(180deg, rgba(12, 26, 25, 0.84), rgba(8, 16, 16, 0.98)),
+    linear-gradient(125deg, rgba(222, 171, 82, 0.08), transparent 36%, rgba(54, 133, 121, 0.12)),
+    repeating-linear-gradient(90deg, rgba(232, 181, 70, 0.035) 0 1px, transparent 1px 6rem),
+    repeating-linear-gradient(0deg, rgba(122, 183, 172, 0.03) 0 1px, transparent 1px 6rem),
     hsl(var(--background));
   color: hsl(var(--foreground));
   text-rendering: optimizeLegibility;
@@ -54,8 +82,8 @@ html {
 
   .cosmic-surface {
     background:
-      linear-gradient(180deg, rgba(24, 16, 8, 0.55), rgba(12, 8, 4, 0.96)),
-      linear-gradient(110deg, rgba(12, 8, 4, 0.92), rgba(12, 8, 4, 0.38), rgba(12, 8, 4, 0.86)),
+      linear-gradient(180deg, rgba(12, 25, 24, 0.58), rgba(8, 15, 15, 0.96)),
+      linear-gradient(110deg, rgba(8, 16, 16, 0.94), rgba(21, 48, 44, 0.45), rgba(8, 16, 16, 0.88)),
       url("/bg.png");
     background-position: center;
     background-size: cover;
@@ -63,14 +91,14 @@ html {
 
   .cosmic-veil {
     background:
-      linear-gradient(180deg, rgba(13, 8, 4, 0.16), rgba(13, 8, 4, 0.94) 78%),
-      linear-gradient(90deg, rgba(13, 8, 4, 0.92), rgba(13, 8, 4, 0.42), rgba(13, 8, 4, 0.9));
+      linear-gradient(180deg, rgba(7, 15, 15, 0.12), rgba(7, 15, 15, 0.93) 78%),
+      linear-gradient(90deg, rgba(7, 15, 15, 0.93), rgba(20, 54, 49, 0.38), rgba(7, 15, 15, 0.9));
   }
 
   .cinematic-scene {
     background:
-      linear-gradient(180deg, rgba(20, 13, 6, 0.58), rgba(12, 8, 4, 0.98)),
-      repeating-linear-gradient(90deg, rgba(232, 181, 70, 0.04) 0 1px, transparent 1px 5.5rem),
+      linear-gradient(180deg, rgba(8, 20, 20, 0.68), rgba(7, 14, 14, 0.98)),
+      repeating-linear-gradient(90deg, rgba(232, 181, 70, 0.034) 0 1px, transparent 1px 5.5rem),
       url("/bg.png");
     background-position: center;
     background-size: cover;
@@ -82,8 +110,8 @@ html {
     border: 1px solid hsl(var(--primary) / 0.22);
     border-radius: 0.5rem;
     background:
-      linear-gradient(135deg, rgba(25, 17, 9, 0.52), rgba(14, 9, 5, 0.94)),
-      repeating-linear-gradient(90deg, rgba(232, 181, 70, 0.045) 0 1px, transparent 1px 4.5rem),
+      linear-gradient(135deg, rgba(15, 34, 32, 0.62), rgba(8, 16, 16, 0.94)),
+      repeating-linear-gradient(90deg, rgba(232, 181, 70, 0.04) 0 1px, transparent 1px 4.5rem),
       url("/bg.png");
     background-position: center;
     background-size: cover;
@@ -95,8 +123,8 @@ html {
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(180deg, rgba(13, 8, 4, 0.16), rgba(13, 8, 4, 0.9)),
-      linear-gradient(90deg, rgba(13, 8, 4, 0.88), rgba(13, 8, 4, 0.34), rgba(13, 8, 4, 0.88));
+      linear-gradient(180deg, rgba(7, 15, 15, 0.14), rgba(7, 15, 15, 0.9)),
+      linear-gradient(90deg, rgba(7, 15, 15, 0.9), rgba(29, 70, 62, 0.32), rgba(7, 15, 15, 0.88));
     pointer-events: none;
   }
 
@@ -116,9 +144,9 @@ html {
   .luxury-panel {
     border: 1px solid hsl(var(--primary) / 0.18);
     background:
-      linear-gradient(145deg, hsl(var(--card) / 0.94), hsl(156 22% 10% / 0.72)),
+      linear-gradient(145deg, hsl(var(--card) / 0.94), hsl(170 32% 12% / 0.72)),
       linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent),
-      repeating-linear-gradient(135deg, rgba(232, 181, 70, 0.035) 0 1px, transparent 1px 2.75rem);
+      repeating-linear-gradient(135deg, rgba(232, 181, 70, 0.03) 0 1px, transparent 1px 2.75rem);
     box-shadow: 0 24px 86px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(18px);
   }
@@ -127,7 +155,7 @@ html {
     border: 1px solid hsl(var(--primary) / 0.16);
     background:
       linear-gradient(180deg, hsl(var(--background) / 0.72), hsl(var(--card) / 0.84)),
-      repeating-linear-gradient(90deg, rgba(232, 181, 70, 0.035) 0 1px, transparent 1px 3rem);
+      repeating-linear-gradient(90deg, rgba(122, 183, 172, 0.035) 0 1px, transparent 1px 3rem);
     box-shadow: 0 18px 70px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(14px);
   }
@@ -137,7 +165,7 @@ html {
   }
 
   .text-glow {
-    text-shadow: 0 0 28px rgba(228, 174, 92, 0.2);
+    text-shadow: 0 0 28px rgba(228, 174, 92, 0.18);
   }
 
   .premium-rule {
@@ -146,9 +174,25 @@ html {
 
   .celestial-grid {
     background-image:
-      linear-gradient(rgba(234, 197, 138, 0.07) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(234, 197, 138, 0.07) 1px, transparent 1px);
+      linear-gradient(rgba(234, 197, 138, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(122, 183, 172, 0.055) 1px, transparent 1px);
     background-size: 4.5rem 4.5rem;
+  }
+
+  .workspace-band {
+    border: 1px solid hsl(var(--primary) / 0.14);
+    background:
+      linear-gradient(180deg, hsl(var(--card) / 0.74), hsl(var(--background) / 0.72)),
+      repeating-linear-gradient(90deg, rgba(232, 181, 70, 0.026) 0 1px, transparent 1px 4rem);
+    backdrop-filter: blur(14px);
+  }
+
+  .section-kicker {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: hsl(var(--primary));
   }
 }
 
